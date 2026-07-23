@@ -57,7 +57,6 @@ const CATALOG = {
     label: 'Health Potion Kit',
     emoji: '🧪',
     image: '/images/items/healthpotions.jpg',
-    note: 'Each kit includes an even mix of Potent, Alpha, Mythic, and Nightmare Health Potions.',
     tiers: [
       { id: 'healthkit_100', name: '100x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 950 },
       { id: 'healthkit_250', name: '250x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 1750 },
@@ -67,7 +66,7 @@ const CATALOG = {
   nightmareToken: {
     label: 'Nightmare Token',
     emoji: '💀',
-    image: null,
+    image: '/images/items/nightmare_token.jpg',
     note: 'Redeemable for any Nightmare Dino in the game.',
     tiers: [
       { id: 'nightmare_token', name: 'Nightmare Token', cost: 2000 },
@@ -76,7 +75,7 @@ const CATALOG = {
   originToken: {
     label: 'Origin Token',
     emoji: '🔮',
-    image: null,
+    image: '/images/items/origin_token.jpg',
     note: 'Redeemable for any Origin Dino in the game.',
     tiers: [
       { id: 'origin_token', name: 'Origin Token', cost: 1500 },
