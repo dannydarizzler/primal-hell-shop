@@ -2,7 +2,7 @@ const PAYPAL_API_BASE = process.env.PAYPAL_ENV === 'live'
   ? 'https://api-m.paypal.com'
   : 'https://api-m.sandbox.paypal.com';
 
-// PayPal Access Token holen (Client Credentials Flow)
+// Get PayPal access token (Client Credentials Flow)
 async function getAccessToken() {
   const auth = Buffer.from(
     `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
@@ -26,7 +26,7 @@ async function getAccessToken() {
   return data.access_token;
 }
 
-// Order bei PayPal erstellen (Betrag kommt IMMER vom Server, nie vom Client!)
+// Create the order with PayPal (amount ALWAYS comes from the server, never the client!)
 async function createOrder({ priceEur, description }) {
   const accessToken = await getAccessToken();
 
@@ -58,7 +58,7 @@ async function createOrder({ priceEur, description }) {
   return res.json();
 }
 
-// Order nach Bestätigung durch den Käufer erfassen (Geld wird hier tatsächlich eingezogen)
+// Capture the order after buyer approval (this is where the money is actually charged)
 async function captureOrder(orderId) {
   const accessToken = await getAccessToken();
 

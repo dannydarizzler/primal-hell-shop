@@ -159,7 +159,7 @@ async function loadPayPalSdk() {
 
   await new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=EUR`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=EUR&locale=en_US`;
     script.onload = resolve;
     script.onerror = reject;
     document.head.appendChild(script);
@@ -216,7 +216,7 @@ function renderPayPalButton(packageId) {
   if (!container) return;
 
   window.paypal.Buttons({
-    style: { layout: 'horizontal', color: 'black', shape: 'pill', label: 'pay', height: 40 },
+    style: { layout: 'horizontal', color: 'black', shape: 'pill', label: 'pay', height: 40, tagline: false },
 
     createOrder: async () => {
       const res = await fetch('/api/orders', {
