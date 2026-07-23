@@ -29,7 +29,29 @@ db.exec(`
   )
 `);
 
-// ── User accounts (Discord ID + password) ───────────────────────────────────────
+// ── Promo codes (e.g. "BONUS20" = +20% coins on top-up) ────────────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS promo_codes (
+    code TEXT PRIMARY KEY,
+    bonus_percent INTEGER NOT NULL,
+    expires_at TEXT,
+    max_uses INTEGER,
+    uses_count INTEGER NOT NULL DEFAULT 0,
+    created_by TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// ── Migration: purchases table needs to remember which promo (if any) applied ─
+{
+  const purchaseColumns = db.prepare(`PRAGMA table_info(purchases)`).all().map((c) => c.name);
+  if (!purchaseColumns.includes('promo_code')) {
+    db.exec(`ALTER TABLE purchases ADD COLUMN promo_code TEXT`);
+  }
+  if (!purchaseColumns.includes('bonus_percent')) {
+    db.exec(`ALTER TABLE purchases ADD COLUMN bonus_percent INTEGER NOT NULL DEFAULT 0`);
+  }
+}
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     discord_id TEXT PRIMARY KEY,
@@ -54,12 +76,12 @@ db.exec(`
 `);
 
 // ── Purchases ────────────────────────────────────────────────────────────────────
-function createPendingPurchase({ paypalOrderId, discordId, packageId, priceEur, coins }) {
+function createPendingPurchase({ paypalOrderId, discordId, packageId, priceEur, coins, promoCode, bonusPercent }) {
   const stmt = db.prepare(`
-    INSERT INTO purchases (paypal_order_id, discord_id, package_id, price_eur, coins, status)
-    VALUES (?, ?, ?, ?, ?, 'pending')
+    INSERT INTO purchases (paypal_order_id, discord_id, package_id, price_eur, coins, status, promo_code, bonus_percent)
+    VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)
   `);
-  stmt.run(paypalOrderId, discordId, packageId, priceEur, coins);
+  stmt.run(paypalOrderId, discordId, packageId, priceEur, coins, promoCode || null, bonusPercent || 0);
 }
 
 function markPurchaseCompleted(paypalOrderId) {
@@ -74,6 +96,9 @@ function markPurchaseCompleted(paypalOrderId) {
       INSERT INTO balances (discord_id, coins) VALUES (?, ?)
       ON CONFLICT(discord_id) DO UPDATE SET coins = coins + excluded.coins
     `).run(purchase.discord_id, purchase.coins);
+    if (purchase.promo_code) {
+      db.prepare(`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE code = ?`).run(purchase.promo_code);
+    }
     db.exec('COMMIT');
   } catch (err) {
     db.exec('ROLLBACK');
@@ -120,6 +145,41 @@ function getUnprocessedPurchases() {
 
 function markProcessedByBot(id) {
   db.prepare(`UPDATE purchases SET processed_by_bot = 1 WHERE id = ?`).run(id);
+}
+
+// ── Promo codes ──────────────────────────────────────────────────────────────────
+function createPromoCode(code, bonusPercent, expiresAt, maxUses, createdBy) {
+  const normalized = code.trim().toUpperCase();
+  db.prepare(`
+    INSERT INTO promo_codes (code, bonus_percent, expires_at, max_uses, created_by)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(normalized, bonusPercent, expiresAt || null, maxUses || null, createdBy || 'unknown');
+  return normalized;
+}
+
+function getPromoCode(code) {
+  return db.prepare(`SELECT * FROM promo_codes WHERE code = ?`).get(code.trim().toUpperCase());
+}
+
+/** Returns { valid: true, promo } or { valid: false, reason }. Never throws. */
+function validatePromoCode(code) {
+  const promo = getPromoCode(code);
+  if (!promo) return { valid: false, reason: 'This code does not exist.' };
+  if (promo.expires_at && new Date(promo.expires_at).getTime() < Date.now()) {
+    return { valid: false, reason: 'This code has expired.' };
+  }
+  if (promo.max_uses !== null && promo.uses_count >= promo.max_uses) {
+    return { valid: false, reason: 'This code has reached its usage limit.' };
+  }
+  return { valid: true, promo };
+}
+
+function incrementPromoUse(code) {
+  db.prepare(`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE code = ?`).run(code.trim().toUpperCase());
+}
+
+function getAllPromoCodes() {
+  return db.prepare(`SELECT * FROM promo_codes ORDER BY created_at DESC`).all();
 }
 
 // ── User accounts ────────────────────────────────────────────────────────────────
@@ -211,6 +271,11 @@ module.exports = {
   markProcessedByBot,
   createUser,
   getUser,
+  createPromoCode,
+  getPromoCode,
+  validatePromoCode,
+  incrementPromoUse,
+  getAllPromoCodes,
   logChestOpening,
   logShopPurchase,
   getChestHistory,

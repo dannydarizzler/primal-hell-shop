@@ -1,6 +1,7 @@
 // ── State ────────────────────────────────────────────────────────────────────
 let currentUser = null; // { discordId, coins } or null
 let paypalReady = false;
+let appliedPromo = null; // { code, bonusPercent } or null
 
 // ── Toast helper ─────────────────────────────────────────────────────────────
 function showToast(message, type = 'info') {
@@ -178,10 +179,22 @@ async function renderPackages() {
   packages.forEach((pkg) => {
     const card = document.createElement('div');
     card.className = 'package-card' + (pkg.id === 'premium' ? ' featured' : '');
-    const bonusHtml = pkg.bonusCoins > 0
-      ? `<span class="package-bonus">+${pkg.bonusCoins.toLocaleString('en-US')} Bonus</span>
-         <span class="package-total">${pkg.coins.toLocaleString('en-US')} Coins total</span>`
-      : '';
+
+    let bonusHtml = '';
+    if (appliedPromo) {
+      const promoBonus = Math.round(pkg.coins * (appliedPromo.bonusPercent / 100));
+      const newTotal = pkg.coins + promoBonus;
+      bonusHtml = `
+        <span class="package-bonus">+${pkg.bonusCoins.toLocaleString('en-US')} Bonus + ${appliedPromo.bonusPercent}% Promo</span>
+        <span class="package-total">${newTotal.toLocaleString('en-US')} Coins total</span>
+      `;
+    } else if (pkg.bonusCoins > 0) {
+      bonusHtml = `
+        <span class="package-bonus">+${pkg.bonusCoins.toLocaleString('en-US')} Bonus</span>
+        <span class="package-total">${pkg.coins.toLocaleString('en-US')} Coins total</span>
+      `;
+    }
+
     card.innerHTML = `
       ${pkg.id === 'premium' ? '<span class="package-badge">Popular</span>' : ''}
       <span class="package-label">${pkg.label}</span>
@@ -209,7 +222,7 @@ function renderPayPalButton(packageId) {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageId }),
+        body: JSON.stringify({ packageId, promoCode: appliedPromo?.code || null }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Order failed');
@@ -515,12 +528,51 @@ function setupGateButtons() {
   document.getElementById('catalogGateLoginBtn').addEventListener('click', () => openAuthModal('login'));
 }
 
+// ── Promo code ─────────────────────────────────────────────────────────────────
+function setupPromoBox() {
+  document.getElementById('promoApplyBtn').addEventListener('click', async () => {
+    const input = document.getElementById('promoInput');
+    const feedback = document.getElementById('promoFeedback');
+    const code = input.value.trim();
+
+    if (!code) {
+      feedback.textContent = 'Enter a code first.';
+      feedback.className = 'promo-feedback error';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/promo/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+
+      if (!data.valid) {
+        appliedPromo = null;
+        feedback.textContent = data.reason || 'Invalid code.';
+        feedback.className = 'promo-feedback error';
+      } else {
+        appliedPromo = { code: code.toUpperCase(), bonusPercent: data.bonusPercent };
+        feedback.textContent = `🎉 Code applied! +${data.bonusPercent}% bonus Coins on every package.`;
+        feedback.className = 'promo-feedback success';
+      }
+      renderPackages();
+    } catch {
+      feedback.textContent = 'Something went wrong. Please try again.';
+      feedback.className = 'promo-feedback error';
+    }
+  });
+}
+
 // ── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
   setupTabs();
   setupAuthModal();
   setupResultModal();
   setupGateButtons();
+  setupPromoBox();
 
   await refreshMe();
   await loadPayPalSdk();

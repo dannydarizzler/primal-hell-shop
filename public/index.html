@@ -80,6 +80,15 @@
       <button class="btn-primary" id="gateLoginBtn">Log In / Sign Up</button>
     </div>
 
+    <div class="promo-box">
+      <label for="promoInput">Have a promo code?</label>
+      <div class="promo-input-row">
+        <input type="text" id="promoInput" placeholder="e.g. BONUS20" />
+        <button class="btn-ghost" id="promoApplyBtn">Apply</button>
+      </div>
+      <p class="promo-feedback" id="promoFeedback"></p>
+    </div>
+
     <div class="packages" id="packages"></div>
   </section>
 
@@ -114,8 +123,8 @@
 
   <!-- ───────────────────────── MY ITEMS TAB ───────────────────────── -->
   <section class="tab-panel" id="tab-items">
-    <h2 class="section-title">🎒 My Items</h2>
-    <p class="section-sub">Items you've won from chests. Active items are still waiting to be delivered in-game — open a ticket on Discord if it's been a while. Redeemed items have already been handed out by a staff member.</p>
+    <h2 class="section-title"><img class="section-title-icon" src="/images/items/lootbag.jpg" alt="" /> My Items</h2>
+    <p class="section-sub">Items you have purchased or received from chests. Active items are still waiting to be delivered in-game — open a ticket on Discord if it's been a while. Redeemed items have already been handed out by a staff member.</p>
 
     <div id="itemsLoginGate" class="login-gate" style="display:none;">
       <p>Log in to see your items.</p>

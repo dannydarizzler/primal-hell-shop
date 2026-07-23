@@ -110,16 +110,38 @@ app.post('/api/catalog/:tierId/buy', auth.requireAuth, (req, res) => {
   });
 });
 
+// ── Promo code check (public preview — actual application happens server-side on order creation) ──
+app.post('/api/promo/validate', (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ valid: false, reason: 'No code provided.' });
+
+  const result = db.validatePromoCode(code);
+  if (!result.valid) return res.json({ valid: false, reason: result.reason });
+  res.json({ valid: true, bonusPercent: result.promo.bonus_percent });
+});
+
 // ── PayPal top-up (requires login — coins go to the logged-in account) ────────
 app.post('/api/orders', auth.requireAuth, async (req, res) => {
   try {
-    const { packageId } = req.body;
+    const { packageId, promoCode } = req.body;
     const pkg = PACKAGES[packageId];
     if (!pkg) return res.status(400).json({ error: 'Unknown package.' });
 
+    let finalCoins = pkg.coins;
+    let bonusPercent = 0;
+    let appliedPromoCode = null;
+
+    if (promoCode) {
+      const result = db.validatePromoCode(promoCode);
+      if (!result.valid) return res.status(400).json({ error: result.reason });
+      bonusPercent = result.promo.bonus_percent;
+      appliedPromoCode = result.promo.code;
+      finalCoins = Math.round(pkg.coins * (1 + bonusPercent / 100));
+    }
+
     const order = await paypal.createOrder({
       priceEur: pkg.priceEur,
-      description: `Primal Hell Coins - ${pkg.label} (${pkg.coins} Coins)`,
+      description: `Primal Hell Coins - ${pkg.label} (${finalCoins} Coins)`,
     });
 
     db.createPendingPurchase({
@@ -127,7 +149,9 @@ app.post('/api/orders', auth.requireAuth, async (req, res) => {
       discordId: req.user.discordId,
       packageId: pkg.id,
       priceEur: pkg.priceEur,
-      coins: pkg.coins,
+      coins: finalCoins,
+      promoCode: appliedPromoCode,
+      bonusPercent,
     });
 
     res.json({ id: order.id });
@@ -236,6 +260,32 @@ app.post('/api/admin/items/:itemId/redeem', requireBotSecret, (req, res) => {
   const item = db.redeemItem(req.params.itemId, adminDiscordId || 'unknown');
   if (!item) return res.status(404).json({ error: 'Item not found.' });
   res.json(item);
+});
+
+// ── Admin promo code management ───────────────────────────────────────────────
+app.post('/api/admin/promo', requireBotSecret, (req, res) => {
+  const { code, bonusPercent, expiresInHours, maxUses, createdBy } = req.body;
+
+  if (!code || !/^[A-Za-z0-9_-]{3,30}$/.test(code)) {
+    return res.status(400).json({ error: 'Code must be 3-30 letters/numbers (no spaces).' });
+  }
+  if (!bonusPercent || bonusPercent <= 0 || bonusPercent > 500) {
+    return res.status(400).json({ error: 'Bonus percent must be between 1 and 500.' });
+  }
+  if (db.getPromoCode(code)) {
+    return res.status(409).json({ error: 'A code with this name already exists.' });
+  }
+
+  const expiresAt = expiresInHours
+    ? new Date(Date.now() + expiresInHours * 60 * 60 * 1000).toISOString()
+    : null;
+
+  const normalized = db.createPromoCode(code, bonusPercent, expiresAt, maxUses || null, createdBy);
+  res.json({ code: normalized, bonusPercent, expiresAt, maxUses: maxUses || null });
+});
+
+app.get('/api/admin/promo', requireBotSecret, (req, res) => {
+  res.json(db.getAllPromoCodes());
 });
 
 const PORT = process.env.PORT || 3000;
