@@ -1,0 +1,19 @@
+{
+  "name": "primal-hell-shop",
+  "version": "1.0.0",
+  "description": "Primal Hell - Coin Shop mit PayPal Checkout",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "dotenv": "^16.4.5",
+    "cookie-parser": "^1.4.6"
+  }
+}

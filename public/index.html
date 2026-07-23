@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Primal Hell — Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+<div class="ember-field" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="brand">
+    <span class="brand-mark">⛧</span>
+    <span class="brand-name">PRIMAL HELL</span>
+    <span class="brand-sub">Shop</span>
+  </div>
+
+  <nav class="main-nav" id="mainNav">
+    <button class="nav-tab active" data-tab="home">Home</button>
+    <button class="nav-tab" data-tab="shop">Shop</button>
+    <button class="nav-tab" data-tab="chests">Chests</button>
+    <button class="nav-tab" data-tab="items">My Items</button>
+  </nav>
+
+  <div class="auth-area" id="authArea">
+    <!-- Filled in by script.js depending on login state -->
+  </div>
+</header>
+
+<main>
+
+  <!-- ───────────────────────── HOME TAB ───────────────────────── -->
+  <section class="tab-panel active" id="tab-home">
+    <div class="hero">
+      <h1>Top up. Open chests.<br><span class="hero-accent">Gear up for the Hell.</span></h1>
+      <p class="hero-sub">Buy Coins with PayPal, open Mystery Chests, and get real in-game items delivered to your Primal Hell account.</p>
+    </div>
+
+    <div class="how-it-works-grid">
+      <div class="how-card">
+        <span class="how-num">1</span>
+        <h3>Create your account</h3>
+        <p>Sign up with your Discord User ID and a password. This links your Shop account to your Discord identity.</p>
+      </div>
+      <div class="how-card">
+        <span class="how-num">2</span>
+        <h3>Top up Coins</h3>
+        <p>Pay with PayPal in the Shop tab. Coins are added to your account balance instantly after payment.</p>
+      </div>
+      <div class="how-card">
+        <span class="how-num">3</span>
+        <h3>Open Chests</h3>
+        <p>Spend Coins on Mystery Chests in the Chests tab for a random in-game item — Kibble, Breedpairs, Ascension and more.</p>
+      </div>
+    </div>
+
+    <div class="home-note">
+      <p><strong>Where do my items go?</strong> Items won from chests are logged to your account. A staff member fulfills them in-game shortly after — open a ticket on Discord if you don't see yours within a reasonable time.</p>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── SHOP TAB ───────────────────────── -->
+  <section class="tab-panel" id="tab-shop">
+
+    <div class="shop-section">
+      <h2 class="section-title">💰 Buy Coins</h2>
+      <p class="section-sub">Coins are added straight to your Shop account balance — no Discord command needed.</p>
+
+      <div id="loginGate" class="login-gate" style="display:none;">
+        <p>Log in or create an account to buy Coins.</p>
+        <button class="btn-primary" id="gateLoginBtn">Log In / Sign Up</button>
+      </div>
+
+      <div class="packages" id="packages"></div>
+    </div>
+
+    <div class="shop-section">
+      <h2 class="section-title">🛒 Buy Items Directly</h2>
+      <p class="section-sub">Guaranteed items at a fixed Coin price — no randomness. Open a Dono-request ticket on Discord if you don't receive your item in a reasonable time.</p>
+
+      <div id="catalogLoginGate" class="login-gate" style="display:none;">
+        <p>Log in or create an account to buy items.</p>
+        <button class="btn-primary" id="catalogGateLoginBtn">Log In / Sign Up</button>
+      </div>
+
+      <div class="catalog-categories" id="catalogCategories"></div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── CHESTS TAB ───────────────────────── -->
+  <section class="tab-panel" id="tab-chests">
+    <h2 class="section-title">📦 Mystery Chests</h2>
+    <p class="section-sub">Spend Coins for a chance at Breedpairs, Blueprints, Kibble, Ascension and more. Each chest guarantees exactly one item.</p>
+
+    <div id="chestLoginGate" class="login-gate" style="display:none;">
+      <p>Log in or create an account to open chests.</p>
+      <button class="btn-primary" id="chestGateLoginBtn">Log In / Sign Up</button>
+    </div>
+
+    <div class="chests-grid" id="chestsGrid"></div>
+  </section>
+
+  <!-- ───────────────────────── MY ITEMS TAB ───────────────────────── -->
+  <section class="tab-panel" id="tab-items">
+    <h2 class="section-title">🎒 My Items</h2>
+    <p class="section-sub">Items you've won from chests. Active items are still waiting to be delivered in-game — open a ticket on Discord if it's been a while. Redeemed items have already been handed out by a staff member.</p>
+
+    <div id="itemsLoginGate" class="login-gate" style="display:none;">
+      <p>Log in to see your items.</p>
+      <button class="btn-primary" id="itemsGateLoginBtn">Log In / Sign Up</button>
+    </div>
+
+    <div class="items-list" id="itemsList"></div>
+    <p class="items-empty" id="itemsEmpty" style="display:none;">You haven't opened any chests yet — check the Chests tab!</p>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Primal Hell — ARK: Survival Ascended Community Server</p>
+</footer>
+
+<!-- ───────────────────────── AUTH MODAL ───────────────────────── -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="authModalClose" aria-label="Close">✕</button>
+
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-authtab="login">Log In</button>
+      <button class="modal-tab" data-authtab="register">Sign Up</button>
+    </div>
+
+    <form id="loginForm" class="auth-form active">
+      <label for="loginDiscordId">Discord User ID</label>
+      <input type="text" id="loginDiscordId" placeholder="e.g. 123456789012345678" inputmode="numeric" required />
+
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" required />
+
+      <button type="submit" class="btn-primary">Log In</button>
+      <p class="form-error" id="loginError"></p>
+    </form>
+
+    <form id="registerForm" class="auth-form">
+      <label for="registerDiscordId">Discord User ID</label>
+      <input type="text" id="registerDiscordId" placeholder="e.g. 123456789012345678" inputmode="numeric" required />
+      <p class="hint">Right-click your name in Discord → "Copy User ID". Enable Developer Mode in Discord Settings → Advanced if you don't see this option.</p>
+
+      <label for="registerPassword">Password</label>
+      <input type="password" id="registerPassword" placeholder="At least 8 characters" required />
+
+      <button type="submit" class="btn-primary">Create Account</button>
+      <p class="form-error" id="registerError"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ───────────────────────── CHEST OPENING OVERLAY ───────────────────────── -->
+<div class="modal-overlay" id="openingOverlay">
+  <div class="opening-stage">
+    <div class="opening-flash" id="openingFlash"></div>
+    <div class="opening-rays" id="openingRays"></div>
+    <img id="openingChestImg" class="opening-chest-img" src="" alt="" />
+    <div class="opening-particles" id="openingParticles"></div>
+  </div>
+</div>
+
+<!-- ───────────────────────── CHEST RESULT MODAL ───────────────────────── -->
+<div class="modal-overlay" id="resultModal">
+  <div class="modal result-modal">
+    <button class="modal-close" id="resultModalClose" aria-label="Close">✕</button>
+    <p class="result-label">You received</p>
+    <div class="result-emoji" id="resultEmoji">🎁</div>
+    <h3 class="result-name" id="resultName"></h3>
+    <p class="result-note">A staff member will fulfill this in-game shortly. Open a ticket on Discord if needed.</p>
+    <button class="btn-primary" id="resultCloseBtn">Nice!</button>
+  </div>
+</div>
+
+<script src="https://www.paypal.com/sdk/js?client-id=PLACEHOLDER&currency=EUR" id="paypal-sdk"></script>
+<script src="/script.js"></script>
+</body>
+</html>
