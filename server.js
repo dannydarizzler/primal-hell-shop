@@ -110,14 +110,37 @@ app.post('/api/catalog/:tierId/buy', auth.requireAuth, (req, res) => {
   });
 });
 
-// ── Promo code check (public preview — actual application happens server-side on order creation) ──
+// ── Promo code check (public preview — actual application happens server-side) ──
 app.post('/api/promo/validate', (req, res) => {
   const { code } = req.body;
   if (!code) return res.status(400).json({ valid: false, reason: 'No code provided.' });
 
   const result = db.validatePromoCode(code);
   if (!result.valid) return res.json({ valid: false, reason: result.reason });
-  res.json({ valid: true, bonusPercent: result.promo.bonus_percent });
+  res.json({
+    valid: true,
+    type: result.promo.type,
+    bonusPercent: result.promo.bonus_percent,
+    rewardCoins: result.promo.reward_coins,
+  });
+});
+
+// ── Redeem a flat-reward code directly (no purchase needed) ───────────────────
+app.post('/api/promo/redeem', auth.requireAuth, (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'No code provided.' });
+
+  const result = db.validatePromoCode(code);
+  if (!result.valid) return res.status(400).json({ error: result.reason });
+  if (result.promo.type !== 'reward') {
+    return res.status(400).json({ error: 'This code is a top-up bonus — enter it while buying Coins instead.' });
+  }
+  if (db.hasUserRedeemed(result.promo.code, req.user.discordId)) {
+    return res.status(400).json({ error: "You've already redeemed this code." });
+  }
+
+  const newBalance = db.redeemPromoForUser(result.promo.code, req.user.discordId, result.promo.reward_coins);
+  res.json({ coins: result.promo.reward_coins, newBalance });
 });
 
 // ── PayPal top-up (requires login — coins go to the logged-in account) ────────
@@ -134,6 +157,9 @@ app.post('/api/orders', auth.requireAuth, async (req, res) => {
     if (promoCode) {
       const result = db.validatePromoCode(promoCode);
       if (!result.valid) return res.status(400).json({ error: result.reason });
+      if (result.promo.type !== 'bonus') {
+        return res.status(400).json({ error: 'This code is a direct Coin reward — redeem it instead of applying it to a top-up.' });
+      }
       bonusPercent = result.promo.bonus_percent;
       appliedPromoCode = result.promo.code;
       finalCoins = Math.round(pkg.coins * (1 + bonusPercent / 100));
@@ -264,24 +290,40 @@ app.post('/api/admin/items/:itemId/redeem', requireBotSecret, (req, res) => {
 
 // ── Admin promo code management ───────────────────────────────────────────────
 app.post('/api/admin/promo', requireBotSecret, (req, res) => {
-  const { code, bonusPercent, expiresInHours, maxUses, createdBy } = req.body;
+  const { code, type, bonusPercent, rewardCoins, expiresInHours, maxUses, createdBy } = req.body;
 
   if (!code || !/^[A-Za-z0-9_-]{3,30}$/.test(code)) {
     return res.status(400).json({ error: 'Code can only contain letters, numbers, "-" or "_" (no spaces or symbols like "!"). Try something like NEWSHOP20.' });
   }
-  if (!bonusPercent || bonusPercent <= 0 || bonusPercent > 500) {
-    return res.status(400).json({ error: 'Bonus percent must be between 1 and 500.' });
+  if (type !== 'bonus' && type !== 'reward') {
+    return res.status(400).json({ error: 'Type must be "bonus" or "reward".' });
   }
   if (db.getPromoCode(code)) {
     return res.status(409).json({ error: 'A code with this name already exists.' });
+  }
+
+  if (type === 'bonus') {
+    if (!bonusPercent || bonusPercent <= 0 || bonusPercent > 500) {
+      return res.status(400).json({ error: 'Bonus percent must be between 1 and 500.' });
+    }
+  } else {
+    if (!rewardCoins || rewardCoins <= 0 || rewardCoins > 1000000) {
+      return res.status(400).json({ error: 'Reward coins must be between 1 and 1,000,000.' });
+    }
   }
 
   const expiresAt = expiresInHours
     ? new Date(Date.now() + expiresInHours * 60 * 60 * 1000).toISOString()
     : null;
 
-  const normalized = db.createPromoCode(code, bonusPercent, expiresAt, maxUses || null, createdBy);
-  res.json({ code: normalized, bonusPercent, expiresAt, maxUses: maxUses || null });
+  const normalized = db.createPromoCode({
+    code, type,
+    bonusPercent: type === 'bonus' ? bonusPercent : null,
+    rewardCoins: type === 'reward' ? rewardCoins : null,
+    expiresAt, maxUses: maxUses || null, createdBy,
+  });
+
+  res.json({ code: normalized, type, bonusPercent, rewardCoins, expiresAt, maxUses: maxUses || null });
 });
 
 app.get('/api/admin/promo', requireBotSecret, (req, res) => {

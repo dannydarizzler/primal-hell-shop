@@ -29,11 +29,14 @@ db.exec(`
   )
 `);
 
-// ── Promo codes (e.g. "BONUS20" = +20% coins on top-up) ────────────────────────
+// ── Promo codes (two types: "bonus" = % extra on top-up, "reward" = flat Coins
+// redeemable directly without any purchase) ─────────────────────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS promo_codes (
     code TEXT PRIMARY KEY,
-    bonus_percent INTEGER NOT NULL,
+    type TEXT NOT NULL DEFAULT 'bonus',
+    bonus_percent INTEGER,
+    reward_coins INTEGER,
     expires_at TEXT,
     max_uses INTEGER,
     uses_count INTEGER NOT NULL DEFAULT 0,
@@ -41,6 +44,27 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+// ── Tracks which users already redeemed a "reward" code (one redemption per user) ──
+db.exec(`
+  CREATE TABLE IF NOT EXISTS promo_redemptions (
+    code TEXT NOT NULL,
+    discord_id TEXT NOT NULL,
+    redeemed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (code, discord_id)
+  )
+`);
+
+// ── Migration: promo_codes may already exist without the new columns ──────────
+{
+  const promoColumns = db.prepare(`PRAGMA table_info(promo_codes)`).all().map((c) => c.name);
+  if (!promoColumns.includes('type')) {
+    db.exec(`ALTER TABLE promo_codes ADD COLUMN type TEXT NOT NULL DEFAULT 'bonus'`);
+  }
+  if (!promoColumns.includes('reward_coins')) {
+    db.exec(`ALTER TABLE promo_codes ADD COLUMN reward_coins INTEGER`);
+  }
+}
 
 // ── Migration: purchases table needs to remember which promo (if any) applied ─
 {
@@ -148,12 +172,12 @@ function markProcessedByBot(id) {
 }
 
 // ── Promo codes ──────────────────────────────────────────────────────────────────
-function createPromoCode(code, bonusPercent, expiresAt, maxUses, createdBy) {
+function createPromoCode({ code, type, bonusPercent, rewardCoins, expiresAt, maxUses, createdBy }) {
   const normalized = code.trim().toUpperCase();
   db.prepare(`
-    INSERT INTO promo_codes (code, bonus_percent, expires_at, max_uses, created_by)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(normalized, bonusPercent, expiresAt || null, maxUses || null, createdBy || 'unknown');
+    INSERT INTO promo_codes (code, type, bonus_percent, reward_coins, expires_at, max_uses, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(normalized, type, bonusPercent || null, rewardCoins || null, expiresAt || null, maxUses || null, createdBy || 'unknown');
   return normalized;
 }
 
@@ -180,6 +204,33 @@ function incrementPromoUse(code) {
 
 function getAllPromoCodes() {
   return db.prepare(`SELECT * FROM promo_codes ORDER BY created_at DESC`).all();
+}
+
+function hasUserRedeemed(code, discordId) {
+  const row = db.prepare(`SELECT 1 FROM promo_redemptions WHERE code = ? AND discord_id = ?`).get(code.trim().toUpperCase(), discordId);
+  return !!row;
+}
+
+/** Redeems a flat-reward code for a user: credits coins, records the redemption,
+ * and bumps the usage counter — all atomically. Returns the new balance. */
+function redeemPromoForUser(code, discordId, rewardCoins) {
+  const normalized = code.trim().toUpperCase();
+  let newBalance;
+  db.exec('BEGIN');
+  try {
+    db.prepare(`INSERT INTO promo_redemptions (code, discord_id) VALUES (?, ?)`).run(normalized, discordId);
+    db.prepare(`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE code = ?`).run(normalized);
+    db.prepare(`
+      INSERT INTO balances (discord_id, coins) VALUES (?, ?)
+      ON CONFLICT(discord_id) DO UPDATE SET coins = coins + excluded.coins
+    `).run(discordId, rewardCoins);
+    db.exec('COMMIT');
+    newBalance = getBalance(discordId);
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+  return newBalance;
 }
 
 // ── User accounts ────────────────────────────────────────────────────────────────
@@ -276,6 +327,8 @@ module.exports = {
   validatePromoCode,
   incrementPromoUse,
   getAllPromoCodes,
+  hasUserRedeemed,
+  redeemPromoForUser,
   logChestOpening,
   logShopPurchase,
   getChestHistory,

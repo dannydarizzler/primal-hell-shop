@@ -465,11 +465,13 @@ async function renderCatalog() {
     const headerIcon = category.image
       ? `<img class="catalog-category-thumb" src="${category.image}" alt="" />`
       : `<span class="catalog-category-emoji">${category.emoji}</span>`;
+    const noteHtml = category.note ? `<p class="catalog-category-note">ℹ️ ${category.note}</p>` : '';
     section.innerHTML = `
       <div class="catalog-category-header">
         ${headerIcon}
         <h3 class="catalog-category-label">${category.label}</h3>
       </div>
+      ${noteHtml}
       <div class="catalog-tiers">
         ${category.tiers.map((tier) => `
           <div class="catalog-tier">
@@ -527,11 +529,17 @@ function setupGateButtons() {
 }
 
 // ── Promo code ─────────────────────────────────────────────────────────────────
+let checkedRewardCode = null; // { code, rewardCoins } — set after a valid "reward" code is checked
+
 function setupPromoBox() {
   document.getElementById('promoApplyBtn').addEventListener('click', async () => {
     const input = document.getElementById('promoInput');
     const feedback = document.getElementById('promoFeedback');
+    const redeemBtn = document.getElementById('promoRedeemBtn');
     const code = input.value.trim();
+
+    redeemBtn.style.display = 'none';
+    checkedRewardCode = null;
 
     if (!code) {
       feedback.textContent = 'Enter a code first.';
@@ -551,15 +559,65 @@ function setupPromoBox() {
         appliedPromo = null;
         feedback.textContent = data.reason || 'Invalid code.';
         feedback.className = 'promo-feedback error';
+        renderPackages();
+        return;
+      }
+
+      if (data.type === 'reward') {
+        appliedPromo = null;
+        checkedRewardCode = { code: code.toUpperCase(), rewardCoins: data.rewardCoins };
+        feedback.textContent = `🎁 This code grants ${data.rewardCoins.toLocaleString('en-US')} Primal Coins directly — no purchase needed.`;
+        feedback.className = 'promo-feedback success';
+        redeemBtn.style.display = 'inline-block';
+        renderPackages();
       } else {
         appliedPromo = { code: code.toUpperCase(), bonusPercent: data.bonusPercent };
         feedback.textContent = `🎉 Code applied! +${data.bonusPercent}% bonus Primal Coins on every package.`;
         feedback.className = 'promo-feedback success';
+        renderPackages();
       }
-      renderPackages();
     } catch {
       feedback.textContent = 'Something went wrong. Please try again.';
       feedback.className = 'promo-feedback error';
+    }
+  });
+
+  document.getElementById('promoRedeemBtn').addEventListener('click', async () => {
+    if (!currentUser) { openAuthModal('login'); return; }
+    if (!checkedRewardCode) return;
+
+    const feedback = document.getElementById('promoFeedback');
+    const redeemBtn = document.getElementById('promoRedeemBtn');
+    redeemBtn.disabled = true;
+    redeemBtn.textContent = 'Redeeming…';
+
+    try {
+      const res = await fetch('/api/promo/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: checkedRewardCode.code }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        feedback.textContent = data.error || 'Could not redeem this code.';
+        feedback.className = 'promo-feedback error';
+        return;
+      }
+
+      currentUser.coins = data.newBalance;
+      renderAuthArea();
+      feedback.textContent = `✅ ${data.coins.toLocaleString('en-US')} Primal Coins added to your balance!`;
+      feedback.className = 'promo-feedback success';
+      redeemBtn.style.display = 'none';
+      checkedRewardCode = null;
+      document.getElementById('promoInput').value = '';
+    } catch {
+      feedback.textContent = 'Something went wrong. Please try again.';
+      feedback.className = 'promo-feedback error';
+    } finally {
+      redeemBtn.disabled = false;
+      redeemBtn.textContent = 'Redeem Now';
     }
   });
 }

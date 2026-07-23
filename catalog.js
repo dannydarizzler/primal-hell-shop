@@ -5,6 +5,7 @@ const CATALOG = {
     label: 'Kibble Set',
     emoji: '🍖',
     image: '/images/items/kibble.jpg',
+    note: 'Chaos & Spirit Kibble count as 5 — a 100x set yields 20 Chaos/Spirit Kibble. Demonic & Angelic Kibble count as 2 — a 100x set yields 50 Demonic/Angelic Kibble.',
     tiers: [
       { id: 'kibble_100', name: '100x Kibble Set', cost: 950 },
       { id: 'kibble_250', name: '250x Kibble Set', cost: 1750 },
@@ -25,6 +26,7 @@ const CATALOG = {
     label: 'Breedpairs',
     emoji: '🥚',
     image: '/images/items/breedpairs.jpg',
+    note: 'The dino must be breedable and tameable.',
     tiers: [
       { id: 'breedpairs_2', name: '2 Breedpairs', cost: 800 },
       { id: 'breedpairs_4', name: '4 Breedpairs', cost: 1450 },
@@ -49,6 +51,35 @@ const CATALOG = {
       { id: 'dedi_2', name: '2 Dedicated Storage Boxes of choice', cost: 1100 },
       { id: 'dedi_4', name: '4 Dedicated Storage Boxes of choice', cost: 2100 },
       { id: 'dedi_7', name: '7 Dedicated Storage Boxes of choice', cost: 3000 },
+    ],
+  },
+  healthkit: {
+    label: 'Health Potion Kit',
+    emoji: '🧪',
+    image: '/images/items/healthpotions.jpg',
+    note: 'Each kit includes an even mix of Potent, Alpha, Mythic, and Nightmare Health Potions.',
+    tiers: [
+      { id: 'healthkit_100', name: '100x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 950 },
+      { id: 'healthkit_250', name: '250x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 1750 },
+      { id: 'healthkit_500', name: '500x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 2550 },
+    ],
+  },
+  nightmareToken: {
+    label: 'Nightmare Token',
+    emoji: '💀',
+    image: null,
+    note: 'Redeemable for any Nightmare Dino in the game.',
+    tiers: [
+      { id: 'nightmare_token', name: 'Nightmare Token', cost: 2000 },
+    ],
+  },
+  originToken: {
+    label: 'Origin Token',
+    emoji: '🔮',
+    image: null,
+    note: 'Redeemable for any Origin Dino in the game.',
+    tiers: [
+      { id: 'origin_token', name: 'Origin Token', cost: 1500 },
     ],
   },
   ascension: {

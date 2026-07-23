@@ -90,7 +90,7 @@ body {
   font-size: 1.3rem;
   color: #fff;
 }
-.brand-sub { color: var(--ash-dim); font-size: 0.95rem; }
+.brand-sub { color: #fff; font-weight: 700; font-size: 0.95rem; }
 
 .main-nav { display: flex; gap: 0.5rem; margin-left: 1.5rem; flex-shrink: 0; }
 .nav-tab {
@@ -368,6 +368,16 @@ main {
 }
 .catalog-category-emoji { font-size: 1.4rem; }
 .catalog-category-label { font-family: 'Oswald', sans-serif; color: #fff; font-size: 1.05rem; margin: 0; }
+.catalog-category-note {
+  font-size: 0.8rem;
+  color: var(--ash-dim);
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 2px solid rgba(255, 90, 31, 0.4);
+  padding: 0.5rem 0.8rem;
+  margin: 0 0 1rem;
+  border-radius: 4px;
+  line-height: 1.5;
+}
 
 .catalog-tiers {
   display: grid;
@@ -389,14 +399,22 @@ main {
 
 /* ── Chests (flip cards) ────────────────────────────────────────────────── */
 .chests-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  display: flex;
   gap: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.75rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
 }
+.chests-grid::-webkit-scrollbar { height: 8px; }
+.chests-grid::-webkit-scrollbar-thumb { background: rgba(255, 90, 31, 0.3); border-radius: 999px; }
+.chests-grid::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); }
 
 .chest-card-flip {
   perspective: 1200px;
   min-height: 420px;
+  flex: 0 0 260px;
+  scroll-snap-align: start;
 }
 .chest-card-inner {
   position: relative;
@@ -422,6 +440,8 @@ main {
 .chest-face.gold { border-color: rgba(242, 166, 90, 0.3); }
 .chest-face.purple { border-color: rgba(163, 95, 232, 0.3); }
 .chest-face.red { border-color: rgba(255, 60, 40, 0.35); }
+.chest-face.origin { border-color: rgba(255, 200, 60, 0.4); }
+.chest-face.nightmare { border-color: rgba(200, 20, 20, 0.45); }
 
 .chest-face-back {
   transform: rotateY(180deg);
@@ -454,6 +474,8 @@ main {
 .chest-face.gold .chest-cost { color: var(--ember); }
 .chest-face.purple .chest-cost { color: var(--purple); }
 .chest-face.red .chest-cost { color: var(--lava); }
+.chest-face.origin .chest-cost { color: #ffc83c; }
+.chest-face.nightmare .chest-cost { color: #ff3c3c; }
 .chest-open-btn { margin-top: auto; }
 
 .chest-back-title { font-family: 'Oswald', sans-serif; color: #fff; font-size: 1.05rem; margin: 0 0 0.9rem; }
