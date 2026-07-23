@@ -25,7 +25,7 @@ const CHESTS = {
   tier1: {
     id: 'tier1',
     label: 'Tier 1 Chest',
-    cost: 900,
+    cost: 800,
     image: '/images/chest-tier1.jpg',
     color: 'gold',
     pool: [
@@ -56,7 +56,7 @@ const CHESTS = {
   tier3: {
     id: 'tier3',
     label: 'Tier 3 Chest',
-    cost: 2500,
+    cost: 2400,
     image: '/images/chest-tier3.jpg',
     color: 'red',
     pool: [

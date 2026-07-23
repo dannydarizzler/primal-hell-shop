@@ -7,9 +7,9 @@ const CATALOG = {
     image: '/images/items/kibble.jpg',
     note: 'Chaos & Spirit Kibble count as 5 — a 100x set yields 20 Chaos/Spirit Kibble. Demonic & Angelic Kibble count as 2 — a 100x set yields 50 Demonic/Angelic Kibble.',
     tiers: [
-      { id: 'kibble_100', name: '100x Kibble Set', cost: 950 },
-      { id: 'kibble_250', name: '250x Kibble Set', cost: 1750 },
-      { id: 'kibble_500', name: '500x Kibble Set', cost: 2550 },
+      { id: 'kibble_100', name: '100x Kibble Set', cost: 1000 },
+      { id: 'kibble_250', name: '250x Kibble Set', cost: 1800 },
+      { id: 'kibble_500', name: '500x Kibble Set', cost: 2600 },
     ],
   },
   basekit: {
@@ -17,9 +17,9 @@ const CATALOG = {
     emoji: '⚡',
     image: '/images/items/basekit.jpg',
     tiers: [
-      { id: 'basekit_100', name: '100x Foundation/Wall/Ceiling + 1x Tek Generator + 100x Element', cost: 1100 },
-      { id: 'basekit_200', name: '200x Foundation/Wall/Ceiling + 1x Tek Generator + 200x Element', cost: 1450 },
-      { id: 'basekit_500', name: '500x Foundation/Wall/Ceiling + 1x Tek Generator + 500x Element', cost: 4000 },
+      { id: 'basekit_100', name: '100x Foundation/Wall/Ceiling + 1x Tek Generator + 100x Element', cost: 1000 },
+      { id: 'basekit_200', name: '200x Foundation/Wall/Ceiling + 1x Tek Generator + 200x Element', cost: 1800 },
+      { id: 'basekit_500', name: '500x Foundation/Wall/Ceiling + 1x Tek Generator + 500x Element', cost: 2600 },
     ],
   },
   breedpairs: {
@@ -28,9 +28,9 @@ const CATALOG = {
     image: '/images/items/breedpairs.jpg',
     note: 'The dino must be breedable and tameable.',
     tiers: [
-      { id: 'breedpairs_2', name: '2 Breedpairs', cost: 800 },
-      { id: 'breedpairs_4', name: '4 Breedpairs', cost: 1450 },
-      { id: 'breedpairs_8', name: '8 Breedpairs', cost: 1900 },
+      { id: 'breedpairs_2', name: '2 Breedpairs', cost: 900 },
+      { id: 'breedpairs_4', name: '4 Breedpairs', cost: 1600 },
+      { id: 'breedpairs_8', name: '8 Breedpairs', cost: 2300 },
     ],
   },
   bpset: {
@@ -39,8 +39,8 @@ const CATALOG = {
     image: '/images/items/bpset.jpg',
     tiers: [
       { id: 'bpset_5', name: '5 Blueprints of choice', cost: 800 },
-      { id: 'bpset_10', name: '10 Blueprints of choice', cost: 1450 },
-      { id: 'bpset_15', name: '15 Blueprints of choice', cost: 2100 },
+      { id: 'bpset_10', name: '10 Blueprints of choice', cost: 1400 },
+      { id: 'bpset_15', name: '15 Blueprints of choice', cost: 2000 },
     ],
   },
   dedi: {
@@ -50,8 +50,8 @@ const CATALOG = {
     note: 'Only vanilla resources can be purchased — no Chaos items or Element/Element Shards.',
     tiers: [
       { id: 'dedi_2', name: '2 Dedicated Storage Boxes of choice', cost: 1100 },
-      { id: 'dedi_4', name: '4 Dedicated Storage Boxes of choice', cost: 2100 },
-      { id: 'dedi_7', name: '7 Dedicated Storage Boxes of choice', cost: 3000 },
+      { id: 'dedi_4', name: '4 Dedicated Storage Boxes of choice', cost: 2000 },
+      { id: 'dedi_7', name: '7 Dedicated Storage Boxes of choice', cost: 2900 },
     ],
   },
   healthkit: {
@@ -59,9 +59,9 @@ const CATALOG = {
     emoji: '🧪',
     image: '/images/items/healthpotions.jpg',
     tiers: [
-      { id: 'healthkit_100', name: '100x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 950 },
-      { id: 'healthkit_250', name: '250x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 1750 },
-      { id: 'healthkit_500', name: '500x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 2550 },
+      { id: 'healthkit_100', name: '100x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 700 },
+      { id: 'healthkit_250', name: '250x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 1200 },
+      { id: 'healthkit_500', name: '500x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 1700 },
     ],
   },
   nightmareToken: {
