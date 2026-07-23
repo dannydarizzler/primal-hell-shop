@@ -267,7 +267,7 @@ app.post('/api/admin/promo', requireBotSecret, (req, res) => {
   const { code, bonusPercent, expiresInHours, maxUses, createdBy } = req.body;
 
   if (!code || !/^[A-Za-z0-9_-]{3,30}$/.test(code)) {
-    return res.status(400).json({ error: 'Code must be 3-30 letters/numbers (no spaces).' });
+    return res.status(400).json({ error: 'Code can only contain letters, numbers, "-" or "_" (no spaces or symbols like "!"). Try something like NEWSHOP20.' });
   }
   if (!bonusPercent || bonusPercent <= 0 || bonusPercent > 500) {
     return res.status(400).json({ error: 'Bonus percent must be between 1 and 500.' });

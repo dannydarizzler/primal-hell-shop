@@ -123,7 +123,7 @@ function renderAuthArea() {
   const el = document.getElementById('authArea');
   if (currentUser) {
     el.innerHTML = `
-      <span class="auth-balance" id="balanceBtn" title="Buy more Coins">💰 ${currentUser.coins.toLocaleString('en-US')}</span>
+      <span class="auth-balance" id="balanceBtn" title="Buy more Primal Coins">💰 ${currentUser.coins.toLocaleString('en-US')} <img class="coin-icon" src="/images/logo.jpg" alt="Primal Coins" /></span>
       <span class="auth-id">${currentUser.discordId}</span>
       <button class="btn-ghost" id="logoutBtn">Log Out</button>
     `;
@@ -186,19 +186,19 @@ async function renderPackages() {
       const newTotal = pkg.coins + promoBonus;
       bonusHtml = `
         <span class="package-bonus">+${pkg.bonusCoins.toLocaleString('en-US')} Bonus + ${appliedPromo.bonusPercent}% Promo</span>
-        <span class="package-total">${newTotal.toLocaleString('en-US')} Coins total</span>
+        <span class="package-total">${newTotal.toLocaleString('en-US')} Primal Coins total</span>
       `;
     } else if (pkg.bonusCoins > 0) {
       bonusHtml = `
         <span class="package-bonus">+${pkg.bonusCoins.toLocaleString('en-US')} Bonus</span>
-        <span class="package-total">${pkg.coins.toLocaleString('en-US')} Coins total</span>
+        <span class="package-total">${pkg.coins.toLocaleString('en-US')} Primal Coins total</span>
       `;
     }
 
     card.innerHTML = `
       ${pkg.id === 'premium' ? '<span class="package-badge">Popular</span>' : ''}
       <span class="package-label">${pkg.label}</span>
-      <span class="package-coins">${pkg.baseCoins.toLocaleString('en-US')} <small>Coins</small></span>
+      <span class="package-coins">${pkg.baseCoins.toLocaleString('en-US')} <small>Primal Coins</small></span>
       ${bonusHtml}
       <span class="package-price">€${pkg.priceEur.toFixed(2)}</span>
       <div class="paypal-button-container" id="paypal-btn-${pkg.id}"></div>
@@ -235,7 +235,7 @@ function renderPayPalButton(packageId) {
       const result = await res.json();
 
       if (res.ok && result.status === 'COMPLETED') {
-        showToast(`Payment successful! ${result.coins.toLocaleString('en-US')} Coins added.`, 'success');
+        showToast(`Payment successful! ${result.coins.toLocaleString('en-US')} Primal Coins added.`, 'success');
         currentUser.coins = result.newBalance;
         renderAuthArea();
       } else {
@@ -279,7 +279,7 @@ async function renderChests() {
           </div>
           <div class="chest-body">
             <h3 class="chest-title">${chest.label}</h3>
-            <span class="chest-cost">${chest.cost.toLocaleString('en-US')} Coins</span>
+            <span class="chest-cost">${chest.cost.toLocaleString('en-US')} Primal Coins</span>
             <button class="btn-primary chest-open-btn" data-chest="${chest.id}" data-image="${chest.image}" ${!currentUser ? 'disabled' : ''}>
               ${currentUser ? 'Open Chest' : 'Log in to open'}
             </button>
@@ -434,7 +434,6 @@ async function renderMyItems() {
   emptyEl.style.display = 'none';
 
   listEl.innerHTML = items.map((item) => {
-    const date = new Date(item.opened_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const icon = item.image
       ? `<img class="item-thumb" src="${item.image}" alt="" />`
       : `<span class="item-emoji">${CHEST_ITEM_EMOJI[item.item_won] || '🎁'}</span>`;
@@ -443,7 +442,6 @@ async function renderMyItems() {
         ${icon}
         <div class="item-info">
           <p class="item-name">${item.item_won}</p>
-          <p class="item-meta">Won ${date} · ${item.tier}</p>
         </div>
         <span class="item-status ${item.status}">${item.status === 'redeemed' ? 'Redeemed' : 'Active'}</span>
       </div>
@@ -476,7 +474,7 @@ async function renderCatalog() {
         ${category.tiers.map((tier) => `
           <div class="catalog-tier">
             <span class="catalog-tier-name">${tier.name}</span>
-            <span class="catalog-tier-cost">${tier.cost.toLocaleString('en-US')} Coins</span>
+            <span class="catalog-tier-cost">${tier.cost.toLocaleString('en-US')} Primal Coins</span>
             <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" ${!currentUser ? 'disabled' : ''}>
               ${currentUser ? 'Buy' : 'Log in to buy'}
             </button>
@@ -555,7 +553,7 @@ function setupPromoBox() {
         feedback.className = 'promo-feedback error';
       } else {
         appliedPromo = { code: code.toUpperCase(), bonusPercent: data.bonusPercent };
-        feedback.textContent = `🎉 Code applied! +${data.bonusPercent}% bonus Coins on every package.`;
+        feedback.textContent = `🎉 Code applied! +${data.bonusPercent}% bonus Primal Coins on every package.`;
         feedback.className = 'promo-feedback success';
       }
       renderPackages();
