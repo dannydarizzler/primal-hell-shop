@@ -18,15 +18,14 @@ function showToast(message, type = 'info') {
 }
 
 // ── Tab navigation ────────────────────────────────────────────────────────────
+function switchTab(tabName) {
+  document.querySelectorAll('.nav-tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === tabName));
+  document.querySelectorAll('.tab-panel').forEach((p) => p.classList.toggle('active', p.id === `tab-${tabName}`));
+}
+
 function setupTabs() {
-  const tabs = document.querySelectorAll('.nav-tab');
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      tabs.forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
-      document.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'));
-      document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
-    });
+  document.querySelectorAll('.nav-tab').forEach((tab) => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
   });
 }
 
@@ -123,10 +122,11 @@ function renderAuthArea() {
   const el = document.getElementById('authArea');
   if (currentUser) {
     el.innerHTML = `
-      <span class="auth-balance">💰 ${currentUser.coins.toLocaleString('en-US')}</span>
+      <span class="auth-balance" id="balanceBtn" title="Buy more Coins">💰 ${currentUser.coins.toLocaleString('en-US')}</span>
       <span class="auth-id">${currentUser.discordId}</span>
       <button class="btn-ghost" id="logoutBtn">Log Out</button>
     `;
+    document.getElementById('balanceBtn').addEventListener('click', () => switchTab('coins'));
     document.getElementById('logoutBtn').addEventListener('click', async () => {
       await fetch('/api/auth/logout', { method: 'POST' });
       currentUser = null;
@@ -178,10 +178,15 @@ async function renderPackages() {
   packages.forEach((pkg) => {
     const card = document.createElement('div');
     card.className = 'package-card' + (pkg.id === 'premium' ? ' featured' : '');
+    const bonusHtml = pkg.bonusCoins > 0
+      ? `<span class="package-bonus">+${pkg.bonusCoins.toLocaleString('en-US')} Bonus</span>
+         <span class="package-total">${pkg.coins.toLocaleString('en-US')} Coins total</span>`
+      : '';
     card.innerHTML = `
       ${pkg.id === 'premium' ? '<span class="package-badge">Popular</span>' : ''}
       <span class="package-label">${pkg.label}</span>
-      <span class="package-coins">${pkg.coins.toLocaleString('en-US')} <small>Coins</small></span>
+      <span class="package-coins">${pkg.baseCoins.toLocaleString('en-US')} <small>Coins</small></span>
+      ${bonusHtml}
       <span class="package-price">€${pkg.priceEur.toFixed(2)}</span>
       <div class="paypal-button-container" id="paypal-btn-${pkg.id}"></div>
     `;
@@ -243,7 +248,12 @@ async function renderChests() {
   chests.forEach((chest) => {
     chest.possibleItems.forEach((i) => { CHEST_ITEM_EMOJI[i.name] = i.emoji; });
 
-    const backItems = chest.possibleItems.map((i) => `<li><span class="chest-back-emoji">${i.emoji}</span>${i.name}</li>`).join('');
+    const backItems = chest.possibleItems.map((i) => {
+      const icon = i.image
+        ? `<img class="chest-back-thumb" src="${i.image}" alt="" />`
+        : `<span class="chest-back-emoji">${i.emoji}</span>`;
+      return `<li>${icon}${i.name}</li>`;
+    }).join('');
 
     const wrap = document.createElement('div');
     wrap.className = 'chest-card-flip';
@@ -367,7 +377,17 @@ async function openChest(tierId, chestImage, btnEl) {
 }
 
 function showResultModal(item) {
-  document.getElementById('resultEmoji').textContent = item.emoji;
+  const thumbEl = document.getElementById('resultThumb');
+  const emojiEl = document.getElementById('resultEmoji');
+  if (item.image) {
+    thumbEl.src = item.image;
+    thumbEl.style.display = 'block';
+    emojiEl.style.display = 'none';
+  } else {
+    thumbEl.style.display = 'none';
+    emojiEl.style.display = 'block';
+    emojiEl.textContent = item.emoji;
+  }
   document.getElementById('resultName').textContent = item.name;
   document.getElementById('resultModal').classList.add('show');
 }
@@ -402,10 +422,12 @@ async function renderMyItems() {
 
   listEl.innerHTML = items.map((item) => {
     const date = new Date(item.opened_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const emoji = CHEST_ITEM_EMOJI[item.item_won] || '🎁';
+    const icon = item.image
+      ? `<img class="item-thumb" src="${item.image}" alt="" />`
+      : `<span class="item-emoji">${CHEST_ITEM_EMOJI[item.item_won] || '🎁'}</span>`;
     return `
       <div class="item-row ${item.status}">
-        <span class="item-emoji">${emoji}</span>
+        ${icon}
         <div class="item-info">
           <p class="item-name">${item.item_won}</p>
           <p class="item-meta">Won ${date} · ${item.tier}</p>
@@ -429,9 +451,12 @@ async function renderCatalog() {
   Object.values(catalog).forEach((category) => {
     const section = document.createElement('div');
     section.className = 'catalog-category';
+    const headerIcon = category.image
+      ? `<img class="catalog-category-thumb" src="${category.image}" alt="" />`
+      : `<span class="catalog-category-emoji">${category.emoji}</span>`;
     section.innerHTML = `
       <div class="catalog-category-header">
-        <span class="catalog-category-emoji">${category.emoji}</span>
+        ${headerIcon}
         <h3 class="catalog-category-label">${category.label}</h3>
       </div>
       <div class="catalog-tiers">
@@ -439,7 +464,7 @@ async function renderCatalog() {
           <div class="catalog-tier">
             <span class="catalog-tier-name">${tier.name}</span>
             <span class="catalog-tier-cost">${tier.cost.toLocaleString('en-US')} Coins</span>
-            <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" data-emoji="${category.emoji}" ${!currentUser ? 'disabled' : ''}>
+            <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" ${!currentUser ? 'disabled' : ''}>
               ${currentUser ? 'Buy' : 'Log in to buy'}
             </button>
           </div>

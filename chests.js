@@ -1,5 +1,16 @@
 // Mystery Box / Chest tiers. Weights are placeholders for now — fine-tune later.
 // Each tier draws exactly ONE item from its own pool.
+
+// Shared item images (falls back to emoji-only if no image is set, e.g. Origin Sets).
+const IMG = {
+  breedpairs: '/images/items/breedpairs.jpg',
+  bpset: '/images/items/bpset.jpg',
+  kibble: '/images/items/kibble.jpg',
+  dedi: '/images/items/dedibox.jpg',
+  basekit: '/images/items/basekit.jpg',
+  ascension: '/images/items/ascension.jpg',
+};
+
 const CHESTS = {
   tier1: {
     id: 'tier1',
@@ -8,12 +19,12 @@ const CHESTS = {
     image: '/images/chest-tier1.jpg',
     color: 'gold',
     pool: [
-      { name: '2 Breedpairs', emoji: '🥚', weight: 20 },
-      { name: '5 Blueprints of choice', emoji: '📜', weight: 20 },
-      { name: '100x Kibble Set', emoji: '🍖', weight: 20 },
-      { name: '1x Origin Set (11 Tokens + 11 Blood)', emoji: '🔮', weight: 15 },
-      { name: '2 Dedicated Storage Boxes of choice', emoji: '📦', weight: 15 },
-      { name: '100x Tek Foundation/Wall/Ceiling + 1x Tek Generator + 100x Element', emoji: '⚡', weight: 10 },
+      { name: '2 Breedpairs', emoji: '🥚', image: IMG.breedpairs, weight: 20 },
+      { name: '5 Blueprints of choice', emoji: '📜', image: IMG.bpset, weight: 20 },
+      { name: '100x Kibble Set', emoji: '🍖', image: IMG.kibble, weight: 20 },
+      { name: '1x Origin Set (11 Tokens + 11 Blood)', emoji: '🔮', image: null, weight: 15 },
+      { name: '2 Dedicated Storage Boxes of choice', emoji: '📦', image: IMG.dedi, weight: 15 },
+      { name: '100x Tek Foundation/Wall/Ceiling + 1x Tek Generator + 100x Element', emoji: '⚡', image: IMG.basekit, weight: 10 },
     ],
   },
   tier2: {
@@ -23,13 +34,13 @@ const CHESTS = {
     image: '/images/chest-tier2.jpg',
     color: 'purple',
     pool: [
-      { name: '4 Breedpairs', emoji: '🥚', weight: 20 },
-      { name: '10 Blueprints of choice', emoji: '📜', weight: 20 },
-      { name: '250x Kibble Set', emoji: '🍖', weight: 18 },
-      { name: '2x Origin Set (22 Tokens + 22 Blood)', emoji: '🔮', weight: 15 },
-      { name: '4 Dedicated Storage Boxes of choice', emoji: '📦', weight: 12 },
-      { name: '250x Tek Foundation/Wall/Ceiling + 1x Tek Generator + 250x Element', emoji: '⚡', weight: 10 },
-      { name: 'Instant Ascension → Level 180', emoji: '🚀', weight: 5 },
+      { name: '4 Breedpairs', emoji: '🥚', image: IMG.breedpairs, weight: 20 },
+      { name: '10 Blueprints of choice', emoji: '📜', image: IMG.bpset, weight: 20 },
+      { name: '250x Kibble Set', emoji: '🍖', image: IMG.kibble, weight: 18 },
+      { name: '2x Origin Set (22 Tokens + 22 Blood)', emoji: '🔮', image: null, weight: 15 },
+      { name: '4 Dedicated Storage Boxes of choice', emoji: '📦', image: IMG.dedi, weight: 12 },
+      { name: '250x Tek Foundation/Wall/Ceiling + 1x Tek Generator + 250x Element', emoji: '⚡', image: IMG.basekit, weight: 10 },
+      { name: 'Instant Ascension → Level 180', emoji: '🚀', image: IMG.ascension, weight: 5 },
     ],
   },
   tier3: {
@@ -39,13 +50,13 @@ const CHESTS = {
     image: '/images/chest-tier3.jpg',
     color: 'red',
     pool: [
-      { name: '8 Breedpairs', emoji: '🥚', weight: 18 },
-      { name: '15 Blueprints of choice', emoji: '📜', weight: 18 },
-      { name: '500x Kibble Set', emoji: '🍖', weight: 16 },
-      { name: '3x Origin Set (33 Tokens + 33 Blood)', emoji: '🔮', weight: 14 },
-      { name: '7 Dedicated Storage Boxes of choice', emoji: '📦', weight: 12 },
-      { name: '350x Tek Foundation/Wall/Ceiling + 1x Tek Generator + 350x Element', emoji: '⚡', weight: 12 },
-      { name: 'Instant Ascension → Level 180', emoji: '🚀', weight: 10 },
+      { name: '8 Breedpairs', emoji: '🥚', image: IMG.breedpairs, weight: 18 },
+      { name: '15 Blueprints of choice', emoji: '📜', image: IMG.bpset, weight: 18 },
+      { name: '500x Kibble Set', emoji: '🍖', image: IMG.kibble, weight: 16 },
+      { name: '3x Origin Set (33 Tokens + 33 Blood)', emoji: '🔮', image: null, weight: 14 },
+      { name: '7 Dedicated Storage Boxes of choice', emoji: '📦', image: IMG.dedi, weight: 12 },
+      { name: '350x Tek Foundation/Wall/Ceiling + 1x Tek Generator + 350x Element', emoji: '⚡', image: IMG.basekit, weight: 12 },
+      { name: 'Instant Ascension → Level 180', emoji: '🚀', image: IMG.ascension, weight: 10 },
     ],
   },
 };

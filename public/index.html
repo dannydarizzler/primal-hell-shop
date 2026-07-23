@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Primal Hell — Shop</title>
+<link rel="icon" href="/images/logo.jpg" type="image/jpeg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css" />
@@ -14,13 +15,14 @@
 
 <header class="site-header">
   <div class="brand">
-    <span class="brand-mark">⛧</span>
+    <img class="brand-logo" src="/images/logo.jpg" alt="Primal Hell" />
     <span class="brand-name">PRIMAL HELL</span>
     <span class="brand-sub">Shop</span>
   </div>
 
   <nav class="main-nav" id="mainNav">
     <button class="nav-tab active" data-tab="home">Home</button>
+    <button class="nav-tab" data-tab="coins">Buy Coins</button>
     <button class="nav-tab" data-tab="shop">Shop</button>
     <button class="nav-tab" data-tab="chests">Chests</button>
     <button class="nav-tab" data-tab="items">My Items</button>
@@ -53,30 +55,36 @@
       </div>
       <div class="how-card">
         <span class="how-num">3</span>
-        <h3>Open Chests</h3>
-        <p>Spend Coins on Mystery Chests in the Chests tab for a random in-game item — Kibble, Breedpairs, Ascension and more.</p>
+        <h3>Spend your Coins</h3>
+        <p>Use your Coins to buy item packs directly in the Shop tab, or open Mystery Chests for a random reward.</p>
+      </div>
+      <div class="how-card">
+        <span class="how-num">4</span>
+        <h3>Claim your items</h3>
+        <p>After your purchase, open a ticket on Discord so a staff member can hand it to you in-game.</p>
       </div>
     </div>
 
     <div class="home-note">
-      <p><strong>Where do my items go?</strong> Items won from chests are logged to your account. A staff member fulfills them in-game shortly after — open a ticket on Discord if you don't see yours within a reasonable time.</p>
+      <p><strong>Where do my items go?</strong> Every purchase appears in your <em>My Items</em> tab as "Active" until a staff member marks it as delivered. Open a Discord ticket to claim it — don't wait if it's been a while.</p>
     </div>
+  </section>
+
+  <!-- ───────────────────────── BUY COINS TAB ───────────────────────── -->
+  <section class="tab-panel" id="tab-coins">
+    <h2 class="section-title">💰 Buy Coins</h2>
+    <p class="section-sub">Coins are added straight to your Shop account balance — no Discord command needed.</p>
+
+    <div id="loginGate" class="login-gate" style="display:none;">
+      <p>Log in or create an account to buy Coins.</p>
+      <button class="btn-primary" id="gateLoginBtn">Log In / Sign Up</button>
+    </div>
+
+    <div class="packages" id="packages"></div>
   </section>
 
   <!-- ───────────────────────── SHOP TAB ───────────────────────── -->
   <section class="tab-panel" id="tab-shop">
-
-    <div class="shop-section">
-      <h2 class="section-title">💰 Buy Coins</h2>
-      <p class="section-sub">Coins are added straight to your Shop account balance — no Discord command needed.</p>
-
-      <div id="loginGate" class="login-gate" style="display:none;">
-        <p>Log in or create an account to buy Coins.</p>
-        <button class="btn-primary" id="gateLoginBtn">Log In / Sign Up</button>
-      </div>
-
-      <div class="packages" id="packages"></div>
-    </div>
 
     <div class="shop-section">
       <h2 class="section-title">🛒 Buy Items Directly</h2>
@@ -174,6 +182,7 @@
   <div class="modal result-modal">
     <button class="modal-close" id="resultModalClose" aria-label="Close">✕</button>
     <p class="result-label">You received</p>
+    <img class="result-thumb" id="resultThumb" src="" alt="" style="display:none;" />
     <div class="result-emoji" id="resultEmoji">🎁</div>
     <h3 class="result-name" id="resultName"></h3>
     <p class="result-note">A staff member will fulfill this in-game shortly. Open a ticket on Discord if needed.</p>

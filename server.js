@@ -83,7 +83,7 @@ app.get('/api/chests', (req, res) => {
     cost: c.cost,
     image: c.image,
     color: c.color,
-    possibleItems: c.pool.map((i) => ({ name: i.name, emoji: i.emoji })),
+    possibleItems: c.pool.map((i) => ({ name: i.name, emoji: i.emoji, image: i.image })),
   }));
   res.json(publicChests);
 });
@@ -105,7 +105,7 @@ app.post('/api/catalog/:tierId/buy', auth.requireAuth, (req, res) => {
   db.logShopPurchase(req.user.discordId, tier.id, tier.cost, tier.name);
 
   res.json({
-    item: { name: tier.name, emoji: category.emoji },
+    item: { name: tier.name, emoji: category.emoji, image: category.image },
     newBalance,
   });
 });
@@ -168,7 +168,7 @@ app.post('/api/chests/:tier/open', auth.requireAuth, (req, res) => {
   db.logChestOpening(req.user.discordId, chest.id, chest.cost, item.name);
 
   res.json({
-    item: { name: item.name, emoji: item.emoji },
+    item: { name: item.name, emoji: item.emoji, image: item.image },
     newBalance,
   });
 });
@@ -178,8 +178,26 @@ app.get('/api/chests/history', auth.requireAuth, (req, res) => {
 });
 
 // ── My Items (requires login — shows the logged-in player's own item history) ─
+// ── Item name -> image lookup (built once, used to enrich "My Items" results,
+// since the DB only stores the item's name, not which image it maps to) ──────
+function buildItemImageIndex() {
+  const index = {};
+  Object.values(CATALOG).forEach((category) => {
+    category.tiers.forEach((tier) => { index[tier.name] = category.image; });
+  });
+  Object.values(CHESTS).forEach((chest) => {
+    chest.pool.forEach((item) => { if (item.image) index[item.name] = item.image; });
+  });
+  return index;
+}
+const ITEM_IMAGE_INDEX = buildItemImageIndex();
+
+function enrichWithImages(items) {
+  return items.map((item) => ({ ...item, image: ITEM_IMAGE_INDEX[item.item_won] || null }));
+}
+
 app.get('/api/me/items', auth.requireAuth, (req, res) => {
-  res.json(db.getItemsForUser(req.user.discordId));
+  res.json(enrichWithImages(db.getItemsForUser(req.user.discordId)));
 });
 
 // ── Bot sync (protected by shared secret, not user login) ─────────────────────
@@ -210,7 +228,7 @@ function requireBotSecret(req, res, next) {
 }
 
 app.get('/api/admin/items/:discordId', requireBotSecret, (req, res) => {
-  res.json(db.getItemsForUser(req.params.discordId));
+  res.json(enrichWithImages(db.getItemsForUser(req.params.discordId)));
 });
 
 app.post('/api/admin/items/:itemId/redeem', requireBotSecret, (req, res) => {

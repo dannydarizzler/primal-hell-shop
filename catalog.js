@@ -4,6 +4,7 @@ const CATALOG = {
   kibble: {
     label: 'Kibble Set',
     emoji: '🍖',
+    image: '/images/items/kibble.jpg',
     tiers: [
       { id: 'kibble_100', name: '100x Kibble Set', cost: 950 },
       { id: 'kibble_250', name: '250x Kibble Set', cost: 1750 },
@@ -13,6 +14,7 @@ const CATALOG = {
   basekit: {
     label: 'Base Kit',
     emoji: '⚡',
+    image: '/images/items/basekit.jpg',
     tiers: [
       { id: 'basekit_100', name: '100x Foundation/Wall/Ceiling + 1x Tek Generator + 100x Element', cost: 1100 },
       { id: 'basekit_200', name: '200x Foundation/Wall/Ceiling + 1x Tek Generator + 200x Element', cost: 1450 },
@@ -22,6 +24,7 @@ const CATALOG = {
   breedpairs: {
     label: 'Breedpairs',
     emoji: '🥚',
+    image: '/images/items/breedpairs.jpg',
     tiers: [
       { id: 'breedpairs_2', name: '2 Breedpairs', cost: 800 },
       { id: 'breedpairs_4', name: '4 Breedpairs', cost: 1450 },
@@ -31,6 +34,7 @@ const CATALOG = {
   bpset: {
     label: 'Blueprints of Choice',
     emoji: '📜',
+    image: '/images/items/bpset.jpg',
     tiers: [
       { id: 'bpset_5', name: '5 Blueprints of choice', cost: 800 },
       { id: 'bpset_10', name: '10 Blueprints of choice', cost: 1450 },
@@ -40,6 +44,7 @@ const CATALOG = {
   dedi: {
     label: 'Dedicated Storage Boxes',
     emoji: '📦',
+    image: '/images/items/dedibox.jpg',
     tiers: [
       { id: 'dedi_2', name: '2 Dedicated Storage Boxes of choice', cost: 1100 },
       { id: 'dedi_4', name: '4 Dedicated Storage Boxes of choice', cost: 2100 },
@@ -49,6 +54,7 @@ const CATALOG = {
   ascension: {
     label: 'Instant Ascension',
     emoji: '🚀',
+    image: '/images/items/ascension.jpg',
     tiers: [
       { id: 'ascension_full', name: 'Instant Ascension → Level 180', cost: 2500 },
     ],
