@@ -55,14 +55,47 @@ db.exec(`
   )
 `);
 
-// ── Migration: promo_codes may already exist without the new columns ──────────
+// ── Migration: promo_codes may be missing the new columns, OR (older deploys)
+// have bonus_percent as NOT NULL from before "reward" codes existed — which
+// would crash any reward-code insert (bonus_percent is null for those). Rebuild
+// the table with a corrected schema whenever that legacy constraint is found. ──
 {
-  const promoColumns = db.prepare(`PRAGMA table_info(promo_codes)`).all().map((c) => c.name);
-  if (!promoColumns.includes('type')) {
-    db.exec(`ALTER TABLE promo_codes ADD COLUMN type TEXT NOT NULL DEFAULT 'bonus'`);
-  }
-  if (!promoColumns.includes('reward_coins')) {
-    db.exec(`ALTER TABLE promo_codes ADD COLUMN reward_coins INTEGER`);
+  const promoInfo = db.prepare(`PRAGMA table_info(promo_codes)`).all();
+  const columnNames = promoInfo.map((c) => c.name);
+  const bonusCol = promoInfo.find((c) => c.name === 'bonus_percent');
+  const needsRebuild = bonusCol && bonusCol.notnull === 1;
+
+  if (needsRebuild) {
+    const hasType = columnNames.includes('type');
+    const hasReward = columnNames.includes('reward_coins');
+
+    db.exec(`
+      CREATE TABLE promo_codes_new (
+        code TEXT PRIMARY KEY,
+        type TEXT NOT NULL DEFAULT 'bonus',
+        bonus_percent INTEGER,
+        reward_coins INTEGER,
+        expires_at TEXT,
+        max_uses INTEGER,
+        uses_count INTEGER NOT NULL DEFAULT 0,
+        created_by TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    db.exec(`
+      INSERT INTO promo_codes_new (code, type, bonus_percent, reward_coins, expires_at, max_uses, uses_count, created_by, created_at)
+      SELECT code, ${hasType ? 'type' : "'bonus'"}, bonus_percent, ${hasReward ? 'reward_coins' : 'NULL'}, expires_at, max_uses, uses_count, created_by, created_at
+      FROM promo_codes
+    `);
+    db.exec(`DROP TABLE promo_codes`);
+    db.exec(`ALTER TABLE promo_codes_new RENAME TO promo_codes`);
+  } else {
+    if (!columnNames.includes('type')) {
+      db.exec(`ALTER TABLE promo_codes ADD COLUMN type TEXT NOT NULL DEFAULT 'bonus'`);
+    }
+    if (!columnNames.includes('reward_coins')) {
+      db.exec(`ALTER TABLE promo_codes ADD COLUMN reward_coins INTEGER`);
+    }
   }
 }
 

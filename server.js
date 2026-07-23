@@ -337,6 +337,15 @@ app.get('/api/admin/balance/:discordId', requireBotSecret, (req, res) => {
   res.json({ discordId: req.params.discordId, coins: db.getBalance(req.params.discordId) });
 });
 
+// ── Global error handler ───────────────────────────────────────────────────────
+// Ensures any unexpected crash in a route returns clean JSON instead of an HTML
+// stack-trace page (which broke the Discord bot's aiohttp JSON parsing before).
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: 'Internal server error. Please check the shop logs.' });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Primal Hell Shop running on port ${PORT} (PayPal env: ${process.env.PAYPAL_ENV || 'sandbox'})`);
