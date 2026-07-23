@@ -251,6 +251,33 @@ function renderPayPalButton(packageId) {
   }).render(`#paypal-btn-${packageId}`);
 }
 
+// ── Confirm-purchase modal (reused by chests + catalog buys) ─────────────────
+function showConfirm(message) {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('confirmModal');
+    document.getElementById('confirmMessage').textContent = message;
+    overlay.classList.add('show');
+
+    const yesBtn = document.getElementById('confirmYesBtn');
+    const noBtn = document.getElementById('confirmNoBtn');
+
+    const cleanup = (result) => {
+      overlay.classList.remove('show');
+      yesBtn.removeEventListener('click', onYes);
+      noBtn.removeEventListener('click', onNo);
+      overlay.removeEventListener('click', onOverlayClick);
+      resolve(result);
+    };
+    const onYes = () => cleanup(true);
+    const onNo = () => cleanup(false);
+    const onOverlayClick = (e) => { if (e.target === overlay) cleanup(false); };
+
+    yesBtn.addEventListener('click', onYes);
+    noBtn.addEventListener('click', onNo);
+    overlay.addEventListener('click', onOverlayClick);
+  });
+}
+
 // ── Chests ─────────────────────────────────────────────────────────────────────
 async function renderChests() {
   const grid = document.getElementById('chestsGrid');
@@ -280,7 +307,7 @@ async function renderChests() {
           <div class="chest-body">
             <h3 class="chest-title">${chest.label}</h3>
             <span class="chest-cost">${chest.cost.toLocaleString('en-US')} Primal Coins</span>
-            <button class="btn-primary chest-open-btn" data-chest="${chest.id}" data-image="${chest.image}" ${!currentUser ? 'disabled' : ''}>
+            <button class="btn-primary chest-open-btn" data-chest="${chest.id}" data-image="${chest.image}" data-label="${chest.label}" data-cost="${chest.cost}" ${!currentUser ? 'disabled' : ''}>
               ${currentUser ? 'Open Chest' : 'Log in to open'}
             </button>
           </div>
@@ -296,7 +323,7 @@ async function renderChests() {
   });
 
   grid.querySelectorAll('.chest-open-btn').forEach((btn) => {
-    btn.addEventListener('click', () => openChest(btn.dataset.chest, btn.dataset.image, btn));
+    btn.addEventListener('click', () => openChest(btn.dataset.chest, btn.dataset.image, btn, btn.dataset.label, btn.dataset.cost));
   });
   grid.querySelectorAll('[data-flip]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -358,8 +385,12 @@ function playOpeningAnimation(chestImage) {
   });
 }
 
-async function openChest(tierId, chestImage, btnEl) {
+async function openChest(tierId, chestImage, btnEl, chestLabel, chestCost) {
   if (!currentUser) { openAuthModal('login'); return; }
+
+  const costText = chestCost ? `${Number(chestCost).toLocaleString('en-US')} Primal Coins` : 'Primal Coins';
+  const confirmed = await showConfirm(`Are you sure you would like to open the ${chestLabel || 'chest'} for ${costText}?`);
+  if (!confirmed) return;
 
   btnEl.disabled = true;
   const originalText = btnEl.textContent;
@@ -477,7 +508,7 @@ async function renderCatalog() {
           <div class="catalog-tier">
             <span class="catalog-tier-name">${tier.name}</span>
             <span class="catalog-tier-cost">${tier.cost.toLocaleString('en-US')} Primal Coins</span>
-            <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" ${!currentUser ? 'disabled' : ''}>
+            <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" data-name="${tier.name.replace(/"/g, '&quot;')}" data-cost="${tier.cost}" ${!currentUser ? 'disabled' : ''}>
               ${currentUser ? 'Buy' : 'Log in to buy'}
             </button>
           </div>
@@ -488,12 +519,16 @@ async function renderCatalog() {
   });
 
   container.querySelectorAll('.catalog-buy-btn').forEach((btn) => {
-    btn.addEventListener('click', () => buyCatalogItem(btn.dataset.tier, btn));
+    btn.addEventListener('click', () => buyCatalogItem(btn.dataset.tier, btn, btn.dataset.name, btn.dataset.cost));
   });
 }
 
-async function buyCatalogItem(tierId, btnEl) {
+async function buyCatalogItem(tierId, btnEl, itemName, itemCost) {
   if (!currentUser) { openAuthModal('login'); return; }
+
+  const costText = itemCost ? `${Number(itemCost).toLocaleString('en-US')} Primal Coins` : 'Primal Coins';
+  const confirmed = await showConfirm(`Are you sure you would like to purchase "${itemName || 'this item'}" for ${costText}?`);
+  if (!confirmed) return;
 
   btnEl.disabled = true;
   const originalText = btnEl.textContent;

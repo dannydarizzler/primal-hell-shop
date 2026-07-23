@@ -643,6 +643,13 @@ main {
 .form-error { color: var(--error); font-size: 0.85rem; margin: 0.6rem 0 0; min-height: 1.2em; }
 
 .result-modal { text-align: center; max-width: 340px; }
+
+.confirm-modal { max-width: 360px; text-align: center; }
+.confirm-title { font-family: 'Oswald', sans-serif; color: #fff; font-size: 1.15rem; margin: 0 0 0.9rem; }
+.confirm-message { color: var(--ash); font-size: 0.95rem; line-height: 1.5; margin: 0 0 1.4rem; }
+.confirm-buttons { display: flex; gap: 0.75rem; justify-content: center; }
+.confirm-buttons .btn-ghost,
+.confirm-buttons .btn-primary { flex: 1; max-width: 130px; }
 .result-label { color: var(--ash-dim); margin: 0 0 0.5rem; font-size: 0.9rem; }
 .result-emoji { font-size: 3.5rem; margin-bottom: 0.5rem; }
 .result-thumb {
