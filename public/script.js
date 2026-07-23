@@ -186,19 +186,19 @@ async function renderPackages() {
       const newTotal = pkg.coins + promoBonus;
       bonusHtml = `
         <span class="package-bonus">+${pkg.bonusCoins.toLocaleString('en-US')} Bonus + ${appliedPromo.bonusPercent}% Promo</span>
-        <span class="package-total">${newTotal.toLocaleString('en-US')} Primal Coins total</span>
+        <span class="package-total">${newTotal.toLocaleString('en-US')} Primal Coins total <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>
       `;
     } else if (pkg.bonusCoins > 0) {
       bonusHtml = `
         <span class="package-bonus">+${pkg.bonusCoins.toLocaleString('en-US')} Bonus</span>
-        <span class="package-total">${pkg.coins.toLocaleString('en-US')} Primal Coins total</span>
+        <span class="package-total">${pkg.coins.toLocaleString('en-US')} Primal Coins total <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>
       `;
     }
 
     card.innerHTML = `
       ${pkg.id === 'premium' ? '<span class="package-badge">Popular</span>' : ''}
       <span class="package-label">${pkg.label}</span>
-      <span class="package-coins">${pkg.baseCoins.toLocaleString('en-US')} <small>Primal Coins</small></span>
+      <span class="package-coins">${pkg.baseCoins.toLocaleString('en-US')} <small>Primal Coins</small> <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>
       ${bonusHtml}
       <span class="package-price">€${pkg.priceEur.toFixed(2)}</span>
       <div class="paypal-button-container" id="paypal-btn-${pkg.id}"></div>
@@ -306,7 +306,7 @@ async function renderChests() {
           </div>
           <div class="chest-body">
             <h3 class="chest-title">${chest.label}</h3>
-            <span class="chest-cost">${chest.cost.toLocaleString('en-US')} Primal Coins</span>
+            <span class="chest-cost">${chest.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>
             <button class="btn-primary chest-open-btn" data-chest="${chest.id}" data-image="${chest.image}" data-label="${chest.label}" data-cost="${chest.cost}" ${!currentUser ? 'disabled' : ''}>
               ${currentUser ? 'Open Chest' : 'Log in to open'}
             </button>
@@ -507,7 +507,7 @@ async function renderCatalog() {
         ${category.tiers.map((tier) => `
           <div class="catalog-tier">
             <span class="catalog-tier-name">${tier.name}</span>
-            <span class="catalog-tier-cost">${tier.cost.toLocaleString('en-US')} Primal Coins</span>
+            <span class="catalog-tier-cost">${tier.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>
             <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" data-name="${tier.name.replace(/"/g, '&quot;')}" data-cost="${tier.cost}" ${!currentUser ? 'disabled' : ''}>
               ${currentUser ? 'Buy' : 'Log in to buy'}
             </button>

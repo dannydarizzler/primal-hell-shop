@@ -47,6 +47,7 @@ const CATALOG = {
     label: 'Dedicated Storage Boxes',
     emoji: '📦',
     image: '/images/items/dedibox.jpg',
+    note: 'Only vanilla resources can be purchased — no Chaos items or Element/Element Shards.',
     tiers: [
       { id: 'dedi_2', name: '2 Dedicated Storage Boxes of choice', cost: 1100 },
       { id: 'dedi_4', name: '4 Dedicated Storage Boxes of choice', cost: 2100 },
