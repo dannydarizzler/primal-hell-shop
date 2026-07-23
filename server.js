@@ -288,6 +288,13 @@ app.get('/api/admin/promo', requireBotSecret, (req, res) => {
   res.json(db.getAllPromoCodes());
 });
 
+// ── Live balance lookup for the Discord bot's /balance command ────────────────
+// (the bot no longer keeps its own copy of the balance — the shop is the only
+// source of truth, since coins can be spent in the shop without the bot knowing)
+app.get('/api/admin/balance/:discordId', requireBotSecret, (req, res) => {
+  res.json({ discordId: req.params.discordId, coins: db.getBalance(req.params.discordId) });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Primal Hell Shop running on port ${PORT} (PayPal env: ${process.env.PAYPAL_ENV || 'sandbox'})`);
