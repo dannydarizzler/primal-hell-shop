@@ -77,6 +77,7 @@ function setupAuthModal() {
       renderChests();
       renderCatalog();
       renderMyItems();
+      refreshSpinStatus();
     } catch {
       errorEl.textContent = 'Something went wrong. Please try again.';
     }
@@ -104,6 +105,7 @@ function setupAuthModal() {
       renderChests();
       renderCatalog();
       renderMyItems();
+      refreshSpinStatus();
     } catch {
       errorEl.textContent = 'Something went wrong. Please try again.';
     }
@@ -137,6 +139,7 @@ function renderAuthArea() {
       renderChests();
       renderCatalog();
       renderMyItems();
+      refreshSpinStatus();
       showToast('Logged out.', 'info');
     });
   } else {
@@ -150,6 +153,7 @@ function renderLoginGates() {
   document.getElementById('chestLoginGate').style.display = currentUser ? 'none' : 'flex';
   document.getElementById('itemsLoginGate').style.display = currentUser ? 'none' : 'flex';
   document.getElementById('catalogLoginGate').style.display = currentUser ? 'none' : 'flex';
+  document.getElementById('wheelLoginGate').style.display = currentUser ? 'none' : 'flex';
 }
 
 // ── PayPal SDK + Packages ─────────────────────────────────────────────────────
@@ -555,6 +559,146 @@ async function buyCatalogItem(tierId, btnEl, itemName, itemCost) {
   }
 }
 
+// ── Daily Lucky Wheel ────────────────────────────────────────────────────────
+let wheelSegments = [];
+const SEGMENT_ANGLE = 360 / 9; // 9 fixed segments
+
+function segmentColor(segment, index) {
+  if (segment.jackpot) return '#3d1a5c';
+  return index % 2 === 0 ? '#2a1512' : '#3a1c16';
+}
+
+async function renderWheel() {
+  const res = await fetch('/api/spin/segments');
+  wheelSegments = await res.json();
+
+  const disc = document.getElementById('wheelDisc');
+  const gradientStops = wheelSegments.map((s, i) => {
+    const from = i * SEGMENT_ANGLE;
+    const to = (i + 1) * SEGMENT_ANGLE;
+    return `${segmentColor(s, i)} ${from}deg ${to}deg`;
+  }).join(', ');
+  disc.style.background = `conic-gradient(${gradientStops})`;
+
+  // Remove old labels (if re-rendered) and add fresh ones
+  disc.querySelectorAll('.wheel-label').forEach((el) => el.remove());
+
+  const radius = 92; // px from center, inside the 260px wheel
+  wheelSegments.forEach((s, i) => {
+    const centerAngleDeg = i * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+    const rad = (centerAngleDeg - 90) * (Math.PI / 180); // -90 so 0deg = top
+    const x = 130 + radius * Math.cos(rad);
+    const y = 130 + radius * Math.sin(rad);
+
+    const label = document.createElement('div');
+    label.className = 'wheel-label' + (s.jackpot ? ' jackpot' : '');
+    label.style.left = `${x}px`;
+    label.style.top = `${y}px`;
+    label.innerHTML = s.jackpot
+      ? `JACKPOT<br>${s.amount.toLocaleString('en-US')}`
+      : `${s.amount}`;
+    disc.appendChild(label);
+  });
+}
+
+async function refreshSpinStatus() {
+  const btn = document.getElementById('spinBtn');
+  const statusEl = document.getElementById('spinStatus');
+
+  if (!currentUser) {
+    btn.disabled = true;
+    statusEl.textContent = '';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/spin/status');
+    const data = await res.json();
+
+    if (data.canSpin) {
+      btn.disabled = false;
+      btn.textContent = 'Spin the Wheel';
+      statusEl.textContent = '';
+    } else {
+      btn.disabled = true;
+      startSpinCountdown(data.nextSpinAt);
+    }
+  } catch {
+    // fail silently — button stays as-is
+  }
+}
+
+let spinCountdownInterval = null;
+function startSpinCountdown(nextSpinAtIso) {
+  const statusEl = document.getElementById('spinStatus');
+  const btn = document.getElementById('spinBtn');
+  clearInterval(spinCountdownInterval);
+
+  const update = () => {
+    const remaining = new Date(nextSpinAtIso).getTime() - Date.now();
+    if (remaining <= 0) {
+      clearInterval(spinCountdownInterval);
+      btn.disabled = false;
+      btn.textContent = 'Spin the Wheel';
+      statusEl.textContent = '';
+      return;
+    }
+    const h = Math.floor(remaining / 3600000);
+    const m = Math.floor((remaining % 3600000) / 60000);
+    statusEl.textContent = `Next free spin in ${h}h ${m}m`;
+  };
+  update();
+  spinCountdownInterval = setInterval(update, 30000);
+}
+
+async function spinWheel() {
+  if (!currentUser) { openAuthModal('login'); return; }
+
+  const btn = document.getElementById('spinBtn');
+  const disc = document.getElementById('wheelDisc');
+  btn.disabled = true;
+  btn.textContent = 'Spinning…';
+
+  try {
+    const res = await fetch('/api/spin', { method: 'POST' });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.error || 'Could not spin right now.', 'error');
+      if (data.nextSpinAt) startSpinCountdown(data.nextSpinAt);
+      else { btn.disabled = false; btn.textContent = 'Spin the Wheel'; }
+      return;
+    }
+
+    const centerAngle = data.segmentIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+    const extraTurns = 6;
+    const rotation = extraTurns * 360 - centerAngle;
+    disc.style.transform = `rotate(${rotation}deg)`;
+
+    setTimeout(() => {
+      currentUser.coins = data.newBalance;
+      renderAuthArea();
+      startSpinCountdown(data.nextSpinAt);
+      showResultModal({
+        name: data.jackpot
+          ? `JACKPOT! ${data.amount.toLocaleString('en-US')} Primal Coins`
+          : `${data.amount.toLocaleString('en-US')} Primal Coins`,
+        emoji: data.jackpot ? '🎉' : '🪙',
+        image: '/images/logo.jpg',
+      });
+    }, 4100);
+  } catch {
+    showToast('Something went wrong. Please try again.', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Spin the Wheel';
+  }
+}
+
+function setupWheel() {
+  document.getElementById('spinBtn').addEventListener('click', spinWheel);
+  document.getElementById('wheelGateLoginBtn').addEventListener('click', () => openAuthModal('login'));
+}
+
 // ── Gate buttons (Shop / Chests tabs) ─────────────────────────────────────────
 function setupGateButtons() {
   document.getElementById('gateLoginBtn').addEventListener('click', () => openAuthModal('login'));
@@ -664,6 +808,7 @@ async function init() {
   setupResultModal();
   setupGateButtons();
   setupPromoBox();
+  setupWheel();
 
   await refreshMe();
   await loadPayPalSdk();
@@ -671,6 +816,8 @@ async function init() {
   await renderChests();
   await renderCatalog();
   await renderMyItems();
+  await renderWheel();
+  await refreshSpinStatus();
 }
 
 init().catch((err) => {

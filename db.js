@@ -266,7 +266,61 @@ function redeemPromoForUser(code, discordId, rewardCoins) {
   return newBalance;
 }
 
+// ── Daily Lucky Wheel — one spin per user per 24h ──────────────────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS daily_spins (
+    discord_id TEXT PRIMARY KEY,
+    last_spin_at TEXT NOT NULL,
+    total_spins INTEGER NOT NULL DEFAULT 0
+  )
+`);
+
 // ── User accounts ────────────────────────────────────────────────────────────────
+const SPIN_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+
+/** Whether the user can spin right now, and when their next spin unlocks. */
+function getSpinStatus(discordId) {
+  const row = db.prepare(`SELECT last_spin_at FROM daily_spins WHERE discord_id = ?`).get(discordId);
+  if (!row) return { canSpin: true, nextSpinAt: null };
+  const nextSpinAt = new Date(new Date(row.last_spin_at).getTime() + SPIN_COOLDOWN_MS);
+  return { canSpin: Date.now() >= nextSpinAt.getTime(), nextSpinAt: nextSpinAt.toISOString() };
+}
+
+/** Atomically spins for a user: re-checks the cooldown, credits the coins, and
+ * records the spin — all in one transaction. Returns null if not allowed yet. */
+function trySpin(discordId, amount) {
+  const existing = db.prepare(`SELECT last_spin_at FROM daily_spins WHERE discord_id = ?`).get(discordId);
+  const now = new Date();
+
+  if (existing) {
+    const elapsed = now.getTime() - new Date(existing.last_spin_at).getTime();
+    if (elapsed < SPIN_COOLDOWN_MS) return null; // still on cooldown
+  }
+
+  const nowIso = now.toISOString();
+  db.exec('BEGIN');
+  try {
+    if (existing) {
+      db.prepare(`UPDATE daily_spins SET last_spin_at = ?, total_spins = total_spins + 1 WHERE discord_id = ?`).run(nowIso, discordId);
+    } else {
+      db.prepare(`INSERT INTO daily_spins (discord_id, last_spin_at, total_spins) VALUES (?, ?, 1)`).run(discordId, nowIso);
+    }
+    db.prepare(`
+      INSERT INTO balances (discord_id, coins) VALUES (?, ?)
+      ON CONFLICT(discord_id) DO UPDATE SET coins = coins + excluded.coins
+    `).run(discordId, amount);
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+
+  return {
+    newBalance: getBalance(discordId),
+    nextSpinAt: new Date(now.getTime() + SPIN_COOLDOWN_MS).toISOString(),
+  };
+}
+
 function createUser(discordId, passwordHash) {
   db.prepare(`INSERT INTO users (discord_id, password_hash) VALUES (?, ?)`).run(discordId, passwordHash);
   // Ensure a balance row exists so getBalance/addCoins behave consistently from the start
@@ -355,6 +409,8 @@ module.exports = {
   markProcessedByBot,
   createUser,
   getUser,
+  getSpinStatus,
+  trySpin,
   createPromoCode,
   getPromoCode,
   validatePromoCode,

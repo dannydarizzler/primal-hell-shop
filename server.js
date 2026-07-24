@@ -5,6 +5,7 @@ const path = require('path');
 const { PACKAGES } = require('./packages');
 const { CHESTS, drawFromChest } = require('./chests');
 const { CATALOG, findTier } = require('./catalog');
+const { SPIN_SEGMENTS, drawSpinSegmentIndex } = require('./spinwheel');
 const paypal = require('./paypal');
 const db = require('./db');
 const auth = require('./auth');
@@ -90,6 +91,40 @@ app.get('/api/chests', (req, res) => {
 
 app.get('/api/catalog', (req, res) => {
   res.json(CATALOG);
+});
+
+// ── Daily Lucky Wheel ──────────────────────────────────────────────────────────
+app.get('/api/spin/segments', (req, res) => {
+  // Public — needed to render the wheel even before logging in
+  res.json(SPIN_SEGMENTS.map((s) => ({ amount: s.amount, label: s.label, jackpot: s.jackpot })));
+});
+
+app.get('/api/spin/status', auth.requireAuth, (req, res) => {
+  res.json(db.getSpinStatus(req.user.discordId));
+});
+
+app.post('/api/spin', auth.requireAuth, (req, res) => {
+  const status = db.getSpinStatus(req.user.discordId);
+  if (!status.canSpin) {
+    return res.status(400).json({ error: 'You already spun today. Come back later!', nextSpinAt: status.nextSpinAt });
+  }
+
+  const segmentIndex = drawSpinSegmentIndex();
+  const segment = SPIN_SEGMENTS[segmentIndex];
+
+  const result = db.trySpin(req.user.discordId, segment.amount);
+  if (!result) {
+    // Extremely rare race condition (two simultaneous requests) — treat as "too soon"
+    return res.status(400).json({ error: 'You already spun today. Come back later!' });
+  }
+
+  res.json({
+    segmentIndex,
+    amount: segment.amount,
+    jackpot: segment.jackpot,
+    newBalance: result.newBalance,
+    nextSpinAt: result.nextSpinAt,
+  });
 });
 
 app.post('/api/catalog/:tierId/buy', auth.requireAuth, (req, res) => {

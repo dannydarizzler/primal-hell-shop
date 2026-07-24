@@ -69,6 +69,27 @@
     <div class="home-note">
       <p><strong>Where do my items go?</strong> Every purchase appears in your <em>My Items</em> tab as "Active" until a staff member marks it as delivered. Open a Discord ticket to claim it — don't wait if it's been a while.</p>
     </div>
+
+    <!-- ───────────────────────── DAILY LUCKY WHEEL ───────────────────────── -->
+    <div class="wheel-section">
+      <h2 class="section-title">🎡 Daily Lucky Wheel</h2>
+      <p class="section-sub">Free to play — spin once every 24 hours for a chance at free Primal Coins, up to the 2,000 Coin jackpot.</p>
+
+      <div id="wheelLoginGate" class="login-gate" style="display:none;">
+        <p>Log in or create an account to spin the wheel.</p>
+        <button class="btn-primary" id="wheelGateLoginBtn">Log In / Sign Up</button>
+      </div>
+
+      <div class="wheel-area" id="wheelArea">
+        <div class="wheel-wrap">
+          <div class="wheel-pointer">▼</div>
+          <div class="wheel-disc" id="wheelDisc"></div>
+          <div class="wheel-hub"><img src="/images/logo.jpg" alt="" /></div>
+        </div>
+        <button class="btn-primary" id="spinBtn">Spin the Wheel</button>
+        <p class="spin-status" id="spinStatus"></p>
+      </div>
+    </div>
   </section>
 
   <!-- ───────────────────────── BUY COINS TAB ───────────────────────── -->
