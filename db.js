@@ -275,6 +275,18 @@ db.exec(`
   )
 `);
 
+// ── Log of individual spins (so the bot can DM "Congrats, you won X!" once per spin) ──
+db.exec(`
+  CREATE TABLE IF NOT EXISTS spin_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    discord_id TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    jackpot INTEGER NOT NULL DEFAULT 0,
+    spun_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    notified_by_bot INTEGER NOT NULL DEFAULT 0
+  )
+`);
+
 // ── User accounts ────────────────────────────────────────────────────────────────
 const SPIN_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
@@ -288,7 +300,7 @@ function getSpinStatus(discordId) {
 
 /** Atomically spins for a user: re-checks the cooldown, credits the coins, and
  * records the spin — all in one transaction. Returns null if not allowed yet. */
-function trySpin(discordId, amount) {
+function trySpin(discordId, amount, jackpot) {
   const existing = db.prepare(`SELECT last_spin_at FROM daily_spins WHERE discord_id = ?`).get(discordId);
   const now = new Date();
 
@@ -309,6 +321,9 @@ function trySpin(discordId, amount) {
       INSERT INTO balances (discord_id, coins) VALUES (?, ?)
       ON CONFLICT(discord_id) DO UPDATE SET coins = coins + excluded.coins
     `).run(discordId, amount);
+    db.prepare(`
+      INSERT INTO spin_history (discord_id, amount, jackpot) VALUES (?, ?, ?)
+    `).run(discordId, amount, jackpot ? 1 : 0);
     db.exec('COMMIT');
   } catch (err) {
     db.exec('ROLLBACK');
@@ -319,6 +334,15 @@ function trySpin(discordId, amount) {
     newBalance: getBalance(discordId),
     nextSpinAt: new Date(now.getTime() + SPIN_COOLDOWN_MS).toISOString(),
   };
+}
+
+// ── Bot sync for spin-win DMs ──────────────────────────────────────────────────
+function getUnnotifiedSpins() {
+  return db.prepare(`SELECT * FROM spin_history WHERE notified_by_bot = 0`).all();
+}
+
+function markSpinNotified(id) {
+  db.prepare(`UPDATE spin_history SET notified_by_bot = 1 WHERE id = ?`).run(id);
 }
 
 function createUser(discordId, passwordHash) {
@@ -411,6 +435,8 @@ module.exports = {
   getUser,
   getSpinStatus,
   trySpin,
+  getUnnotifiedSpins,
+  markSpinNotified,
   createPromoCode,
   getPromoCode,
   validatePromoCode,

@@ -112,7 +112,7 @@ app.post('/api/spin', auth.requireAuth, (req, res) => {
   const segmentIndex = drawSpinSegmentIndex();
   const segment = SPIN_SEGMENTS[segmentIndex];
 
-  const result = db.trySpin(req.user.discordId, segment.amount);
+  const result = db.trySpin(req.user.discordId, segment.amount, segment.jackpot);
   if (!result) {
     // Extremely rare race condition (two simultaneous requests) — treat as "too soon"
     return res.status(400).json({ error: 'You already spun today. Come back later!' });
@@ -300,6 +300,24 @@ app.post('/api/bot/mark-processed/:id', (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   db.markProcessedByBot(req.params.id);
+  res.json({ ok: true });
+});
+
+// ── Bot sync for Lucky Wheel win DMs ────────────────────────────────────────────
+app.get('/api/bot/pending-spins', (req, res) => {
+  const key = req.headers['x-bot-secret'];
+  if (!process.env.BOT_SYNC_SECRET || key !== process.env.BOT_SYNC_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  res.json(db.getUnnotifiedSpins());
+});
+
+app.post('/api/bot/mark-spin-notified/:id', (req, res) => {
+  const key = req.headers['x-bot-secret'];
+  if (!process.env.BOT_SYNC_SECRET || key !== process.env.BOT_SYNC_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  db.markSpinNotified(req.params.id);
   res.json({ ok: true });
 });
 
