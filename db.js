@@ -113,9 +113,18 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     discord_id TEXT PRIMARY KEY,
     password_hash TEXT NOT NULL,
+    display_name TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+// ── Migration: users table may already exist without display_name ────────────
+{
+  const userColumns = db.prepare(`PRAGMA table_info(users)`).all().map((c) => c.name);
+  if (!userColumns.includes('display_name')) {
+    db.exec(`ALTER TABLE users ADD COLUMN display_name TEXT NOT NULL DEFAULT ''`);
+  }
+}
 
 // ── Chest opening history ───────────────────────────────────────────────────────
 db.exec(`
@@ -345,8 +354,8 @@ function markSpinNotified(id) {
   db.prepare(`UPDATE spin_history SET notified_by_bot = 1 WHERE id = ?`).run(id);
 }
 
-function createUser(discordId, passwordHash) {
-  db.prepare(`INSERT INTO users (discord_id, password_hash) VALUES (?, ?)`).run(discordId, passwordHash);
+function createUser(discordId, passwordHash, displayName) {
+  db.prepare(`INSERT INTO users (discord_id, password_hash, display_name) VALUES (?, ?, ?)`).run(discordId, passwordHash, displayName);
   // Ensure a balance row exists so getBalance/addCoins behave consistently from the start
   db.prepare(`INSERT OR IGNORE INTO balances (discord_id, coins) VALUES (?, 0)`).run(discordId);
 }

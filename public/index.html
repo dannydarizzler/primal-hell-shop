@@ -27,6 +27,7 @@
     <button class="nav-tab" data-tab="shop">Shop</button>
     <button class="nav-tab" data-tab="chests">Chests</button>
     <button class="nav-tab" data-tab="items">My Items</button>
+    <button class="nav-tab" data-tab="profile">Profile</button>
   </nav>
 
   <div class="auth-area" id="authArea">
@@ -158,6 +159,32 @@
     <p class="items-empty" id="itemsEmpty" style="display:none;">You haven't opened any chests yet — check the Chests tab!</p>
   </section>
 
+  <!-- ───────────────────────── PROFILE TAB ───────────────────────── -->
+  <section class="tab-panel" id="tab-profile">
+    <h2 class="section-title">🪪 Profile</h2>
+    <p class="section-sub">Your account details.</p>
+
+    <div id="profileLoginGate" class="login-gate" style="display:none;">
+      <p>Log in or create an account to view your profile.</p>
+      <button class="btn-primary" id="profileGateLoginBtn">Log In / Sign Up</button>
+    </div>
+
+    <div class="profile-card" id="profileCard" style="display:none;">
+      <div class="profile-row">
+        <span class="profile-label">Name</span>
+        <span class="profile-value" id="profileName"></span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-label">Discord User ID</span>
+        <span class="profile-value profile-id" id="profileDiscordId"></span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-label">Balance</span>
+        <span class="profile-value" id="profileBalance"></span>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <footer class="site-footer">
@@ -186,6 +213,9 @@
     </form>
 
     <form id="registerForm" class="auth-form">
+      <label for="registerName">Name</label>
+      <input type="text" id="registerName" placeholder="e.g. YourSurvivorName" maxlength="30" required />
+
       <label for="registerDiscordId">Discord User ID</label>
       <input type="text" id="registerDiscordId" placeholder="e.g. 123456789012345678" inputmode="numeric" required />
       <p class="hint">Right-click your name in Discord → "Copy User ID". Enable Developer Mode in Discord Settings → Advanced if you don't see this option.</p>

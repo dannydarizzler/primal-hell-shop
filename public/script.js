@@ -85,6 +85,7 @@ function setupAuthModal() {
 
   document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const name = document.getElementById('registerName').value.trim();
     const discordId = document.getElementById('registerDiscordId').value.trim();
     const password = document.getElementById('registerPassword').value;
     const errorEl = document.getElementById('registerError');
@@ -94,7 +95,7 @@ function setupAuthModal() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ discordId, password }),
+        body: JSON.stringify({ name, discordId, password }),
       });
       const data = await res.json();
       if (!res.ok) { errorEl.textContent = data.error; return; }
@@ -126,7 +127,7 @@ function renderAuthArea() {
   if (currentUser) {
     el.innerHTML = `
       <span class="auth-balance" id="balanceBtn" title="Buy more Primal Coins">💰 ${currentUser.coins.toLocaleString('en-US')} <img class="coin-icon" src="/images/logo.jpg" alt="Primal Coins" /></span>
-      <span class="auth-id">${currentUser.discordId}</span>
+      <span class="auth-id">${currentUser.name}</span>
       <button class="btn-ghost" id="logoutBtn">Log Out</button>
     `;
     document.getElementById('balanceBtn').addEventListener('click', () => switchTab('coins'));
@@ -146,6 +147,7 @@ function renderAuthArea() {
     el.innerHTML = `<button class="btn-primary" id="headerLoginBtn">Log In / Sign Up</button>`;
     document.getElementById('headerLoginBtn').addEventListener('click', () => openAuthModal('login'));
   }
+  renderProfile();
 }
 
 function renderLoginGates() {
@@ -154,6 +156,17 @@ function renderLoginGates() {
   document.getElementById('itemsLoginGate').style.display = currentUser ? 'none' : 'flex';
   document.getElementById('catalogLoginGate').style.display = currentUser ? 'none' : 'flex';
   document.getElementById('wheelLoginGate').style.display = currentUser ? 'none' : 'flex';
+  document.getElementById('profileLoginGate').style.display = currentUser ? 'none' : 'flex';
+}
+
+function renderProfile() {
+  const card = document.getElementById('profileCard');
+  if (!currentUser) { card.style.display = 'none'; return; }
+
+  document.getElementById('profileName').textContent = currentUser.name;
+  document.getElementById('profileDiscordId').textContent = currentUser.discordId;
+  document.getElementById('profileBalance').textContent = `${currentUser.coins.toLocaleString('en-US')} Primal Coins`;
+  card.style.display = 'block';
 }
 
 // ── PayPal SDK + Packages ─────────────────────────────────────────────────────
@@ -705,6 +718,7 @@ function setupGateButtons() {
   document.getElementById('chestGateLoginBtn').addEventListener('click', () => openAuthModal('login'));
   document.getElementById('itemsGateLoginBtn').addEventListener('click', () => openAuthModal('login'));
   document.getElementById('catalogGateLoginBtn').addEventListener('click', () => openAuthModal('login'));
+  document.getElementById('profileGateLoginBtn').addEventListener('click', () => openAuthModal('login'));
 }
 
 // ── Promo code ─────────────────────────────────────────────────────────────────

@@ -20,13 +20,17 @@ const DISCORD_ID_PATTERN = /^\d{15,25}$/;
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 app.post('/api/auth/register', (req, res) => {
-  const { discordId, password } = req.body;
+  const { discordId, password, name } = req.body;
 
   if (!discordId || !DISCORD_ID_PATTERN.test(discordId.trim())) {
     return res.status(400).json({ error: 'Please enter a valid Discord User ID (15-25 digits).' });
   }
   if (!password || password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters long.' });
+  }
+  const cleanName = (name || '').trim();
+  if (!cleanName || cleanName.length < 2 || cleanName.length > 30) {
+    return res.status(400).json({ error: 'Please enter a name between 2 and 30 characters.' });
   }
 
   const cleanId = discordId.trim();
@@ -35,9 +39,9 @@ app.post('/api/auth/register', (req, res) => {
   }
 
   const passwordHash = auth.hashPassword(password);
-  db.createUser(cleanId, passwordHash);
+  db.createUser(cleanId, passwordHash, cleanName);
   auth.setSessionCookie(res, cleanId);
-  res.json({ discordId: cleanId });
+  res.json({ discordId: cleanId, name: cleanName });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -60,9 +64,11 @@ app.post('/api/auth/logout', (req, res) => {
 
 app.get('/api/me', (req, res) => {
   if (!req.user) return res.json({ loggedIn: false });
+  const user = db.getUser(req.user.discordId);
   res.json({
     loggedIn: true,
     discordId: req.user.discordId,
+    name: (user?.display_name && user.display_name.trim()) || req.user.discordId,
     coins: db.getBalance(req.user.discordId),
   });
 });
