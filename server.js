@@ -336,6 +336,24 @@ app.post('/api/bot/mark-spin-notified/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Bot sync for reward-code redemption DMs ─────────────────────────────────────
+app.get('/api/bot/pending-redemptions', (req, res) => {
+  const key = req.headers['x-bot-secret'];
+  if (!process.env.BOT_SYNC_SECRET || key !== process.env.BOT_SYNC_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  res.json(db.getUnnotifiedRedemptions());
+});
+
+app.post('/api/bot/mark-redemption-notified/:id', (req, res) => {
+  const key = req.headers['x-bot-secret'];
+  if (!process.env.BOT_SYNC_SECRET || key !== process.env.BOT_SYNC_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  db.markRedemptionNotified(req.params.id);
+  res.json({ ok: true });
+});
+
 // ── Admin item management (called by the bot's admin-only Discord commands) ───
 function requireBotSecret(req, res, next) {
   const key = req.headers['x-bot-secret'];

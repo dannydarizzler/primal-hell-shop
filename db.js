@@ -50,10 +50,23 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS promo_redemptions (
     code TEXT NOT NULL,
     discord_id TEXT NOT NULL,
+    amount INTEGER NOT NULL DEFAULT 0,
+    notified_by_bot INTEGER NOT NULL DEFAULT 0,
     redeemed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (code, discord_id)
   )
 `);
+
+// ── Migration: promo_redemptions may already exist without these columns ──────
+{
+  const redemptionColumns = db.prepare(`PRAGMA table_info(promo_redemptions)`).all().map((c) => c.name);
+  if (!redemptionColumns.includes('amount')) {
+    db.exec(`ALTER TABLE promo_redemptions ADD COLUMN amount INTEGER NOT NULL DEFAULT 0`);
+  }
+  if (!redemptionColumns.includes('notified_by_bot')) {
+    db.exec(`ALTER TABLE promo_redemptions ADD COLUMN notified_by_bot INTEGER NOT NULL DEFAULT 0`);
+  }
+}
 
 // ── Migration: promo_codes may be missing the new columns, OR (older deploys)
 // have bonus_percent as NOT NULL from before "reward" codes existed — which
@@ -260,7 +273,7 @@ function redeemPromoForUser(code, discordId, rewardCoins) {
   let newBalance;
   db.exec('BEGIN');
   try {
-    db.prepare(`INSERT INTO promo_redemptions (code, discord_id) VALUES (?, ?)`).run(normalized, discordId);
+    db.prepare(`INSERT INTO promo_redemptions (code, discord_id, amount) VALUES (?, ?, ?)`).run(normalized, discordId, rewardCoins);
     db.prepare(`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE code = ?`).run(normalized);
     db.prepare(`
       INSERT INTO balances (discord_id, coins) VALUES (?, ?)
@@ -273,6 +286,15 @@ function redeemPromoForUser(code, discordId, rewardCoins) {
     throw err;
   }
   return newBalance;
+}
+
+// ── Bot sync for reward-code redemption DMs ─────────────────────────────────────
+function getUnnotifiedRedemptions() {
+  return db.prepare(`SELECT rowid AS id, code, discord_id, amount FROM promo_redemptions WHERE notified_by_bot = 0`).all();
+}
+
+function markRedemptionNotified(id) {
+  db.prepare(`UPDATE promo_redemptions SET notified_by_bot = 1 WHERE rowid = ?`).run(id);
 }
 
 // ── Daily Lucky Wheel — one spin per user per 24h ──────────────────────────────
@@ -487,6 +509,8 @@ module.exports = {
   getAllPromoCodes,
   hasUserRedeemed,
   redeemPromoForUser,
+  getUnnotifiedRedemptions,
+  markRedemptionNotified,
   logChestOpening,
   logShopPurchase,
   getChestHistory,
