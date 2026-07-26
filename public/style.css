@@ -820,6 +820,32 @@ main {
 .profile-value { color: #fff; font-weight: 600; text-align: right; }
 .profile-id { font-family: monospace; font-size: 0.9rem; color: var(--ember); user-select: all; }
 
+.profile-edit-group { display: flex; align-items: center; gap: 0.6rem; }
+.profile-edit-btn { font-size: 0.78rem; padding: 0.3rem 0.7rem; }
+
+.edit-name-form {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 0 1rem;
+  flex-wrap: wrap;
+}
+.edit-name-form input {
+  flex: 1;
+  min-width: 140px;
+  background: var(--obsidian);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  color: var(--ash);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+.edit-name-form input:focus { outline: 2px solid var(--focus-ring); outline-offset: 1px; border-color: transparent; }
+.edit-name-form .btn-primary,
+.edit-name-form .btn-ghost { font-size: 0.85rem; padding: 0.5rem 1rem; }
+.edit-name-form .form-error { width: 100%; margin: 0.4rem 0 0; }
+
 .site-footer {
   position: relative;
   z-index: 2;

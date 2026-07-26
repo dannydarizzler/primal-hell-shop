@@ -364,6 +364,10 @@ function getUser(discordId) {
   return db.prepare(`SELECT * FROM users WHERE discord_id = ?`).get(discordId);
 }
 
+function updateDisplayName(discordId, name) {
+  db.prepare(`UPDATE users SET display_name = ? WHERE discord_id = ?`).run(name, discordId);
+}
+
 // ── Chest openings ───────────────────────────────────────────────────────────────
 // ── Migration: add columns if this table already existed without them ─────────
 // (needed because the shop is already deployed — CREATE TABLE IF NOT EXISTS
@@ -470,6 +474,7 @@ module.exports = {
   markProcessedByBot,
   createUser,
   getUser,
+  updateDisplayName,
   getSpinStatus,
   trySpin,
   getUnnotifiedSpins,

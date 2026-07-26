@@ -172,8 +172,17 @@
     <div class="profile-card" id="profileCard" style="display:none;">
       <div class="profile-row">
         <span class="profile-label">Name</span>
-        <span class="profile-value" id="profileName"></span>
+        <span class="profile-edit-group">
+          <span class="profile-value" id="profileName"></span>
+          <button class="btn-ghost profile-edit-btn" id="editNameBtn">Edit</button>
+        </span>
       </div>
+      <form id="editNameForm" class="edit-name-form" style="display:none;">
+        <input type="text" id="editNameInput" maxlength="30" />
+        <button type="submit" class="btn-primary">Save</button>
+        <button type="button" class="btn-ghost" id="cancelNameBtn">Cancel</button>
+        <p class="form-error" id="editNameError"></p>
+      </form>
       <div class="profile-row">
         <span class="profile-label">Discord User ID</span>
         <span class="profile-value profile-id" id="profileDiscordId"></span>

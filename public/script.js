@@ -169,6 +169,52 @@ function renderProfile() {
   card.style.display = 'block';
 }
 
+function setupProfileEdit() {
+  const editBtn = document.getElementById('editNameBtn');
+  const cancelBtn = document.getElementById('cancelNameBtn');
+  const form = document.getElementById('editNameForm');
+  const input = document.getElementById('editNameInput');
+  const errorEl = document.getElementById('editNameError');
+  const nameRow = document.getElementById('profileName').closest('.profile-row');
+
+  editBtn.addEventListener('click', () => {
+    input.value = currentUser.name;
+    errorEl.textContent = '';
+    nameRow.style.display = 'none';
+    form.style.display = 'flex';
+    input.focus();
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    form.style.display = 'none';
+    nameRow.style.display = 'flex';
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = input.value.trim();
+    errorEl.textContent = '';
+
+    try {
+      const res = await fetch('/api/me/name', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json();
+      if (!res.ok) { errorEl.textContent = data.error; return; }
+
+      currentUser.name = data.name;
+      renderAuthArea();
+      form.style.display = 'none';
+      nameRow.style.display = 'flex';
+      showToast('Name updated.', 'success');
+    } catch {
+      errorEl.textContent = 'Something went wrong. Please try again.';
+    }
+  });
+}
+
 // ── PayPal SDK + Packages ─────────────────────────────────────────────────────
 async function loadPayPalSdk() {
   const configRes = await fetch('/api/config');
@@ -823,6 +869,7 @@ async function init() {
   setupGateButtons();
   setupPromoBox();
   setupWheel();
+  setupProfileEdit();
 
   await refreshMe();
   await loadPayPalSdk();

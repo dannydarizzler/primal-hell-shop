@@ -73,6 +73,15 @@ app.get('/api/me', (req, res) => {
   });
 });
 
+app.post('/api/me/name', auth.requireAuth, (req, res) => {
+  const name = (req.body.name || '').trim();
+  if (!name || name.length < 2 || name.length > 30) {
+    return res.status(400).json({ error: 'Please enter a name between 2 and 30 characters.' });
+  }
+  db.updateDisplayName(req.user.discordId, name);
+  res.json({ name });
+});
+
 // ── Config / Packages / Chests (public, read-only) ────────────────────────────
 app.get('/api/config', (req, res) => {
   res.json({ clientId: process.env.PAYPAL_CLIENT_ID });
