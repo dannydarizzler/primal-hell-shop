@@ -390,6 +390,19 @@ app.get('/api/admin/balance/:discordId', requireBotSecret, (req, res) => {
   res.json({ discordId: req.params.discordId, coins: db.getBalance(req.params.discordId) });
 });
 
+// ── Admin: fix a mistyped Discord ID on an existing account ────────────────────
+app.post('/api/admin/migrate-discord-id', requireBotSecret, (req, res) => {
+  const { oldDiscordId, newDiscordId } = req.body;
+
+  if (!oldDiscordId || !newDiscordId || !/^\d{15,25}$/.test(newDiscordId)) {
+    return res.status(400).json({ error: 'Both oldDiscordId and a valid newDiscordId (15-25 digits) are required.' });
+  }
+
+  const result = db.migrateDiscordId(oldDiscordId.trim(), newDiscordId.trim());
+  if (!result.ok) return res.status(400).json({ error: result.error });
+  res.json(result);
+});
+
 // ── Global error handler ───────────────────────────────────────────────────────
 // Ensures any unexpected crash in a route returns clean JSON instead of an HTML
 // stack-trace page (which broke the Discord bot's aiohttp JSON parsing before).

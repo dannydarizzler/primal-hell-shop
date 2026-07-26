@@ -422,6 +422,34 @@ function redeemItem(id, adminDiscordId) {
   return getItemById(id);
 }
 
+// ── Admin: fix a mistyped Discord ID ────────────────────────────────────────────
+// Moves EVERYTHING (balance, purchases, items, promo redemptions, spins) from an
+// old (wrongly entered) Discord ID to the correct one, in a single transaction.
+function migrateDiscordId(oldId, newId) {
+  const oldUser = db.prepare(`SELECT * FROM users WHERE discord_id = ?`).get(oldId);
+  if (!oldUser) return { ok: false, error: `No account found with Discord ID ${oldId}.` };
+
+  const clash = db.prepare(`SELECT 1 FROM users WHERE discord_id = ?`).get(newId);
+  if (clash) return { ok: false, error: `An account already exists with Discord ID ${newId}. Refusing to overwrite it.` };
+
+  db.exec('BEGIN');
+  try {
+    db.prepare(`UPDATE users SET discord_id = ? WHERE discord_id = ?`).run(newId, oldId);
+    db.prepare(`UPDATE balances SET discord_id = ? WHERE discord_id = ?`).run(newId, oldId);
+    db.prepare(`UPDATE purchases SET discord_id = ? WHERE discord_id = ?`).run(newId, oldId);
+    db.prepare(`UPDATE chest_openings SET discord_id = ? WHERE discord_id = ?`).run(newId, oldId);
+    db.prepare(`UPDATE promo_redemptions SET discord_id = ? WHERE discord_id = ?`).run(newId, oldId);
+    db.prepare(`UPDATE daily_spins SET discord_id = ? WHERE discord_id = ?`).run(newId, oldId);
+    db.prepare(`UPDATE spin_history SET discord_id = ? WHERE discord_id = ?`).run(newId, oldId);
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+
+  return { ok: true, newBalance: getBalance(newId) };
+}
+
 module.exports = {
   db,
   createPendingPurchase,
@@ -437,6 +465,7 @@ module.exports = {
   trySpin,
   getUnnotifiedSpins,
   markSpinNotified,
+  migrateDiscordId,
   createPromoCode,
   getPromoCode,
   validatePromoCode,
