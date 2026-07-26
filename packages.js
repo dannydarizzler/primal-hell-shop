@@ -7,7 +7,7 @@ const PACKAGES = {
   booster: { id: 'booster', label: 'Booster', priceEur: 15.00, baseCoins: 3000, bonusCoins: 400, coins: 3400 },
   premium: { id: 'premium', label: 'Premium', priceEur: 25.00, baseCoins: 5000, bonusCoins: 750, coins: 5750 },
   ultimate: { id: 'ultimate', label: 'Ultimate', priceEur: 44.90, baseCoins: 9000, bonusCoins: 1500, coins: 10500 },
-  mega: { id: 'mega', label: 'Mega', priceEur: 69.99, baseCoins: 14000, bonusCoins: 3000, coins: 17000 },
+  mega: { id: 'mega', label: 'Mega', priceEur: 69.90, baseCoins: 14000, bonusCoins: 3000, coins: 17000 },
 };
 
 module.exports = { PACKAGES };
