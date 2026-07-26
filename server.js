@@ -7,9 +7,18 @@ const { CHESTS, drawFromChest } = require('./chests');
 const { CATALOG, findTier } = require('./catalog');
 const { SPIN_SEGMENTS, drawSpinSegmentIndex } = require('./spinwheel');
 const { VIP_SPIN_SEGMENTS, drawVipSpinSegmentIndex } = require('./vipspinwheel');
+const { COMBO_PACKS, findCombo } = require('./combopacks');
 const paypal = require('./paypal');
 const db = require('./db');
 const auth = require('./auth');
+const adminPanel = require('./adminpanel');
+
+// ── Sale helper: never trust the client — always recompute the discounted
+// price/cost server-side from the live sales table. ────────────────────────
+function applyDiscount(amount, discountPercent) {
+  if (!discountPercent) return amount;
+  return Math.max(0, Math.round(amount * (1 - discountPercent / 100)));
+}
 
 const app = express();
 app.use(express.json());
@@ -90,24 +99,52 @@ app.get('/api/config', (req, res) => {
 });
 
 app.get('/api/packages', (req, res) => {
-  res.json(Object.values(PACKAGES));
+  const withSales = Object.values(PACKAGES).map((pkg) => {
+    const discountPercent = db.getSale('package', pkg.id);
+    const salePriceEur = discountPercent ? Math.round(pkg.priceEur * (1 - discountPercent / 100) * 100) / 100 : pkg.priceEur;
+    return { ...pkg, discountPercent, salePriceEur };
+  });
+  res.json(withSales);
 });
 
 app.get('/api/chests', (req, res) => {
   // Don't leak exact weights to the client — just what's needed to render the UI
-  const publicChests = Object.values(CHESTS).map((c) => ({
-    id: c.id,
-    label: c.label,
-    cost: c.cost,
-    image: c.image,
-    color: c.color,
-    possibleItems: c.pool.map((i) => ({ name: i.name, emoji: i.emoji, image: i.image })),
-  }));
+  const publicChests = Object.values(CHESTS).map((c) => {
+    const discountPercent = db.getSale('chest', c.id);
+    return {
+      id: c.id,
+      label: c.label,
+      cost: c.cost,
+      salePrice: applyDiscount(c.cost, discountPercent),
+      discountPercent,
+      image: c.image,
+      color: c.color,
+      possibleItems: c.pool.map((i) => ({ name: i.name, emoji: i.emoji, image: i.image })),
+    };
+  });
   res.json(publicChests);
 });
 
 app.get('/api/catalog', (req, res) => {
-  res.json(CATALOG);
+  const withSales = {};
+  for (const [key, category] of Object.entries(CATALOG)) {
+    withSales[key] = {
+      ...category,
+      tiers: category.tiers.map((tier) => {
+        const discountPercent = db.getSale('catalog', tier.id);
+        return { ...tier, salePrice: applyDiscount(tier.cost, discountPercent), discountPercent };
+      }),
+    };
+  }
+  res.json(withSales);
+});
+
+app.get('/api/combos', (req, res) => {
+  const withSales = COMBO_PACKS.map((combo) => {
+    const discountPercent = db.getSale('combo', combo.id);
+    return { ...combo, salePrice: applyDiscount(combo.cost, discountPercent), discountPercent };
+  });
+  res.json(withSales);
 });
 
 // ── Daily Lucky Wheel ──────────────────────────────────────────────────────────
@@ -188,15 +225,40 @@ app.post('/api/catalog/:tierId/buy', auth.requireAuth, (req, res) => {
   if (!found) return res.status(404).json({ error: 'Unknown item.' });
 
   const { category, tier } = found;
-  const newBalance = db.spendCoins(req.user.discordId, tier.cost);
+  const discountPercent = db.getSale('catalog', tier.id);
+  const finalCost = applyDiscount(tier.cost, discountPercent);
+
+  const newBalance = db.spendCoins(req.user.discordId, finalCost);
   if (newBalance === null) {
-    return res.status(400).json({ error: `Not enough coins. This costs ${tier.cost.toLocaleString()} coins.` });
+    return res.status(400).json({ error: `Not enough coins. This costs ${finalCost.toLocaleString()} coins.` });
   }
 
-  db.logShopPurchase(req.user.discordId, tier.id, tier.cost, tier.name);
+  db.logShopPurchase(req.user.discordId, tier.id, finalCost, tier.name);
 
   res.json({
     item: { name: tier.name, emoji: category.emoji, image: category.image },
+    newBalance,
+  });
+});
+
+// ── Combo Packs ──────────────────────────────────────────────────────────────────
+app.post('/api/combos/:comboId/buy', auth.requireAuth, (req, res) => {
+  const combo = findCombo(req.params.comboId);
+  if (!combo) return res.status(404).json({ error: 'Unknown combo pack.' });
+
+  const discountPercent = db.getSale('combo', combo.id);
+  const finalCost = applyDiscount(combo.cost, discountPercent);
+
+  const newBalance = db.spendCoins(req.user.discordId, finalCost);
+  if (newBalance === null) {
+    return res.status(400).json({ error: `Not enough coins. This costs ${finalCost.toLocaleString()} coins.` });
+  }
+
+  const itemDescription = `${combo.name} (${combo.contents.join(' + ')})`;
+  db.logShopPurchase(req.user.discordId, combo.id, finalCost, itemDescription);
+
+  res.json({
+    item: { name: combo.name, emoji: '🎁', image: combo.image },
     newBalance,
   });
 });
@@ -245,6 +307,12 @@ app.post('/api/orders', auth.requireAuth, async (req, res) => {
     let bonusPercent = 0;
     let appliedPromoCode = null;
 
+    // Sale on a Coin package discounts the EUR price — the Coins granted stay the same.
+    const saleDiscountPercent = db.getSale('package', pkg.id);
+    const chargeEur = saleDiscountPercent
+      ? Math.round(pkg.priceEur * (1 - saleDiscountPercent / 100) * 100) / 100
+      : pkg.priceEur;
+
     if (promoCode) {
       const result = db.validatePromoCode(promoCode);
       if (!result.valid) return res.status(400).json({ error: result.reason });
@@ -257,7 +325,7 @@ app.post('/api/orders', auth.requireAuth, async (req, res) => {
     }
 
     const order = await paypal.createOrder({
-      priceEur: pkg.priceEur,
+      priceEur: chargeEur,
       description: `Primal Hell Coins - ${pkg.label} (${finalCoins} Coins)`,
     });
 
@@ -265,7 +333,7 @@ app.post('/api/orders', auth.requireAuth, async (req, res) => {
       paypalOrderId: order.id,
       discordId: req.user.discordId,
       packageId: pkg.id,
-      priceEur: pkg.priceEur,
+      priceEur: chargeEur,
       coins: finalCoins,
       promoCode: appliedPromoCode,
       bonusPercent,
@@ -300,13 +368,16 @@ app.post('/api/chests/:tier/open', auth.requireAuth, (req, res) => {
   const chest = CHESTS[req.params.tier];
   if (!chest) return res.status(404).json({ error: 'Unknown chest tier.' });
 
-  const newBalance = db.spendCoins(req.user.discordId, chest.cost);
+  const discountPercent = db.getSale('chest', chest.id);
+  const finalCost = applyDiscount(chest.cost, discountPercent);
+
+  const newBalance = db.spendCoins(req.user.discordId, finalCost);
   if (newBalance === null) {
-    return res.status(400).json({ error: `Not enough coins. This chest costs ${chest.cost.toLocaleString()} coins.` });
+    return res.status(400).json({ error: `Not enough coins. This chest costs ${finalCost.toLocaleString()} coins.` });
   }
 
   const item = drawFromChest(chest.id);
-  db.logChestOpening(req.user.discordId, chest.id, chest.cost, item.name);
+  db.logChestOpening(req.user.discordId, chest.id, finalCost, item.name);
 
   res.json({
     item: { name: item.name, emoji: item.emoji, image: item.image },
@@ -503,6 +574,61 @@ app.post('/api/admin/migrate-discord-id', requireBotSecret, (req, res) => {
   const result = db.migrateDiscordId(oldDiscordId.trim(), newDiscordId.trim());
   if (!result.ok) return res.status(400).json({ error: result.error });
   res.json(result);
+});
+
+// ── Admin Panel (password-gated sales management, separate from user accounts) ──
+app.post('/api/admin-panel/login', (req, res) => {
+  const { password } = req.body;
+  if (!adminPanel.checkPassword(password || '')) {
+    return res.status(401).json({ error: 'Incorrect password.' });
+  }
+  adminPanel.setAdminPanelCookie(res);
+  res.json({ ok: true });
+});
+
+app.get('/api/admin-panel/check', (req, res) => {
+  const token = req.cookies?.[adminPanel.ADMIN_PANEL_COOKIE];
+  res.json({ authorized: adminPanel.verifyAdminPanelToken(token) });
+});
+
+// ── Sellable items list + current sales, for the admin panel UI ────────────────
+app.get('/api/admin-panel/items', adminPanel.requireAdminPanel, (req, res) => {
+  const catalogItems = [];
+  for (const category of Object.values(CATALOG)) {
+    for (const tier of category.tiers) {
+      catalogItems.push({ type: 'catalog', id: tier.id, label: `${category.label} — ${tier.name}`, basePrice: tier.cost });
+    }
+  }
+  const chestItems = Object.values(CHESTS).map((c) => ({ type: 'chest', id: c.id, label: c.label, basePrice: c.cost }));
+  const packageItems = Object.values(PACKAGES).map((p) => ({ type: 'package', id: p.id, label: `${p.label} (€${p.priceEur})`, basePrice: p.priceEur }));
+  const comboItems = COMBO_PACKS.map((c) => ({ type: 'combo', id: c.id, label: c.name, basePrice: c.cost }));
+
+  res.json({
+    items: [...catalogItems, ...chestItems, ...packageItems, ...comboItems],
+    sales: db.getAllSales(),
+  });
+});
+
+app.post('/api/admin-panel/sales', adminPanel.requireAdminPanel, (req, res) => {
+  const { itemType, itemId, discountPercent } = req.body;
+  if (!['catalog', 'chest', 'package', 'combo'].includes(itemType)) {
+    return res.status(400).json({ error: 'Invalid item type.' });
+  }
+  if (!itemId) return res.status(400).json({ error: 'itemId is required.' });
+  const pct = Number(discountPercent);
+  if (!Number.isFinite(pct) || pct <= 0 || pct > 95) {
+    return res.status(400).json({ error: 'Discount must be between 1 and 95 percent.' });
+  }
+
+  db.setSale(itemType, itemId, Math.round(pct));
+  res.json({ ok: true });
+});
+
+app.post('/api/admin-panel/sales/remove', adminPanel.requireAdminPanel, (req, res) => {
+  const { itemType, itemId } = req.body;
+  if (!itemType || !itemId) return res.status(400).json({ error: 'itemType and itemId are required.' });
+  db.removeSale(itemType, itemId);
+  res.json({ ok: true });
 });
 
 // ── Global error handler ───────────────────────────────────────────────────────

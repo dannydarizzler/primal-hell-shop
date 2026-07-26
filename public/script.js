@@ -2,6 +2,8 @@
 let currentUser = null; // { discordId, coins } or null
 let paypalReady = false;
 let appliedPromo = null; // { code, bonusPercent } or null
+let latestPackages = [];
+let latestCombos = [];
 
 // ── Toast helper ─────────────────────────────────────────────────────────────
 function showToast(message, type = 'info') {
@@ -76,6 +78,7 @@ function setupAuthModal() {
       renderPackages();
       renderChests();
       renderCatalog();
+      renderCombos();
       renderMyItems();
       refreshSpinStatus();
       refreshVipWheel();
@@ -106,6 +109,7 @@ function setupAuthModal() {
       renderPackages();
       renderChests();
       renderCatalog();
+      renderCombos();
       renderMyItems();
       refreshSpinStatus();
       refreshVipWheel();
@@ -141,6 +145,7 @@ function renderAuthArea() {
       renderPackages();
       renderChests();
       renderCatalog();
+      renderCombos();
       renderMyItems();
       refreshSpinStatus();
       refreshVipWheel();
@@ -240,6 +245,7 @@ async function renderPackages() {
   const packagesEl = document.getElementById('packages');
   const res = await fetch('/api/packages');
   const packages = await res.json();
+  latestPackages = packages;
   packagesEl.innerHTML = '';
 
   packages.forEach((pkg) => {
@@ -261,12 +267,16 @@ async function renderPackages() {
       `;
     }
 
+    const priceHtml = pkg.discountPercent > 0
+      ? `<span class="package-price"><span class="price-original">€${pkg.priceEur.toFixed(2)}</span> <span class="price-sale">€${pkg.salePriceEur.toFixed(2)}</span><span class="sale-badge">-${pkg.discountPercent}%</span></span>`
+      : `<span class="package-price">€${pkg.priceEur.toFixed(2)}</span>`;
+
     card.innerHTML = `
       ${pkg.id === 'premium' ? '<span class="package-badge">Popular</span>' : ''}
       <span class="package-label">${pkg.label}</span>
       <span class="package-coins">${pkg.baseCoins.toLocaleString('en-US')} <small>Primal Coins</small> <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>
       ${bonusHtml}
-      <span class="package-price">€${pkg.priceEur.toFixed(2)}</span>
+      ${priceHtml}
       <div class="paypal-button-container" id="paypal-btn-${pkg.id}"></div>
     `;
     packagesEl.appendChild(card);
@@ -275,6 +285,8 @@ async function renderPackages() {
       renderPayPalButton(pkg.id);
     }
   });
+
+  renderSaleTab();
 }
 
 function renderPayPalButton(packageId) {
@@ -345,10 +357,13 @@ function showConfirm(message) {
 }
 
 // ── Chests ─────────────────────────────────────────────────────────────────────
+let latestChests = [];
+
 async function renderChests() {
   const grid = document.getElementById('chestsGrid');
   const res = await fetch('/api/chests');
   const chests = await res.json();
+  latestChests = chests;
   grid.innerHTML = '';
 
   chests.forEach((chest) => {
@@ -361,6 +376,11 @@ async function renderChests() {
       return `<li>${icon}${i.name}</li>`;
     }).join('');
 
+    const costHtml = chest.discountPercent > 0
+      ? `<span class="chest-cost"><span class="price-original">${chest.cost.toLocaleString('en-US')}</span> <span class="price-sale">${chest.salePrice.toLocaleString('en-US')}</span> Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /><span class="sale-badge">-${chest.discountPercent}%</span></span>`
+      : `<span class="chest-cost">${chest.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>`;
+    const effectiveCost = chest.discountPercent > 0 ? chest.salePrice : chest.cost;
+
     const wrap = document.createElement('div');
     wrap.className = 'chest-card-flip';
     wrap.innerHTML = `
@@ -372,8 +392,8 @@ async function renderChests() {
           </div>
           <div class="chest-body">
             <h3 class="chest-title">${chest.label}</h3>
-            <span class="chest-cost">${chest.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>
-            <button class="btn-primary chest-open-btn" data-chest="${chest.id}" data-image="${chest.image}" data-label="${chest.label}" data-cost="${chest.cost}" ${!currentUser ? 'disabled' : ''}>
+            ${costHtml}
+            <button class="btn-primary chest-open-btn" data-chest="${chest.id}" data-image="${chest.image}" data-label="${chest.label}" data-cost="${effectiveCost}" ${!currentUser ? 'disabled' : ''}>
               ${currentUser ? 'Open Chest' : 'Log in to open'}
             </button>
           </div>
@@ -397,6 +417,8 @@ async function renderChests() {
       flipCard.classList.toggle('flipped');
     });
   });
+
+  renderSaleTab();
 }
 
 // ── Dramatic chest-opening sequence ─────────────────────────────────────────────
@@ -550,43 +572,69 @@ async function renderMyItems() {
 const CHEST_ITEM_EMOJI = {};
 
 // ── Direct-purchase catalog (Shop tab — fixed price, guaranteed item) ─────────
-async function renderCatalog() {
-  const container = document.getElementById('catalogCategories');
-  const res = await fetch('/api/catalog');
-  const catalog = await res.json();
-  container.innerHTML = '';
+function renderTierPrice(tier) {
+  if (tier.discountPercent > 0) {
+    return `
+      <span class="catalog-tier-cost">
+        <span class="price-original">${tier.cost.toLocaleString('en-US')}</span>
+        <span class="price-sale">${tier.salePrice.toLocaleString('en-US')}</span> Primal Coins
+        <img class="coin-icon-sm" src="/images/logo.jpg" alt="" />
+        <span class="sale-badge">-${tier.discountPercent}%</span>
+      </span>`;
+  }
+  return `<span class="catalog-tier-cost">${tier.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>`;
+}
 
-  Object.values(catalog).forEach((category) => {
-    const section = document.createElement('div');
-    section.className = 'catalog-category';
-    const headerIcon = category.image
-      ? `<img class="catalog-category-thumb" src="${category.image}" alt="" />`
-      : `<span class="catalog-category-emoji">${category.emoji}</span>`;
-    const noteHtml = category.note ? `<p class="catalog-category-note">ℹ️ ${category.note}</p>` : '';
-    section.innerHTML = `
-      <div class="catalog-category-header">
-        ${headerIcon}
-        <h3 class="catalog-category-label">${category.label}</h3>
-      </div>
-      ${noteHtml}
-      <div class="catalog-tiers">
-        ${category.tiers.map((tier) => `
-          <div class="catalog-tier">
-            <span class="catalog-tier-name">${tier.name}</span>
-            <span class="catalog-tier-cost">${tier.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>
-            <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" data-name="${tier.name.replace(/"/g, '&quot;')}" data-cost="${tier.cost}" ${!currentUser ? 'disabled' : ''}>
-              ${currentUser ? 'Buy' : 'Log in to buy'}
-            </button>
-          </div>
-        `).join('')}
-      </div>
-    `;
-    container.appendChild(section);
+function renderCategoryCard(category) {
+  const section = document.createElement('div');
+  section.className = 'catalog-category';
+  const headerIcon = category.image
+    ? `<img class="catalog-category-thumb" src="${category.image}" alt="" />`
+    : `<span class="catalog-category-emoji">${category.emoji}</span>`;
+  const noteHtml = category.note ? `<p class="catalog-category-note">ℹ️ ${category.note}</p>` : '';
+  section.innerHTML = `
+    <div class="catalog-category-header">
+      ${headerIcon}
+      <h3 class="catalog-category-label">${category.label}</h3>
+    </div>
+    ${noteHtml}
+    <div class="catalog-tiers">
+      ${category.tiers.map((tier) => `
+        <div class="catalog-tier">
+          <span class="catalog-tier-name">${tier.name}</span>
+          ${renderTierPrice(tier)}
+          <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" data-name="${tier.name.replace(/"/g, '&quot;')}" data-cost="${tier.discountPercent > 0 ? tier.salePrice : tier.cost}" ${!currentUser ? 'disabled' : ''}>
+            ${currentUser ? 'Buy' : 'Log in to buy'}
+          </button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  return section;
+}
+
+let latestCatalog = null;
+
+async function renderCatalog() {
+  const singleContainer = document.getElementById('catalogCategories');
+  const otherContainer = document.getElementById('otherCategories');
+  const res = await fetch('/api/catalog');
+  latestCatalog = await res.json();
+  singleContainer.innerHTML = '';
+  otherContainer.innerHTML = '';
+
+  Object.values(latestCatalog).forEach((category) => {
+    // Categories with exactly 3 tiers are the "Single Items" (Tier 1/2/3 style);
+    // everything else (single fixed-price items) goes under "Other Stuff".
+    const target = category.tiers.length === 3 ? singleContainer : otherContainer;
+    target.appendChild(renderCategoryCard(category));
   });
 
-  container.querySelectorAll('.catalog-buy-btn').forEach((btn) => {
+  document.querySelectorAll('.catalog-buy-btn').forEach((btn) => {
     btn.addEventListener('click', () => buyCatalogItem(btn.dataset.tier, btn, btn.dataset.name, btn.dataset.cost));
   });
+
+  renderSaleTab();
 }
 
 async function buyCatalogItem(tierId, btnEl, itemName, itemCost) {
@@ -811,6 +859,338 @@ function setupWheel() {
   });
 }
 
+// ── Combo Packs ────────────────────────────────────────────────────────────────
+async function renderCombos() {
+  const grid = document.getElementById('comboGrid');
+  const res = await fetch('/api/combos');
+  const combos = await res.json();
+  latestCombos = combos;
+  grid.innerHTML = '';
+
+  combos.forEach((combo) => {
+    const priceHtml = combo.discountPercent > 0
+      ? `<span class="combo-cost"><span class="price-original">${combo.cost.toLocaleString('en-US')}</span> <span class="price-sale">${combo.salePrice.toLocaleString('en-US')}</span> Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /><span class="sale-badge">-${combo.discountPercent}%</span></span>`
+      : `<span class="combo-cost">${combo.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>`;
+    const effectiveCost = combo.discountPercent > 0 ? combo.salePrice : combo.cost;
+
+    const card = document.createElement('div');
+    card.className = 'combo-card';
+    card.innerHTML = `
+      <div class="combo-image-wrap"><img src="${combo.image}" alt="${combo.name}" loading="lazy" /></div>
+      <div class="combo-body">
+        <h3 class="combo-name">${combo.name}</h3>
+        <ul class="combo-contents">${combo.contents.map((c) => `<li>${c}</li>`).join('')}</ul>
+        ${priceHtml}
+        <button class="btn-primary combo-buy-btn" data-combo="${combo.id}" data-name="${combo.name}" data-cost="${effectiveCost}" ${!currentUser ? 'disabled' : ''}>
+          ${currentUser ? 'Buy Combo' : 'Log in to buy'}
+        </button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  grid.querySelectorAll('.combo-buy-btn').forEach((btn) => {
+    btn.addEventListener('click', () => buyCombo(btn.dataset.combo, btn, btn.dataset.name, btn.dataset.cost));
+  });
+
+  renderSaleTab();
+}
+
+async function buyCombo(comboId, btnEl, comboName, comboCost) {
+  if (!currentUser) { openAuthModal('login'); return; }
+
+  const confirmed = await showConfirm(`Are you sure you would like to purchase "${comboName}" for ${Number(comboCost).toLocaleString('en-US')} Primal Coins?`);
+  if (!confirmed) return;
+
+  btnEl.disabled = true;
+  const originalText = btnEl.textContent;
+  btnEl.textContent = 'Buying…';
+
+  try {
+    const res = await fetch(`/api/combos/${comboId}/buy`, { method: 'POST' });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.error || 'Could not complete purchase.', 'error');
+      return;
+    }
+
+    currentUser.coins = data.newBalance;
+    renderAuthArea();
+    renderMyItems();
+    showResultModal(data.item);
+  } catch {
+    showToast('Something went wrong. Please try again.', 'error');
+  } finally {
+    btnEl.disabled = false;
+    btnEl.textContent = originalText;
+  }
+}
+
+// ── Sale tab (aggregates every discounted item/chest/package/combo) ───────────
+function renderSaleTab() {
+  const container = document.getElementById('saleItems');
+  const emptyMsg = document.getElementById('saleEmpty');
+  container.innerHTML = '';
+  let foundAny = false;
+
+  // Catalog items on sale
+  if (latestCatalog) {
+    Object.values(latestCatalog).forEach((category) => {
+      const discountedTiers = category.tiers.filter((t) => t.discountPercent > 0);
+      if (discountedTiers.length > 0) {
+        foundAny = true;
+        container.appendChild(renderCategoryCard({ ...category, tiers: discountedTiers }));
+      }
+    });
+  }
+
+  // Chests on sale
+  const discountedChests = latestChests.filter((c) => c.discountPercent > 0);
+  if (discountedChests.length > 0) {
+    foundAny = true;
+    const wrap = document.createElement('div');
+    wrap.className = 'catalog-category';
+    wrap.innerHTML = `
+      <div class="catalog-category-header"><span class="catalog-category-emoji">📦</span><h3 class="catalog-category-label">Mystery Chests</h3></div>
+      <div class="catalog-tiers">
+        ${discountedChests.map((c) => `
+          <div class="catalog-tier">
+            <span class="catalog-tier-name">${c.label}</span>
+            <span class="catalog-tier-cost"><span class="price-original">${c.cost.toLocaleString('en-US')}</span> <span class="price-sale">${c.salePrice.toLocaleString('en-US')}</span> Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /><span class="sale-badge">-${c.discountPercent}%</span></span>
+            <button class="btn-primary" data-goto-chest="${c.id}">Go to Chests tab</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(wrap);
+  }
+
+  // Combo packs on sale
+  const discountedCombos = latestCombos.filter((c) => c.discountPercent > 0);
+  if (discountedCombos.length > 0) {
+    foundAny = true;
+    const wrap = document.createElement('div');
+    wrap.className = 'combo-grid';
+    wrap.style.marginBottom = '1.25rem';
+    discountedCombos.forEach((combo) => {
+      const card = document.createElement('div');
+      card.className = 'combo-card';
+      card.innerHTML = `
+        <div class="combo-image-wrap"><img src="${combo.image}" alt="${combo.name}" loading="lazy" /></div>
+        <div class="combo-body">
+          <h3 class="combo-name">${combo.name}</h3>
+          <ul class="combo-contents">${combo.contents.map((c) => `<li>${c}</li>`).join('')}</ul>
+          <span class="combo-cost"><span class="price-original">${combo.cost.toLocaleString('en-US')}</span> <span class="price-sale">${combo.salePrice.toLocaleString('en-US')}</span> Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /><span class="sale-badge">-${combo.discountPercent}%</span></span>
+          <button class="btn-primary combo-buy-btn" data-combo="${combo.id}" data-name="${combo.name}" data-cost="${combo.salePrice}" ${!currentUser ? 'disabled' : ''}>
+            ${currentUser ? 'Buy Combo' : 'Log in to buy'}
+          </button>
+        </div>
+      `;
+      wrap.appendChild(card);
+    });
+    container.appendChild(wrap);
+  }
+
+  // Coin packages on sale
+  const discountedPackages = latestPackages.filter((p) => p.discountPercent > 0);
+  if (discountedPackages.length > 0) {
+    foundAny = true;
+    const wrap = document.createElement('div');
+    wrap.className = 'catalog-category';
+    wrap.innerHTML = `
+      <div class="catalog-category-header"><span class="catalog-category-emoji">💰</span><h3 class="catalog-category-label">Primal Coins</h3></div>
+      <div class="catalog-tiers">
+        ${discountedPackages.map((p) => `
+          <div class="catalog-tier">
+            <span class="catalog-tier-name">${p.label} — ${p.coins.toLocaleString('en-US')} Coins</span>
+            <span class="catalog-tier-cost"><span class="price-original">€${p.priceEur.toFixed(2)}</span> <span class="price-sale">€${p.salePriceEur.toFixed(2)}</span><span class="sale-badge">-${p.discountPercent}%</span></span>
+            <button class="btn-primary" data-goto-coins="1">Go to Buy Coins tab</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(wrap);
+  }
+
+  emptyMsg.style.display = foundAny ? 'none' : 'block';
+
+  container.querySelectorAll('.combo-buy-btn').forEach((btn) => {
+    btn.addEventListener('click', () => buyCombo(btn.dataset.combo, btn, btn.dataset.name, btn.dataset.cost));
+  });
+  container.querySelectorAll('.catalog-buy-btn').forEach((btn) => {
+    btn.addEventListener('click', () => buyCatalogItem(btn.dataset.tier, btn, btn.dataset.name, btn.dataset.cost));
+  });
+  container.querySelectorAll('[data-goto-chest]').forEach((btn) => {
+    btn.addEventListener('click', () => switchTab('chests'));
+  });
+  container.querySelectorAll('[data-goto-coins]').forEach((btn) => {
+    btn.addEventListener('click', () => switchTab('coins'));
+  });
+}
+
+// ── Shop sub-navigation (Sale / Single Items / Combo Packs / Other Stuff) ─────
+function setupShopSubnav() {
+  document.querySelectorAll('.subnav-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.subnav-tab').forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.sub-panel').forEach((p) => p.classList.remove('active'));
+      document.getElementById(`subpanel-${tab.dataset.subtab}`).classList.add('active');
+    });
+  });
+}
+
+// ── Admin Panel (password-gated sales management) ─────────────────────────────
+let adminPanelItemsCache = [];
+
+function setupAdminPanel() {
+  const linkBtn = document.getElementById('adminLinkBtn');
+  const loginModal = document.getElementById('adminLoginModal');
+  const loginClose = document.getElementById('adminLoginClose');
+  const loginForm = document.getElementById('adminLoginForm');
+  const loginError = document.getElementById('adminLoginError');
+  const panelModal = document.getElementById('adminPanelModal');
+  const panelClose = document.getElementById('adminPanelClose');
+  const searchInput = document.getElementById('adminSearchInput');
+
+  linkBtn.addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/admin-panel/check');
+      const data = await res.json();
+      if (data.authorized) {
+        openAdminPanel();
+      } else {
+        loginModal.classList.add('show');
+      }
+    } catch {
+      loginModal.classList.add('show');
+    }
+  });
+
+  loginClose.addEventListener('click', () => loginModal.classList.remove('show'));
+  loginModal.addEventListener('click', (e) => { if (e.target === loginModal) loginModal.classList.remove('show'); });
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const password = document.getElementById('adminPasswordInput').value;
+    loginError.textContent = '';
+
+    try {
+      const res = await fetch('/api/admin-panel/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { loginError.textContent = data.error; return; }
+
+      loginModal.classList.remove('show');
+      document.getElementById('adminPasswordInput').value = '';
+      openAdminPanel();
+    } catch {
+      loginError.textContent = 'Something went wrong. Please try again.';
+    }
+  });
+
+  panelClose.addEventListener('click', () => panelModal.classList.remove('show'));
+  panelModal.addEventListener('click', (e) => { if (e.target === panelModal) panelModal.classList.remove('show'); });
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    document.querySelectorAll('.admin-panel-row').forEach((row) => {
+      row.style.display = row.dataset.label.toLowerCase().includes(q) ? 'flex' : 'none';
+    });
+  });
+}
+
+async function openAdminPanel() {
+  document.getElementById('adminPanelModal').classList.add('show');
+  await loadAdminPanelItems();
+}
+
+async function loadAdminPanelItems() {
+  const list = document.getElementById('adminPanelList');
+  list.innerHTML = '<p class="spin-status">Loading…</p>';
+
+  try {
+    const res = await fetch('/api/admin-panel/items');
+    if (res.status === 401) {
+      list.innerHTML = '<p class="form-error">Session expired — please log in again.</p>';
+      return;
+    }
+    const data = await res.json();
+    adminPanelItemsCache = data.items;
+
+    const salesMap = {};
+    data.sales.forEach((s) => { salesMap[`${s.item_type}:${s.item_id}`] = s.discount_percent; });
+
+    list.innerHTML = data.items.map((item) => {
+      const key = `${item.type}:${item.id}`;
+      const currentDiscount = salesMap[key] || '';
+      const priceLabel = item.type === 'package' ? `€${item.basePrice}` : `${item.basePrice.toLocaleString('en-US')} Coins`;
+      return `
+        <div class="admin-panel-row ${currentDiscount ? 'has-sale' : ''}" data-label="${item.label.replace(/"/g, '&quot;')}" data-type="${item.type}" data-id="${item.id}">
+          <span class="admin-row-label">${item.label}</span>
+          <span class="admin-row-price">${priceLabel}</span>
+          <input type="number" class="admin-row-input" min="1" max="95" placeholder="%" value="${currentDiscount}" />
+          <button class="btn-primary admin-row-btn" data-action="apply">Apply</button>
+          <button class="btn-ghost admin-row-btn" data-action="remove" ${!currentDiscount ? 'style="display:none;"' : ''}>Remove</button>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('[data-action="apply"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const row = btn.closest('.admin-panel-row');
+        const input = row.querySelector('.admin-row-input');
+        const discountPercent = Number(input.value);
+        if (!discountPercent || discountPercent <= 0 || discountPercent > 95) {
+          showToast('Enter a discount between 1 and 95.', 'error');
+          return;
+        }
+        const res = await fetch('/api/admin-panel/sales', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ itemType: row.dataset.type, itemId: row.dataset.id, discountPercent }),
+        });
+        const data = await res.json();
+        if (!res.ok) { showToast(data.error || 'Could not apply sale.', 'error'); return; }
+        showToast('Sale applied!', 'success');
+        row.classList.add('has-sale');
+        row.querySelector('[data-action="remove"]').style.display = 'inline-block';
+        refreshAllShopData();
+      });
+    });
+
+    list.querySelectorAll('[data-action="remove"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const row = btn.closest('.admin-panel-row');
+        const res = await fetch('/api/admin-panel/sales/remove', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ itemType: row.dataset.type, itemId: row.dataset.id }),
+        });
+        if (!res.ok) { showToast('Could not remove sale.', 'error'); return; }
+        showToast('Sale removed.', 'info');
+        row.classList.remove('has-sale');
+        row.querySelector('.admin-row-input').value = '';
+        btn.style.display = 'none';
+        refreshAllShopData();
+      });
+    });
+  } catch {
+    list.innerHTML = '<p class="form-error">Could not load items. Please try again.</p>';
+  }
+}
+
+function refreshAllShopData() {
+  renderPackages();
+  renderChests();
+  renderCatalog();
+  renderCombos();
+}
+
 // ── Gate buttons (Shop / Chests tabs) ─────────────────────────────────────────
 function setupGateButtons() {
   document.getElementById('gateLoginBtn').addEventListener('click', () => openAuthModal('login'));
@@ -923,12 +1303,15 @@ async function init() {
   setupPromoBox();
   setupWheel();
   setupProfileEdit();
+  setupShopSubnav();
+  setupAdminPanel();
 
   await refreshMe();
   await loadPayPalSdk();
   await renderPackages();
   await renderChests();
   await renderCatalog();
+  await renderCombos();
   await renderMyItems();
   await renderWheel();
   await refreshSpinStatus();

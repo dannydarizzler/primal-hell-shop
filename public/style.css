@@ -480,6 +480,127 @@ main {
 .catalog-tier-cost { color: var(--ember); font-weight: 700; font-size: 1rem; }
 .catalog-buy-btn { font-size: 0.85rem; padding: 0.5rem 1rem; }
 
+/* ── Shop sub-navigation (Sale / Single Items / Combo Packs / Other Stuff) ── */
+.subnav {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+.subnav-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--obsidian-2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 0.4rem 1rem 0.4rem 0.4rem;
+  cursor: pointer;
+  color: var(--ash-dim);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.subnav-tab img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.subnav-tab:hover { color: var(--ash); }
+.subnav-tab.active { border-color: var(--lava); color: #fff; background: rgba(255, 90, 31, 0.1); }
+
+.sub-panel { display: none; }
+.sub-panel.active { display: block; animation: fadeIn 0.2s ease; }
+
+/* ── Sale pricing (strikethrough original + highlighted sale price) ───────── */
+.price-original { text-decoration: line-through; color: var(--ash-dim); font-size: 0.85em; margin-right: 0.4em; }
+.price-sale { color: #7fe0a0; font-weight: 700; }
+.sale-badge {
+  display: inline-block;
+  background: var(--lava);
+  color: #1a0d05;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+/* ── Combo Packs ────────────────────────────────────────────────────────── */
+.combo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+.combo-card {
+  background: var(--obsidian-2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.combo-image-wrap { aspect-ratio: 1.4 / 1; overflow: hidden; background: #000; }
+.combo-image-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.combo-body { padding: 1.2rem 1.3rem 1.4rem; display: flex; flex-direction: column; gap: 0.7rem; flex: 1; }
+.combo-name { font-family: 'Oswald', sans-serif; color: #fff; font-size: 1.1rem; margin: 0; }
+.combo-contents { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.combo-contents li { font-size: 0.82rem; color: var(--ash-dim); padding-left: 1rem; position: relative; }
+.combo-contents li::before { content: '+'; position: absolute; left: 0; color: var(--ember); font-weight: 700; }
+.combo-cost { font-size: 1.05rem; font-weight: 700; color: var(--ember); }
+.combo-buy-btn { margin-top: auto; }
+
+/* ── Admin panel ────────────────────────────────────────────────────────── */
+.admin-link {
+  background: none;
+  border: none;
+  color: var(--ash-dim);
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-decoration: underline;
+  opacity: 0.5;
+}
+.admin-link:hover { opacity: 1; }
+
+.admin-panel-modal { max-width: 640px; text-align: left; max-height: 80vh; display: flex; flex-direction: column; }
+.admin-panel-search { margin-bottom: 1rem; }
+.admin-panel-search input {
+  width: 100%;
+  background: var(--obsidian);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  color: var(--ash);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+.admin-panel-list { overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-right: 0.3rem; }
+.admin-panel-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  flex-wrap: wrap;
+}
+.admin-panel-row.has-sale { border-color: rgba(255, 90, 31, 0.4); background: rgba(255, 90, 31, 0.06); }
+.admin-row-label { flex: 1; min-width: 160px; font-size: 0.85rem; color: var(--ash); }
+.admin-row-price { font-size: 0.78rem; color: var(--ash-dim); }
+.admin-row-input {
+  width: 60px;
+  background: var(--obsidian);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  color: var(--ash);
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+.admin-row-btn { font-size: 0.75rem; padding: 0.35rem 0.7rem; }
+
 /* ── Chests (flip cards) ────────────────────────────────────────────────── */
 .chests-grid {
   display: flex;

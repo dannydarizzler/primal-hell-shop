@@ -300,6 +300,37 @@ function markRedemptionNotified(id) {
   db.prepare(`UPDATE promo_redemptions SET notified_by_bot = 1 WHERE rowid = ?`).run(id);
 }
 
+// ── Sales (admin-controlled discounts on catalog items, chests, packages, combos) ──
+db.exec(`
+  CREATE TABLE IF NOT EXISTS sales (
+    item_type TEXT NOT NULL,
+    item_id TEXT NOT NULL,
+    discount_percent INTEGER NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (item_type, item_id)
+  )
+`);
+
+function setSale(itemType, itemId, discountPercent) {
+  db.prepare(`
+    INSERT INTO sales (item_type, item_id, discount_percent, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(item_type, item_id) DO UPDATE SET discount_percent = excluded.discount_percent, updated_at = CURRENT_TIMESTAMP
+  `).run(itemType, itemId, discountPercent);
+}
+
+function removeSale(itemType, itemId) {
+  db.prepare(`DELETE FROM sales WHERE item_type = ? AND item_id = ?`).run(itemType, itemId);
+}
+
+function getSale(itemType, itemId) {
+  const row = db.prepare(`SELECT discount_percent FROM sales WHERE item_type = ? AND item_id = ?`).get(itemType, itemId);
+  return row ? row.discount_percent : 0;
+}
+
+function getAllSales() {
+  return db.prepare(`SELECT * FROM sales ORDER BY updated_at DESC`).all();
+}
+
 // ── Daily Lucky Wheel — one spin per user per 24h ──────────────────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS daily_spins (
@@ -555,6 +586,10 @@ module.exports = {
   markVipSpinNotified,
   setVip,
   isVip,
+  setSale,
+  removeSale,
+  getSale,
+  getAllSales,
   migrateDiscordId,
   createPromoCode,
   getPromoCode,

@@ -71,6 +71,10 @@
       <p><strong>Where do my items go?</strong> Every purchase appears in your <em>My Items</em> tab as "Active" until a staff member marks it as delivered. Open a Discord ticket to claim it — don't wait if it's been a while.</p>
     </div>
 
+    <div class="home-note">
+      <p><strong>Don't know your Discord User ID?</strong> Use <code>/whoami</code> in Discord and the bot will DM it to you.</p>
+    </div>
+
     <!-- ───────────────────────── DAILY LUCKY WHEEL ───────────────────────── -->
     <div class="wheel-section">
       <h2 class="section-title">🎡 Daily Lucky Wheel</h2>
@@ -134,16 +138,45 @@
   <!-- ───────────────────────── SHOP TAB ───────────────────────── -->
   <section class="tab-panel" id="tab-shop">
 
-    <div class="shop-section">
-      <h2 class="section-title">🛒 Buy Items Directly</h2>
+    <div id="catalogLoginGate" class="login-gate" style="display:none;">
+      <p>Log in or create an account to buy items.</p>
+      <button class="btn-primary" id="catalogGateLoginBtn">Log In / Sign Up</button>
+    </div>
+
+    <nav class="subnav" id="shopSubnav">
+      <button class="subnav-tab active" data-subtab="sale">
+        <img src="/images/groups/sale.jpg" alt="" /><span>Sale</span>
+      </button>
+      <button class="subnav-tab" data-subtab="single">
+        <img src="/images/groups/single.jpg" alt="" /><span>Single Items</span>
+      </button>
+      <button class="subnav-tab" data-subtab="combo">
+        <img src="/images/groups/combo.jpg" alt="" /><span>Combo Packs</span>
+      </button>
+      <button class="subnav-tab" data-subtab="other">
+        <img src="/images/groups/other.jpg" alt="" /><span>Other Stuff</span>
+      </button>
+    </nav>
+
+    <div class="sub-panel active" id="subpanel-sale">
+      <p class="section-sub">Everything currently discounted, in one place. Check back often — sales can end anytime.</p>
+      <div class="catalog-categories" id="saleItems"></div>
+      <p class="items-empty" id="saleEmpty" style="display:none;">Nothing on sale right now — check back soon!</p>
+    </div>
+
+    <div class="sub-panel" id="subpanel-single">
       <p class="section-sub">Guaranteed items at a fixed Coin price — no randomness. Open a Dono-request ticket on Discord if you don't receive your item in a reasonable time.</p>
-
-      <div id="catalogLoginGate" class="login-gate" style="display:none;">
-        <p>Log in or create an account to buy items.</p>
-        <button class="btn-primary" id="catalogGateLoginBtn">Log In / Sign Up</button>
-      </div>
-
       <div class="catalog-categories" id="catalogCategories"></div>
+    </div>
+
+    <div class="sub-panel" id="subpanel-combo">
+      <p class="section-sub">Bundled deals — multiple items in one purchase for a better price than buying separately.</p>
+      <div class="combo-grid" id="comboGrid"></div>
+    </div>
+
+    <div class="sub-panel" id="subpanel-other">
+      <p class="section-sub">Everything that doesn't come in the usual 3 tiers.</p>
+      <div class="catalog-categories" id="otherCategories"></div>
     </div>
   </section>
 
@@ -213,7 +246,37 @@
 
 <footer class="site-footer">
   <p>Primal Hell — ARK: Survival Ascended Community Server</p>
+  <p><button class="admin-link" id="adminLinkBtn">Admin</button></p>
 </footer>
+
+<!-- ───────────────────────── ADMIN PANEL LOGIN MODAL ───────────────────────── -->
+<div class="modal-overlay" id="adminLoginModal">
+  <div class="modal">
+    <button class="modal-close" id="adminLoginClose" aria-label="Close">✕</button>
+    <h3 class="confirm-title">Admin Panel</h3>
+    <form id="adminLoginForm" class="auth-form active">
+      <label for="adminPasswordInput">Password</label>
+      <input type="password" id="adminPasswordInput" required />
+      <button type="submit" class="btn-primary">Log In</button>
+      <p class="form-error" id="adminLoginError"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ───────────────────────── ADMIN PANEL ───────────────────────── -->
+<div class="modal-overlay" id="adminPanelModal">
+  <div class="modal admin-panel-modal">
+    <button class="modal-close" id="adminPanelClose" aria-label="Close">✕</button>
+    <h3 class="confirm-title">🛠️ Sales Admin Panel</h3>
+    <p class="section-sub">Set a discount on any item, chest, package, or combo. Players see the sale price instantly.</p>
+
+    <div class="admin-panel-search">
+      <input type="text" id="adminSearchInput" placeholder="Search items…" />
+    </div>
+
+    <div class="admin-panel-list" id="adminPanelList"></div>
+  </div>
+</div>
 
 <!-- ───────────────────────── AUTH MODAL ───────────────────────── -->
 <div class="modal-overlay" id="authModal">
