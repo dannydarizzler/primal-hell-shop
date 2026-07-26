@@ -131,11 +131,14 @@ db.exec(`
   )
 `);
 
-// ── Migration: users table may already exist without display_name ────────────
+// ── Migration: users table may already exist without display_name / is_vip ────
 {
   const userColumns = db.prepare(`PRAGMA table_info(users)`).all().map((c) => c.name);
   if (!userColumns.includes('display_name')) {
     db.exec(`ALTER TABLE users ADD COLUMN display_name TEXT NOT NULL DEFAULT ''`);
+  }
+  if (!userColumns.includes('is_vip')) {
+    db.exec(`ALTER TABLE users ADD COLUMN is_vip INTEGER NOT NULL DEFAULT 0`);
   }
 }
 
@@ -306,6 +309,15 @@ db.exec(`
   )
 `);
 
+// ── VIP Lucky Wheel — separate 24h cooldown, VIP members only ──────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS vip_daily_spins (
+    discord_id TEXT PRIMARY KEY,
+    last_spin_at TEXT NOT NULL,
+    total_spins INTEGER NOT NULL DEFAULT 0
+  )
+`);
+
 // ── Log of individual spins (so the bot can DM "Congrats, you won X!" once per spin) ──
 db.exec(`
   CREATE TABLE IF NOT EXISTS spin_history (
@@ -318,62 +330,98 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS vip_spin_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    discord_id TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    jackpot INTEGER NOT NULL DEFAULT 0,
+    spun_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    notified_by_bot INTEGER NOT NULL DEFAULT 0
+  )
+`);
+
 // ── User accounts ────────────────────────────────────────────────────────────────
 const SPIN_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
-/** Whether the user can spin right now, and when their next spin unlocks. */
-function getSpinStatus(discordId) {
-  const row = db.prepare(`SELECT last_spin_at FROM daily_spins WHERE discord_id = ?`).get(discordId);
-  if (!row) return { canSpin: true, nextSpinAt: null };
-  const nextSpinAt = new Date(new Date(row.last_spin_at).getTime() + SPIN_COOLDOWN_MS);
-  return { canSpin: Date.now() >= nextSpinAt.getTime(), nextSpinAt: nextSpinAt.toISOString() };
-}
-
-/** Atomically spins for a user: re-checks the cooldown, credits the coins, and
- * records the spin — all in one transaction. Returns null if not allowed yet. */
-function trySpin(discordId, amount, jackpot) {
-  const existing = db.prepare(`SELECT last_spin_at FROM daily_spins WHERE discord_id = ?`).get(discordId);
-  const now = new Date();
-
-  if (existing) {
-    const elapsed = now.getTime() - new Date(existing.last_spin_at).getTime();
-    if (elapsed < SPIN_COOLDOWN_MS) return null; // still on cooldown
+/** Creates a full set of Lucky-Wheel functions bound to a given pair of tables,
+ * so the standard wheel and the VIP wheel can share the exact same logic
+ * without duplicating it. Table names are fixed internal literals (never user
+ * input), so simple string interpolation into SQL here is safe. */
+function createSpinModule(spinsTable, historyTable) {
+  function getSpinStatus(discordId) {
+    const row = db.prepare(`SELECT last_spin_at FROM ${spinsTable} WHERE discord_id = ?`).get(discordId);
+    if (!row) return { canSpin: true, nextSpinAt: null };
+    const nextSpinAt = new Date(new Date(row.last_spin_at).getTime() + SPIN_COOLDOWN_MS);
+    return { canSpin: Date.now() >= nextSpinAt.getTime(), nextSpinAt: nextSpinAt.toISOString() };
   }
 
-  const nowIso = now.toISOString();
-  db.exec('BEGIN');
-  try {
+  function trySpin(discordId, amount, jackpot) {
+    const existing = db.prepare(`SELECT last_spin_at FROM ${spinsTable} WHERE discord_id = ?`).get(discordId);
+    const now = new Date();
+
     if (existing) {
-      db.prepare(`UPDATE daily_spins SET last_spin_at = ?, total_spins = total_spins + 1 WHERE discord_id = ?`).run(nowIso, discordId);
-    } else {
-      db.prepare(`INSERT INTO daily_spins (discord_id, last_spin_at, total_spins) VALUES (?, ?, 1)`).run(discordId, nowIso);
+      const elapsed = now.getTime() - new Date(existing.last_spin_at).getTime();
+      if (elapsed < SPIN_COOLDOWN_MS) return null; // still on cooldown
     }
-    db.prepare(`
-      INSERT INTO balances (discord_id, coins) VALUES (?, ?)
-      ON CONFLICT(discord_id) DO UPDATE SET coins = coins + excluded.coins
-    `).run(discordId, amount);
-    db.prepare(`
-      INSERT INTO spin_history (discord_id, amount, jackpot) VALUES (?, ?, ?)
-    `).run(discordId, amount, jackpot ? 1 : 0);
-    db.exec('COMMIT');
-  } catch (err) {
-    db.exec('ROLLBACK');
-    throw err;
+
+    const nowIso = now.toISOString();
+    db.exec('BEGIN');
+    try {
+      if (existing) {
+        db.prepare(`UPDATE ${spinsTable} SET last_spin_at = ?, total_spins = total_spins + 1 WHERE discord_id = ?`).run(nowIso, discordId);
+      } else {
+        db.prepare(`INSERT INTO ${spinsTable} (discord_id, last_spin_at, total_spins) VALUES (?, ?, 1)`).run(discordId, nowIso);
+      }
+      db.prepare(`
+        INSERT INTO balances (discord_id, coins) VALUES (?, ?)
+        ON CONFLICT(discord_id) DO UPDATE SET coins = coins + excluded.coins
+      `).run(discordId, amount);
+      db.prepare(`INSERT INTO ${historyTable} (discord_id, amount, jackpot) VALUES (?, ?, ?)`).run(discordId, amount, jackpot ? 1 : 0);
+      db.exec('COMMIT');
+    } catch (err) {
+      db.exec('ROLLBACK');
+      throw err;
+    }
+
+    return {
+      newBalance: getBalance(discordId),
+      nextSpinAt: new Date(now.getTime() + SPIN_COOLDOWN_MS).toISOString(),
+    };
   }
 
-  return {
-    newBalance: getBalance(discordId),
-    nextSpinAt: new Date(now.getTime() + SPIN_COOLDOWN_MS).toISOString(),
-  };
+  function getUnnotifiedSpins() {
+    return db.prepare(`SELECT * FROM ${historyTable} WHERE notified_by_bot = 0`).all();
+  }
+
+  function markSpinNotified(id) {
+    db.prepare(`UPDATE ${historyTable} SET notified_by_bot = 1 WHERE id = ?`).run(id);
+  }
+
+  return { getSpinStatus, trySpin, getUnnotifiedSpins, markSpinNotified };
 }
 
-// ── Bot sync for spin-win DMs ──────────────────────────────────────────────────
-function getUnnotifiedSpins() {
-  return db.prepare(`SELECT * FROM spin_history WHERE notified_by_bot = 0`).all();
+const standardSpin = createSpinModule('daily_spins', 'spin_history');
+const vipSpin = createSpinModule('vip_daily_spins', 'vip_spin_history');
+
+const getSpinStatus = standardSpin.getSpinStatus;
+const trySpin = standardSpin.trySpin;
+const getUnnotifiedSpins = standardSpin.getUnnotifiedSpins;
+const markSpinNotified = standardSpin.markSpinNotified;
+
+const getVipSpinStatus = vipSpin.getSpinStatus;
+const tryVipSpin = vipSpin.trySpin;
+const getUnnotifiedVipSpins = vipSpin.getUnnotifiedSpins;
+const markVipSpinNotified = vipSpin.markSpinNotified;
+
+// ── VIP flag management ─────────────────────────────────────────────────────────
+function setVip(discordId, isVip) {
+  db.prepare(`UPDATE users SET is_vip = ? WHERE discord_id = ?`).run(isVip ? 1 : 0, discordId);
 }
 
-function markSpinNotified(id) {
-  db.prepare(`UPDATE spin_history SET notified_by_bot = 1 WHERE id = ?`).run(id);
+function isVip(discordId) {
+  const row = db.prepare(`SELECT is_vip FROM users WHERE discord_id = ?`).get(discordId);
+  return !!(row && row.is_vip);
 }
 
 function createUser(discordId, passwordHash, displayName) {
@@ -501,6 +549,12 @@ module.exports = {
   trySpin,
   getUnnotifiedSpins,
   markSpinNotified,
+  getVipSpinStatus,
+  tryVipSpin,
+  getUnnotifiedVipSpins,
+  markVipSpinNotified,
+  setVip,
+  isVip,
   migrateDiscordId,
   createPromoCode,
   getPromoCode,

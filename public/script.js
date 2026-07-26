@@ -78,6 +78,7 @@ function setupAuthModal() {
       renderCatalog();
       renderMyItems();
       refreshSpinStatus();
+      refreshVipWheel();
     } catch {
       errorEl.textContent = 'Something went wrong. Please try again.';
     }
@@ -107,6 +108,7 @@ function setupAuthModal() {
       renderCatalog();
       renderMyItems();
       refreshSpinStatus();
+      refreshVipWheel();
     } catch {
       errorEl.textContent = 'Something went wrong. Please try again.';
     }
@@ -141,6 +143,7 @@ function renderAuthArea() {
       renderCatalog();
       renderMyItems();
       refreshSpinStatus();
+      refreshVipWheel();
       showToast('Logged out.', 'info');
     });
   } else {
@@ -618,34 +621,54 @@ async function buyCatalogItem(tierId, btnEl, itemName, itemCost) {
   }
 }
 
-// ── Daily Lucky Wheel ────────────────────────────────────────────────────────
-let wheelSegments = [];
-const SEGMENT_ANGLE = 360 / 9; // 9 fixed segments
+// ── Daily Lucky Wheel (+ VIP variant) ──────────────────────────────────────────
+const SEGMENT_ANGLE = 360 / 9; // 9 fixed segments, both wheels
 
-function segmentColor(segment, index) {
-  if (segment.jackpot) return '#3d1a5c';
+const STANDARD_WHEEL = {
+  segmentsUrl: '/api/spin/segments',
+  statusUrl: '/api/spin/status',
+  spinUrl: '/api/spin',
+  discId: 'wheelDisc',
+  btnId: 'spinBtn',
+  statusId: 'spinStatus',
+  btnLabel: 'Spin the Wheel',
+  jackpotColor: '#3d1a5c',
+};
+
+const VIP_WHEEL = {
+  segmentsUrl: '/api/spin/vip-segments',
+  statusUrl: '/api/spin/vip-status',
+  spinUrl: '/api/spin/vip',
+  discId: 'vipWheelDisc',
+  btnId: 'vipSpinBtn',
+  statusId: 'vipSpinStatus',
+  btnLabel: 'Spin the VIP Wheel',
+  jackpotColor: '#5c1a4a',
+};
+
+function segmentColor(segment, index, jackpotColor) {
+  if (segment.jackpot) return jackpotColor;
   return index % 2 === 0 ? '#2a1512' : '#3a1c16';
 }
 
-async function renderWheel() {
-  const res = await fetch('/api/spin/segments');
-  wheelSegments = await res.json();
+async function renderWheelConfig(config) {
+  const res = await fetch(config.segmentsUrl);
+  const segments = await res.json();
 
-  const disc = document.getElementById('wheelDisc');
-  const gradientStops = wheelSegments.map((s, i) => {
+  const disc = document.getElementById(config.discId);
+  const gradientStops = segments.map((s, i) => {
     const from = i * SEGMENT_ANGLE;
     const to = (i + 1) * SEGMENT_ANGLE;
-    return `${segmentColor(s, i)} ${from}deg ${to}deg`;
+    return `${segmentColor(s, i, config.jackpotColor)} ${from}deg ${to}deg`;
   }).join(', ');
   disc.style.background = `conic-gradient(${gradientStops})`;
 
-  // Remove old labels (if re-rendered) and add fresh ones
   disc.querySelectorAll('.wheel-label').forEach((el) => el.remove());
 
-  const radius = 92; // px from center, inside the 260px wheel
-  wheelSegments.forEach((s, i) => {
+  const radius = 92;
+  segments.forEach((s, i) => {
     const centerAngleDeg = i * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
-    const rad = (centerAngleDeg - 90) * (Math.PI / 180); // -90 so 0deg = top
+    const rad = (centerAngleDeg - 90) * (Math.PI / 180);
     const x = 130 + radius * Math.cos(rad);
     const y = 130 + radius * Math.sin(rad);
 
@@ -660,45 +683,18 @@ async function renderWheel() {
   });
 }
 
-async function refreshSpinStatus() {
-  const btn = document.getElementById('spinBtn');
-  const statusEl = document.getElementById('spinStatus');
-
-  if (!currentUser) {
-    btn.disabled = true;
-    statusEl.textContent = '';
-    return;
-  }
-
-  try {
-    const res = await fetch('/api/spin/status');
-    const data = await res.json();
-
-    if (data.canSpin) {
-      btn.disabled = false;
-      btn.textContent = 'Spin the Wheel';
-      statusEl.textContent = '';
-    } else {
-      btn.disabled = true;
-      startSpinCountdown(data.nextSpinAt);
-    }
-  } catch {
-    // fail silently — button stays as-is
-  }
-}
-
-let spinCountdownInterval = null;
-function startSpinCountdown(nextSpinAtIso) {
-  const statusEl = document.getElementById('spinStatus');
-  const btn = document.getElementById('spinBtn');
-  clearInterval(spinCountdownInterval);
+const spinCountdownIntervals = {};
+function startSpinCountdownConfig(config, nextSpinAtIso) {
+  const statusEl = document.getElementById(config.statusId);
+  const btn = document.getElementById(config.btnId);
+  clearInterval(spinCountdownIntervals[config.btnId]);
 
   const update = () => {
     const remaining = new Date(nextSpinAtIso).getTime() - Date.now();
     if (remaining <= 0) {
-      clearInterval(spinCountdownInterval);
+      clearInterval(spinCountdownIntervals[config.btnId]);
       btn.disabled = false;
-      btn.textContent = 'Spin the Wheel';
+      btn.textContent = config.btnLabel;
       statusEl.textContent = '';
       return;
     }
@@ -707,25 +703,47 @@ function startSpinCountdown(nextSpinAtIso) {
     statusEl.textContent = `Next free spin in ${h}h ${m}m`;
   };
   update();
-  spinCountdownInterval = setInterval(update, 30000);
+  spinCountdownIntervals[config.btnId] = setInterval(update, 30000);
 }
 
-async function spinWheel() {
+async function refreshSpinStatusConfig(config) {
+  const btn = document.getElementById(config.btnId);
+  const statusEl = document.getElementById(config.statusId);
+  if (!currentUser) { btn.disabled = true; statusEl.textContent = ''; return; }
+
+  try {
+    const res = await fetch(config.statusUrl);
+    const data = await res.json();
+
+    if (data.canSpin) {
+      btn.disabled = false;
+      btn.textContent = config.btnLabel;
+      statusEl.textContent = '';
+    } else {
+      btn.disabled = true;
+      startSpinCountdownConfig(config, data.nextSpinAt);
+    }
+  } catch {
+    // fail silently
+  }
+}
+
+async function spinWheelConfig(config) {
   if (!currentUser) { openAuthModal('login'); return; }
 
-  const btn = document.getElementById('spinBtn');
-  const disc = document.getElementById('wheelDisc');
+  const btn = document.getElementById(config.btnId);
+  const disc = document.getElementById(config.discId);
   btn.disabled = true;
   btn.textContent = 'Spinning…';
 
   try {
-    const res = await fetch('/api/spin', { method: 'POST' });
+    const res = await fetch(config.spinUrl, { method: 'POST' });
     const data = await res.json();
 
     if (!res.ok) {
       showToast(data.error || 'Could not spin right now.', 'error');
-      if (data.nextSpinAt) startSpinCountdown(data.nextSpinAt);
-      else { btn.disabled = false; btn.textContent = 'Spin the Wheel'; }
+      if (data.nextSpinAt) startSpinCountdownConfig(config, data.nextSpinAt);
+      else { btn.disabled = false; btn.textContent = config.btnLabel; }
       return;
     }
 
@@ -737,7 +755,7 @@ async function spinWheel() {
     setTimeout(() => {
       currentUser.coins = data.newBalance;
       renderAuthArea();
-      startSpinCountdown(data.nextSpinAt);
+      startSpinCountdownConfig(config, data.nextSpinAt);
       showResultModal({
         name: data.jackpot
           ? `JACKPOT! ${data.amount.toLocaleString('en-US')} Primal Coins`
@@ -749,13 +767,46 @@ async function spinWheel() {
   } catch {
     showToast('Something went wrong. Please try again.', 'error');
     btn.disabled = false;
-    btn.textContent = 'Spin the Wheel';
+    btn.textContent = config.btnLabel;
   }
+}
+
+async function renderWheel() { await renderWheelConfig(STANDARD_WHEEL); }
+async function refreshSpinStatus() { await refreshSpinStatusConfig(STANDARD_WHEEL); }
+async function spinWheel() { await spinWheelConfig(STANDARD_WHEEL); }
+
+// ── VIP wheel visibility (only rendered/enabled for logged-in VIP members) ────
+async function refreshVipWheel() {
+  const loginGate = document.getElementById('vipWheelLoginGate');
+  const lockedGate = document.getElementById('vipWheelLockedGate');
+  const area = document.getElementById('vipWheelArea');
+
+  if (!currentUser) {
+    loginGate.style.display = 'flex';
+    lockedGate.style.display = 'none';
+    area.style.display = 'none';
+    return;
+  }
+
+  if (!currentUser.isVip) {
+    loginGate.style.display = 'none';
+    lockedGate.style.display = 'flex';
+    area.style.display = 'none';
+    return;
+  }
+
+  loginGate.style.display = 'none';
+  lockedGate.style.display = 'none';
+  area.style.display = 'flex';
+  await renderWheelConfig(VIP_WHEEL);
+  await refreshSpinStatusConfig(VIP_WHEEL);
 }
 
 function setupWheel() {
   document.getElementById('spinBtn').addEventListener('click', spinWheel);
   document.getElementById('wheelGateLoginBtn').addEventListener('click', () => openAuthModal('login'));
+  document.getElementById('vipSpinBtn').addEventListener('click', () => spinWheelConfig(VIP_WHEEL));
+  document.getElementById('vipWheelGateLoginBtn').addEventListener('click', () => openAuthModal('login'));
 }
 
 // ── Gate buttons (Shop / Chests tabs) ─────────────────────────────────────────
@@ -879,6 +930,7 @@ async function init() {
   await renderMyItems();
   await renderWheel();
   await refreshSpinStatus();
+  await refreshVipWheel();
 }
 
 init().catch((err) => {

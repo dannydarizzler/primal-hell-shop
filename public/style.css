@@ -300,6 +300,9 @@ main {
 
 .spin-status { color: var(--ash-dim); font-size: 0.88rem; text-align: center; margin: 0; }
 
+.vip-wheel-section { margin-top: 2.5rem; }
+.vip-wheel-disc { border-color: var(--purple); box-shadow: 0 0 30px rgba(163, 95, 232, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.5); }
+
 /* ── Shop ───────────────────────────────────────────────────────────────── */
 .shop-section { margin-bottom: 2.5rem; }
 .section-title {

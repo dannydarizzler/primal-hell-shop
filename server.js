@@ -6,6 +6,7 @@ const { PACKAGES } = require('./packages');
 const { CHESTS, drawFromChest } = require('./chests');
 const { CATALOG, findTier } = require('./catalog');
 const { SPIN_SEGMENTS, drawSpinSegmentIndex } = require('./spinwheel');
+const { VIP_SPIN_SEGMENTS, drawVipSpinSegmentIndex } = require('./vipspinwheel');
 const paypal = require('./paypal');
 const db = require('./db');
 const auth = require('./auth');
@@ -70,6 +71,7 @@ app.get('/api/me', (req, res) => {
     discordId: req.user.discordId,
     name: (user?.display_name && user.display_name.trim()) || req.user.discordId,
     coins: db.getBalance(req.user.discordId),
+    isVip: !!(user && user.is_vip),
   });
 });
 
@@ -131,6 +133,45 @@ app.post('/api/spin', auth.requireAuth, (req, res) => {
   if (!result) {
     // Extremely rare race condition (two simultaneous requests) — treat as "too soon"
     return res.status(400).json({ error: 'You already spun today. Come back later!' });
+  }
+
+  res.json({
+    segmentIndex,
+    amount: segment.amount,
+    jackpot: segment.jackpot,
+    newBalance: result.newBalance,
+    nextSpinAt: result.nextSpinAt,
+  });
+});
+
+// ── VIP Lucky Wheel (same mechanics, VIP-only, doubled prizes) ────────────────
+app.get('/api/spin/vip-segments', (req, res) => {
+  res.json(VIP_SPIN_SEGMENTS.map((s) => ({ amount: s.amount, label: s.label, jackpot: s.jackpot })));
+});
+
+app.get('/api/spin/vip-status', auth.requireAuth, (req, res) => {
+  const user = db.getUser(req.user.discordId);
+  if (!user || !user.is_vip) return res.json({ isVip: false });
+  res.json({ isVip: true, ...db.getVipSpinStatus(req.user.discordId) });
+});
+
+app.post('/api/spin/vip', auth.requireAuth, (req, res) => {
+  const user = db.getUser(req.user.discordId);
+  if (!user || !user.is_vip) {
+    return res.status(403).json({ error: 'The VIP Lucky Wheel is only available to VIP members.' });
+  }
+
+  const status = db.getVipSpinStatus(req.user.discordId);
+  if (!status.canSpin) {
+    return res.status(400).json({ error: 'You already spun the VIP wheel today. Come back later!', nextSpinAt: status.nextSpinAt });
+  }
+
+  const segmentIndex = drawVipSpinSegmentIndex();
+  const segment = VIP_SPIN_SEGMENTS[segmentIndex];
+
+  const result = db.tryVipSpin(req.user.discordId, segment.amount, segment.jackpot);
+  if (!result) {
+    return res.status(400).json({ error: 'You already spun the VIP wheel today. Come back later!' });
   }
 
   res.json({
@@ -351,6 +392,34 @@ app.post('/api/bot/mark-redemption-notified/:id', (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   db.markRedemptionNotified(req.params.id);
+  res.json({ ok: true });
+});
+
+// ── Admin: set/unset a player's VIP flag ────────────────────────────────────────
+app.post('/api/admin/set-vip', requireBotSecret, (req, res) => {
+  const { discordId, isVip: vipFlag } = req.body;
+  if (!discordId) return res.status(400).json({ error: 'discordId is required.' });
+  if (!db.getUser(discordId)) return res.status(404).json({ error: 'No shop account found for that Discord ID.' });
+
+  db.setVip(discordId, !!vipFlag);
+  res.json({ ok: true, discordId, isVip: !!vipFlag });
+});
+
+// ── Bot sync for VIP spin-win DMs ────────────────────────────────────────────────
+app.get('/api/bot/pending-vip-spins', (req, res) => {
+  const key = req.headers['x-bot-secret'];
+  if (!process.env.BOT_SYNC_SECRET || key !== process.env.BOT_SYNC_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  res.json(db.getUnnotifiedVipSpins());
+});
+
+app.post('/api/bot/mark-vip-spin-notified/:id', (req, res) => {
+  const key = req.headers['x-bot-secret'];
+  if (!process.env.BOT_SYNC_SECRET || key !== process.env.BOT_SYNC_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  db.markVipSpinNotified(req.params.id);
   res.json({ ok: true });
 });
 

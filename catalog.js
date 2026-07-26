@@ -90,6 +90,17 @@ const CATALOG = {
       { id: 'ascension_full', name: 'Instant Ascension → Level 180', cost: 2500 },
     ],
   },
+  dinoColor: {
+    label: 'Dino Color Token',
+    emoji: '🌈',
+    image: '/images/items/dinocolor.jpg',
+    note: 'Redeemable for a custom color recolor on any dino of your choice.',
+    tiers: [
+      { id: 'dinocolor_1', name: '1 Dino Color Token', cost: 600 },
+      { id: 'dinocolor_4', name: '4 Dino Color Tokens', cost: 1200 },
+      { id: 'dinocolor_8', name: '8 Dino Color Tokens', cost: 2000 },
+    ],
+  },
 };
 
 function findTier(tierId) {
