@@ -777,36 +777,38 @@ async function spinWheel() { await spinWheelConfig(STANDARD_WHEEL); }
 
 // ── VIP wheel visibility (only rendered/enabled for logged-in VIP members) ────
 async function refreshVipWheel() {
-  const loginGate = document.getElementById('vipWheelLoginGate');
-  const lockedGate = document.getElementById('vipWheelLockedGate');
-  const area = document.getElementById('vipWheelArea');
+  const btn = document.getElementById('vipSpinBtn');
+  const statusEl = document.getElementById('vipSpinStatus');
+
+  // Always render the wheel graphic, regardless of VIP status
+  await renderWheelConfig(VIP_WHEEL);
 
   if (!currentUser) {
-    loginGate.style.display = 'flex';
-    lockedGate.style.display = 'none';
-    area.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = '🔒 Log In to Check VIP Status';
+    statusEl.textContent = '';
     return;
   }
 
   if (!currentUser.isVip) {
-    loginGate.style.display = 'none';
-    lockedGate.style.display = 'flex';
-    area.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = '🔒 VIP Members Only';
+    statusEl.textContent = 'Boost the server to unlock this wheel!';
     return;
   }
 
-  loginGate.style.display = 'none';
-  lockedGate.style.display = 'none';
-  area.style.display = 'flex';
-  await renderWheelConfig(VIP_WHEEL);
   await refreshSpinStatusConfig(VIP_WHEEL);
 }
 
 function setupWheel() {
   document.getElementById('spinBtn').addEventListener('click', spinWheel);
   document.getElementById('wheelGateLoginBtn').addEventListener('click', () => openAuthModal('login'));
-  document.getElementById('vipSpinBtn').addEventListener('click', () => spinWheelConfig(VIP_WHEEL));
-  document.getElementById('vipWheelGateLoginBtn').addEventListener('click', () => openAuthModal('login'));
+
+  document.getElementById('vipSpinBtn').addEventListener('click', () => {
+    if (!currentUser) { openAuthModal('login'); return; }
+    if (!currentUser.isVip) { showToast('This wheel is exclusive to VIP members. Boost the server to unlock it!', 'info'); return; }
+    spinWheelConfig(VIP_WHEEL);
+  });
 }
 
 // ── Gate buttons (Shop / Chests tabs) ─────────────────────────────────────────
