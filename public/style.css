@@ -646,6 +646,7 @@ main {
 .chest-face.red { border-color: rgba(255, 60, 40, 0.35); }
 .chest-face.origin { border-color: rgba(255, 200, 60, 0.4); }
 .chest-face.nightmare { border-color: rgba(200, 20, 20, 0.45); }
+.chest-face.combo { border-color: rgba(255, 90, 31, 0.35); }
 
 .chest-face-back {
   transform: rotateY(180deg);
@@ -680,6 +681,7 @@ main {
 .chest-face.red .chest-cost { color: var(--lava); }
 .chest-face.origin .chest-cost { color: #ffc83c; }
 .chest-face.nightmare .chest-cost { color: #ff3c3c; }
+.chest-face.combo .chest-cost { color: var(--ember); }
 .chest-open-btn { margin-top: auto; }
 
 .chest-back-title { font-family: 'Oswald', sans-serif; color: #fff; font-size: 1.05rem; margin: 0 0 0.9rem; }
@@ -890,6 +892,22 @@ main {
 .toast.error { border-color: rgba(220, 60, 60, 0.4); color: var(--error); }
 
 /* ── My Items ───────────────────────────────────────────────────────────── */
+.items-filter { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
+.items-filter-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--ash-dim);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.items-filter-btn:hover { color: var(--ash); }
+.items-filter-btn.active { background: var(--lava-deep); color: #fff; border-color: var(--lava); }
+
 .items-list { display: flex; flex-direction: column; gap: 0.7rem; }
 
 .item-row {

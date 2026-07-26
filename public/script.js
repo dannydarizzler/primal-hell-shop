@@ -536,6 +536,9 @@ function setupResultModal() {
 }
 
 // ── My Items ───────────────────────────────────────────────────────────────────
+let allMyItems = [];
+let myItemsFilter = 'all';
+
 async function renderMyItems() {
   const listEl = document.getElementById('itemsList');
   const emptyEl = document.getElementById('itemsEmpty');
@@ -543,11 +546,28 @@ async function renderMyItems() {
 
   const res = await fetch('/api/me/items');
   if (!res.ok) return;
-  const items = await res.json();
+  allMyItems = await res.json();
 
-  if (items.length === 0) {
+  renderFilteredMyItems();
+}
+
+function renderFilteredMyItems() {
+  const listEl = document.getElementById('itemsList');
+  const emptyEl = document.getElementById('itemsEmpty');
+
+  const items = myItemsFilter === 'all'
+    ? allMyItems
+    : allMyItems.filter((item) => item.status === myItemsFilter);
+
+  if (allMyItems.length === 0) {
     listEl.innerHTML = '';
     emptyEl.style.display = 'block';
+    return;
+  }
+
+  if (items.length === 0) {
+    listEl.innerHTML = `<p class="items-empty">No ${myItemsFilter} items.</p>`;
+    emptyEl.style.display = 'none';
     return;
   }
   emptyEl.style.display = 'none';
@@ -566,6 +586,17 @@ async function renderMyItems() {
       </div>
     `;
   }).join('');
+}
+
+function setupItemsFilter() {
+  document.querySelectorAll('.items-filter-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.items-filter-btn').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      myItemsFilter = btn.dataset.filter;
+      renderFilteredMyItems();
+    });
+  });
 }
 
 // Best-effort emoji lookup (falls back to 🎁) — built once chest data is fetched
@@ -860,6 +891,52 @@ function setupWheel() {
 }
 
 // ── Combo Packs ────────────────────────────────────────────────────────────────
+function renderComboCard(combo) {
+  const priceHtml = combo.discountPercent > 0
+    ? `<span class="chest-cost"><span class="price-original">${combo.cost.toLocaleString('en-US')}</span> <span class="price-sale">${combo.salePrice.toLocaleString('en-US')}</span> Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /><span class="sale-badge">-${combo.discountPercent}%</span></span>`
+    : `<span class="chest-cost">${combo.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>`;
+  const effectiveCost = combo.discountPercent > 0 ? combo.salePrice : combo.cost;
+  const backItems = combo.contents.map((c) => `<li><span class="chest-back-emoji">🎁</span>${c}</li>`).join('');
+
+  const wrap = document.createElement('div');
+  wrap.className = 'chest-card-flip';
+  wrap.innerHTML = `
+    <div class="chest-card-inner">
+      <div class="chest-face combo">
+        <div class="chest-image-wrap">
+          <img src="${combo.image}" alt="${combo.name}" loading="lazy" />
+          <button class="chest-details-btn" data-comboflip="${combo.id}">Details</button>
+        </div>
+        <div class="chest-body">
+          <h3 class="chest-title">${combo.name}</h3>
+          ${priceHtml}
+          <button class="btn-primary combo-buy-btn" data-combo="${combo.id}" data-name="${combo.name}" data-cost="${effectiveCost}" ${!currentUser ? 'disabled' : ''}>
+            ${currentUser ? 'Buy Combo' : 'Log in to buy'}
+          </button>
+        </div>
+      </div>
+      <div class="chest-face chest-face-back combo">
+        <h3 class="chest-back-title">${combo.name}</h3>
+        <ul class="chest-back-list">${backItems}</ul>
+        <button class="btn-ghost chest-back-btn" data-comboflip="${combo.id}">← Back</button>
+      </div>
+    </div>
+  `;
+  return wrap;
+}
+
+function wireComboCardEvents(container) {
+  container.querySelectorAll('.combo-buy-btn').forEach((btn) => {
+    btn.addEventListener('click', () => buyCombo(btn.dataset.combo, btn, btn.dataset.name, btn.dataset.cost));
+  });
+  container.querySelectorAll('[data-comboflip]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const flipCard = btn.closest('.chest-card-flip');
+      flipCard.classList.toggle('flipped');
+    });
+  });
+}
+
 async function renderCombos() {
   const grid = document.getElementById('comboGrid');
   const res = await fetch('/api/combos');
@@ -868,30 +945,10 @@ async function renderCombos() {
   grid.innerHTML = '';
 
   combos.forEach((combo) => {
-    const priceHtml = combo.discountPercent > 0
-      ? `<span class="combo-cost"><span class="price-original">${combo.cost.toLocaleString('en-US')}</span> <span class="price-sale">${combo.salePrice.toLocaleString('en-US')}</span> Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /><span class="sale-badge">-${combo.discountPercent}%</span></span>`
-      : `<span class="combo-cost">${combo.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>`;
-    const effectiveCost = combo.discountPercent > 0 ? combo.salePrice : combo.cost;
-
-    const card = document.createElement('div');
-    card.className = 'combo-card';
-    card.innerHTML = `
-      <div class="combo-image-wrap"><img src="${combo.image}" alt="${combo.name}" loading="lazy" /></div>
-      <div class="combo-body">
-        <h3 class="combo-name">${combo.name}</h3>
-        <ul class="combo-contents">${combo.contents.map((c) => `<li>${c}</li>`).join('')}</ul>
-        ${priceHtml}
-        <button class="btn-primary combo-buy-btn" data-combo="${combo.id}" data-name="${combo.name}" data-cost="${effectiveCost}" ${!currentUser ? 'disabled' : ''}>
-          ${currentUser ? 'Buy Combo' : 'Log in to buy'}
-        </button>
-      </div>
-    `;
-    grid.appendChild(card);
+    grid.appendChild(renderComboCard(combo));
   });
 
-  grid.querySelectorAll('.combo-buy-btn').forEach((btn) => {
-    btn.addEventListener('click', () => buyCombo(btn.dataset.combo, btn, btn.dataset.name, btn.dataset.cost));
-  });
+  wireComboCardEvents(grid);
 
   renderSaleTab();
 }
@@ -974,22 +1031,10 @@ function renderSaleTab() {
     wrap.className = 'combo-grid';
     wrap.style.marginBottom = '1.25rem';
     discountedCombos.forEach((combo) => {
-      const card = document.createElement('div');
-      card.className = 'combo-card';
-      card.innerHTML = `
-        <div class="combo-image-wrap"><img src="${combo.image}" alt="${combo.name}" loading="lazy" /></div>
-        <div class="combo-body">
-          <h3 class="combo-name">${combo.name}</h3>
-          <ul class="combo-contents">${combo.contents.map((c) => `<li>${c}</li>`).join('')}</ul>
-          <span class="combo-cost"><span class="price-original">${combo.cost.toLocaleString('en-US')}</span> <span class="price-sale">${combo.salePrice.toLocaleString('en-US')}</span> Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /><span class="sale-badge">-${combo.discountPercent}%</span></span>
-          <button class="btn-primary combo-buy-btn" data-combo="${combo.id}" data-name="${combo.name}" data-cost="${combo.salePrice}" ${!currentUser ? 'disabled' : ''}>
-            ${currentUser ? 'Buy Combo' : 'Log in to buy'}
-          </button>
-        </div>
-      `;
-      wrap.appendChild(card);
+      wrap.appendChild(renderComboCard(combo));
     });
     container.appendChild(wrap);
+    wireComboCardEvents(wrap);
   }
 
   // Coin packages on sale
@@ -1015,9 +1060,6 @@ function renderSaleTab() {
 
   emptyMsg.style.display = foundAny ? 'none' : 'block';
 
-  container.querySelectorAll('.combo-buy-btn').forEach((btn) => {
-    btn.addEventListener('click', () => buyCombo(btn.dataset.combo, btn, btn.dataset.name, btn.dataset.cost));
-  });
   container.querySelectorAll('.catalog-buy-btn').forEach((btn) => {
     btn.addEventListener('click', () => buyCatalogItem(btn.dataset.tier, btn, btn.dataset.name, btn.dataset.cost));
   });
@@ -1305,6 +1347,7 @@ async function init() {
   setupProfileEdit();
   setupShopSubnav();
   setupAdminPanel();
+  setupItemsFilter();
 
   await refreshMe();
   await loadPayPalSdk();

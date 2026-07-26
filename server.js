@@ -122,6 +122,7 @@ app.get('/api/chests', (req, res) => {
       possibleItems: c.pool.map((i) => ({ name: i.name, emoji: i.emoji, image: i.image })),
     };
   });
+  publicChests.sort((a, b) => a.cost - b.cost);
   res.json(publicChests);
 });
 
@@ -399,6 +400,11 @@ function buildItemImageIndex() {
   });
   Object.values(CHESTS).forEach((chest) => {
     chest.pool.forEach((item) => { if (item.image) index[item.name] = item.image; });
+  });
+  COMBO_PACKS.forEach((combo) => {
+    // Must match the exact string built in the /api/combos/:comboId/buy route below
+    const itemDescription = `${combo.name} (${combo.contents.join(' + ')})`;
+    index[itemDescription] = combo.image;
   });
   return index;
 }
