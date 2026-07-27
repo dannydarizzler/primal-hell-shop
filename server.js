@@ -13,6 +13,18 @@ const db = require('./db');
 const auth = require('./auth');
 const adminPanel = require('./adminpanel');
 
+// ── Live visitor tracking (ephemeral, in-memory only — never written to disk,
+// never shared with anyone, just a count for the admin panel) ─────────────────
+const activeVisitors = new Map(); // visitorId -> last-seen timestamp (ms)
+const HEARTBEAT_TIMEOUT_MS = 60 * 1000;
+
+function pruneStaleVisitors() {
+  const now = Date.now();
+  for (const [id, lastSeen] of activeVisitors) {
+    if (now - lastSeen > HEARTBEAT_TIMEOUT_MS) activeVisitors.delete(id);
+  }
+}
+
 // ── Sale helper: never trust the client — always recompute the discounted
 // price/cost server-side from the live sales table. ────────────────────────
 function applyDiscount(amount, discountPercent) {
@@ -338,6 +350,7 @@ app.post('/api/orders', auth.requireAuth, async (req, res) => {
       coins: finalCoins,
       promoCode: appliedPromoCode,
       bonusPercent,
+      isSandbox: process.env.PAYPAL_ENV !== 'live',
     });
 
     res.json({ id: order.id });
@@ -601,6 +614,26 @@ app.get('/api/admin-panel/check', (req, res) => {
 // ── Accounts overview: who has signed up, how many Coins, since when ──────────
 app.get('/api/admin-panel/accounts', adminPanel.requireAdminPanel, (req, res) => {
   res.json(db.getAllAccounts());
+});
+
+// ── Live visitor heartbeat (public — no personal data, just a rotating ID kept
+// in the browser tab's sessionStorage, never persisted server-side beyond 60s) ──
+app.post('/api/heartbeat', (req, res) => {
+  const { visitorId } = req.body;
+  if (visitorId && typeof visitorId === 'string' && visitorId.length <= 100) {
+    activeVisitors.set(visitorId, Date.now());
+  }
+  res.json({ ok: true });
+});
+
+// ── Analytics ──────────────────────────────────────────────────────────────────
+app.get('/api/admin-panel/analytics', adminPanel.requireAdminPanel, (req, res) => {
+  pruneStaleVisitors();
+  res.json({
+    online: activeVisitors.size,
+    revenue: db.getRevenueAnalytics(),
+    economy: db.getEconomyStats(),
+  });
 });
 
 app.get('/api/admin-panel/items', adminPanel.requireAdminPanel, (req, res) => {

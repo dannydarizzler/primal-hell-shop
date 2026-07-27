@@ -16,10 +16,19 @@ db.exec(`
     price_eur REAL NOT NULL,
     coins INTEGER NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
+    is_sandbox INTEGER NOT NULL DEFAULT 0,
     processed_by_bot INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+// ── Migration: purchases may already exist without is_sandbox ─────────────────
+{
+  const purchaseColumns = db.prepare(`PRAGMA table_info(purchases)`).all().map((c) => c.name);
+  if (!purchaseColumns.includes('is_sandbox')) {
+    db.exec(`ALTER TABLE purchases ADD COLUMN is_sandbox INTEGER NOT NULL DEFAULT 0`);
+  }
+}
 
 // ── Coin balances ───────────────────────────────────────────────────────────────
 db.exec(`
@@ -158,12 +167,12 @@ db.exec(`
 `);
 
 // ── Purchases ────────────────────────────────────────────────────────────────────
-function createPendingPurchase({ paypalOrderId, discordId, packageId, priceEur, coins, promoCode, bonusPercent }) {
+function createPendingPurchase({ paypalOrderId, discordId, packageId, priceEur, coins, promoCode, bonusPercent, isSandbox }) {
   const stmt = db.prepare(`
-    INSERT INTO purchases (paypal_order_id, discord_id, package_id, price_eur, coins, status, promo_code, bonus_percent)
-    VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)
+    INSERT INTO purchases (paypal_order_id, discord_id, package_id, price_eur, coins, status, promo_code, bonus_percent, is_sandbox)
+    VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?)
   `);
-  stmt.run(paypalOrderId, discordId, packageId, priceEur, coins, promoCode || null, bonusPercent || 0);
+  stmt.run(paypalOrderId, discordId, packageId, priceEur, coins, promoCode || null, bonusPercent || 0, isSandbox ? 1 : 0);
 }
 
 function markPurchaseCompleted(paypalOrderId) {
@@ -475,6 +484,38 @@ function getAllAccounts() {
   `).all();
 }
 
+// ── Analytics: revenue (LIVE payments only — sandbox test payments excluded) ──
+function getRevenueAnalytics() {
+  const rows = db.prepare(`
+    SELECT p.discord_id, u.display_name, SUM(p.price_eur) AS total_eur, COUNT(*) AS purchase_count
+    FROM purchases p
+    LEFT JOIN users u ON u.discord_id = p.discord_id
+    WHERE p.status = 'completed' AND p.is_sandbox = 0
+    GROUP BY p.discord_id
+    ORDER BY total_eur DESC
+  `).all();
+  const totalEur = rows.reduce((sum, r) => sum + r.total_eur, 0);
+  const totalPurchases = rows.reduce((sum, r) => sum + r.purchase_count, 0);
+  return { rows, totalEur, totalPurchases };
+}
+
+// ── Analytics: economy health + most popular items ────────────────────────────
+function getEconomyStats() {
+  const totalCoins = db.prepare(`SELECT COALESCE(SUM(coins), 0) AS total FROM balances`).get().total;
+  const totalAccounts = db.prepare(`SELECT COUNT(*) AS c FROM users`).get().c;
+  const payingAccounts = db.prepare(`
+    SELECT COUNT(DISTINCT discord_id) AS c FROM purchases WHERE status = 'completed' AND is_sandbox = 0
+  `).get().c;
+  const topItems = db.prepare(`
+    SELECT item_won, COUNT(*) AS cnt
+    FROM chest_openings
+    GROUP BY item_won
+    ORDER BY cnt DESC
+    LIMIT 8
+  `).all();
+  return { totalCoins, totalAccounts, payingAccounts, topItems };
+}
+
 function updateDisplayName(discordId, name) {
   db.prepare(`UPDATE users SET display_name = ? WHERE discord_id = ?`).run(name, discordId);
 }
@@ -586,6 +627,8 @@ module.exports = {
   createUser,
   getUser,
   getAllAccounts,
+  getRevenueAnalytics,
+  getEconomyStats,
   updateDisplayName,
   getSpinStatus,
   trySpin,

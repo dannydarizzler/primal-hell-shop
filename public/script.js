@@ -1195,6 +1195,7 @@ function setupAdminPanel() {
       document.querySelectorAll('.admin-panel-tabpanel').forEach((p) => p.classList.remove('active'));
       document.getElementById(`admintab-${tab.dataset.admintab}`).classList.add('active');
       if (tab.dataset.admintab === 'accounts') loadAdminAccounts();
+      if (tab.dataset.admintab === 'analytics') loadAdminAnalytics();
     });
   });
 
@@ -1239,6 +1240,73 @@ async function loadAdminAccounts() {
     }).join('');
   } catch {
     list.innerHTML = '<p class="form-error">Could not load accounts. Please try again.</p>';
+  }
+}
+
+async function loadAdminAnalytics() {
+  const statsEl = document.getElementById('analyticsStats');
+  const revenueEl = document.getElementById('analyticsRevenueList');
+  const topItemsEl = document.getElementById('analyticsTopItemsList');
+  statsEl.innerHTML = '<p class="spin-status">Loading…</p>';
+  revenueEl.innerHTML = '';
+  topItemsEl.innerHTML = '';
+
+  try {
+    const res = await fetch('/api/admin-panel/analytics');
+    if (res.status === 401) {
+      statsEl.innerHTML = '<p class="form-error">Session expired — please log in again.</p>';
+      return;
+    }
+    const data = await res.json();
+
+    statsEl.innerHTML = `
+      <div class="analytics-stat-card">
+        <span class="analytics-stat-value">${data.online}</span>
+        <span class="analytics-stat-label">🟢 Online right now</span>
+      </div>
+      <div class="analytics-stat-card">
+        <span class="analytics-stat-value">€${data.revenue.totalEur.toFixed(2)}</span>
+        <span class="analytics-stat-label">Total revenue (live only)</span>
+      </div>
+      <div class="analytics-stat-card">
+        <span class="analytics-stat-value">${data.revenue.totalPurchases}</span>
+        <span class="analytics-stat-label">Completed purchases</span>
+      </div>
+      <div class="analytics-stat-card">
+        <span class="analytics-stat-value">${data.economy.totalCoins.toLocaleString('en-US')}</span>
+        <span class="analytics-stat-label">Coins in circulation</span>
+      </div>
+      <div class="analytics-stat-card">
+        <span class="analytics-stat-value">${data.economy.totalAccounts}</span>
+        <span class="analytics-stat-label">Registered accounts</span>
+      </div>
+      <div class="analytics-stat-card">
+        <span class="analytics-stat-value">${data.economy.totalAccounts > 0 ? Math.round((data.economy.payingAccounts / data.economy.totalAccounts) * 100) : 0}%</span>
+        <span class="analytics-stat-label">Conversion (${data.economy.payingAccounts} paying)</span>
+      </div>
+    `;
+
+    revenueEl.innerHTML = data.revenue.rows.length === 0
+      ? '<p class="spin-status">No live payments yet.</p>'
+      : data.revenue.rows.slice(0, 15).map((r, i) => `
+        <div class="analytics-row">
+          <span class="analytics-row-rank">#${i + 1}</span>
+          <span class="analytics-row-name">${r.display_name || r.discord_id}</span>
+          <span class="analytics-row-value">€${r.total_eur.toFixed(2)} (${r.purchase_count}x)</span>
+        </div>
+      `).join('');
+
+    topItemsEl.innerHTML = data.economy.topItems.length === 0
+      ? '<p class="spin-status">No items purchased or drawn yet.</p>'
+      : data.economy.topItems.map((item, i) => `
+        <div class="analytics-row">
+          <span class="analytics-row-rank">#${i + 1}</span>
+          <span class="analytics-row-name">${item.item_won}</span>
+          <span class="analytics-row-value">${item.cnt}x</span>
+        </div>
+      `).join('');
+  } catch {
+    statsEl.innerHTML = '<p class="form-error">Could not load analytics. Please try again.</p>';
   }
 }
 
@@ -1433,6 +1501,24 @@ function setupPromoBox() {
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
+// ── Live visitor heartbeat (anonymous, tab-local — cleared when the tab closes) ──
+function getVisitorId() {
+  let id = sessionStorage.getItem('ph_visitor_id');
+  if (!id) {
+    id = crypto.randomUUID();
+    sessionStorage.setItem('ph_visitor_id', id);
+  }
+  return id;
+}
+
+function sendHeartbeat() {
+  fetch('/api/heartbeat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ visitorId: getVisitorId() }),
+  }).catch(() => {});
+}
+
 async function init() {
   setupTabs();
   setupAuthModal();
@@ -1462,3 +1548,6 @@ init().catch((err) => {
   console.error(err);
   showToast('The shop could not load. Please refresh the page.', 'error');
 });
+
+sendHeartbeat();
+setInterval(sendHeartbeat, 20000);

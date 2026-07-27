@@ -685,6 +685,7 @@ main {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  overflow-y: auto;
 }
 
 .admin-account-row {
@@ -702,6 +703,38 @@ main {
 .admin-account-coins { font-weight: 700; color: var(--ember); white-space: nowrap; }
 .admin-account-date { font-size: 0.75rem; color: var(--ash-dim); white-space: nowrap; }
 .admin-account-vip { font-size: 0.7rem; background: var(--purple); color: #fff; padding: 0.1rem 0.5rem; border-radius: 999px; }
+
+.analytics-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+  flex-shrink: 0;
+}
+.analytics-stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+}
+.analytics-stat-value { font-family: 'Oswald', sans-serif; font-size: 1.5rem; color: var(--ember); display: block; }
+.analytics-stat-label { font-size: 0.75rem; color: var(--ash-dim); }
+.analytics-subheading { color: var(--ash); font-family: 'Oswald', sans-serif; font-size: 0.95rem; margin: 1.2rem 0 0.6rem; flex-shrink: 0; }
+.analytics-subheading:first-of-type { margin-top: 0; }
+
+.analytics-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 0.55rem 0.9rem;
+}
+.analytics-row-rank { color: var(--ash-dim); font-size: 0.8rem; width: 1.5rem; flex-shrink: 0; }
+.analytics-row-name { font-weight: 600; color: var(--ash); flex: 1; }
+.analytics-row-value { color: var(--ember); font-weight: 700; white-space: nowrap; }
+.analytics-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem; }
 
 /* ── Chests (flip cards) ────────────────────────────────────────────────── */
 .chests-grid {

@@ -314,6 +314,7 @@
         <li><strong>Purchase &amp; balance history</strong> — Coin balance, purchases, chest openings, Lucky Wheel spins, and redeemed promo codes, so we can track what you've bought and what's still owed to you in-game.</li>
         <li><strong>Payment data</strong> — when you top up Coins with PayPal, PayPal processes your payment directly. We only receive the order ID, amount, and payment status — we never see or store your card, bank, or PayPal login details.</li>
         <li><strong>Session cookie</strong> — a small signed cookie that keeps you logged in. It contains no personal data beyond your Discord ID and expires automatically.</li>
+      <li><strong>Anonymous "online now" counter</strong> — while a Shop tab is open, your browser sends a small anonymous signal every 20 seconds so staff can see how many people are using the Shop right now. This uses a random ID that resets when you close the tab — it is never linked to your account, never written to a database, and is discarded automatically after about a minute of inactivity.</li>
       </ul>
 
       <h4>3. What we don't collect</h4>
@@ -357,6 +358,7 @@
     <div class="admin-panel-tabs">
       <button class="admin-panel-tab active" data-admintab="sales">Sales</button>
       <button class="admin-panel-tab" data-admintab="accounts">Accounts</button>
+      <button class="admin-panel-tab" data-admintab="analytics">Analytics</button>
     </div>
 
     <div class="admin-panel-tabpanel active" id="admintab-sales">
@@ -373,6 +375,14 @@
         <input type="text" id="adminAccountSearchInput" placeholder="Search by name or Discord ID…" />
       </div>
       <div class="admin-panel-list" id="adminAccountsList"></div>
+    </div>
+
+    <div class="admin-panel-tabpanel" id="admintab-analytics">
+      <div class="analytics-stats" id="analyticsStats"></div>
+      <h4 class="analytics-subheading">💰 Top Spenders (live payments only — sandbox test payments excluded)</h4>
+      <div class="analytics-list" id="analyticsRevenueList"></div>
+      <h4 class="analytics-subheading">📦 Most Obtained Items</h4>
+      <div class="analytics-list" id="analyticsTopItemsList"></div>
     </div>
   </div>
 </div>
