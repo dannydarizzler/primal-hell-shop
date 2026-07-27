@@ -1,10 +1,13 @@
 // Fixed-price shop catalog (NOT random — guaranteed item for a fixed coin cost).
-// Prices derived from the README's EUR reference prices at ~160 coins/€, rounded.
+// Every category has a `group` field used to sort it into the right Shop
+// sub-section: 'single' (the classic Tier 1/2/3 items), 'cosmetics',
+// 'chaosDinos', or 'bossFights'.
 const CATALOG = {
   kibble: {
     label: 'Kibble Set',
     emoji: '🍖',
     image: '/images/items/kibble.jpg',
+    group: 'single',
     note: 'Chaos & Spirit Kibble count as 5 — a 100x set yields 20 Chaos/Spirit Kibble. Demonic & Angelic Kibble count as 2 — a 100x set yields 50 Demonic/Angelic Kibble.',
     tiers: [
       { id: 'kibble_100', name: '100x Kibble Set', cost: 1000 },
@@ -16,6 +19,7 @@ const CATALOG = {
     label: 'Base Kit',
     emoji: '⚡',
     image: '/images/items/basekit.jpg',
+    group: 'single',
     tiers: [
       { id: 'basekit_100', name: '100x Foundation/Wall/Ceiling + 1x Tek Generator + 100x Element', cost: 1000 },
       { id: 'basekit_200', name: '200x Foundation/Wall/Ceiling + 1x Tek Generator + 200x Element', cost: 1800 },
@@ -26,6 +30,7 @@ const CATALOG = {
     label: 'Breedpairs',
     emoji: '🥚',
     image: '/images/items/breedpairs.jpg',
+    group: 'single',
     note: 'The dino must be breedable and tameable.',
     tiers: [
       { id: 'breedpairs_2', name: '2 Breedpairs', cost: 900 },
@@ -37,6 +42,7 @@ const CATALOG = {
     label: 'Blueprints of Choice',
     emoji: '📜',
     image: '/images/items/bpset.jpg',
+    group: 'single',
     tiers: [
       { id: 'bpset_5', name: '5 Blueprints of choice', cost: 800 },
       { id: 'bpset_10', name: '10 Blueprints of choice', cost: 1400 },
@@ -47,6 +53,7 @@ const CATALOG = {
     label: 'Dedicated Storage Boxes',
     emoji: '📦',
     image: '/images/items/dedibox.jpg',
+    group: 'single',
     note: 'Only vanilla resources can be purchased — no Chaos items or Element/Element Shards.',
     tiers: [
       { id: 'dedi_2', name: '2 Dedicated Storage Boxes of choice', cost: 1100 },
@@ -58,16 +65,34 @@ const CATALOG = {
     label: 'Health Potion Kit',
     emoji: '🧪',
     image: '/images/items/healthpotions.jpg',
+    group: 'single',
     tiers: [
       { id: 'healthkit_100', name: '100x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 700 },
       { id: 'healthkit_250', name: '250x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 1200 },
       { id: 'healthkit_500', name: '500x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 1700 },
     ],
   },
+
+  // ── Cosmetics ──────────────────────────────────────────────────────────────
+  dinoColor: {
+    label: 'Dino Color Token',
+    emoji: '🌈',
+    image: '/images/items/dinocolor.jpg',
+    group: 'cosmetics',
+    note: 'Redeemable for a custom color recolor on any dino of your choice.',
+    tiers: [
+      { id: 'dinocolor_1', name: '1 Dino Color Token', cost: 600 },
+      { id: 'dinocolor_4', name: '4 Dino Color Tokens', cost: 1200 },
+      { id: 'dinocolor_8', name: '8 Dino Color Tokens', cost: 2000 },
+    ],
+  },
+
+  // ── Chaos Dinos ────────────────────────────────────────────────────────────
   nightmareToken: {
     label: 'Nightmare Token',
     emoji: '💀',
     image: '/images/items/nightmare_token.jpg',
+    group: 'chaosDinos',
     note: 'Redeemable for any Nightmare Dino in the game.',
     tiers: [
       { id: 'nightmare_token', name: 'Nightmare Token', cost: 2000 },
@@ -77,28 +102,41 @@ const CATALOG = {
     label: 'Origin Token',
     emoji: '🔮',
     image: '/images/items/origin_token.jpg',
+    group: 'chaosDinos',
     note: 'Redeemable for any Origin Dino in the game.',
     tiers: [
       { id: 'origin_token', name: 'Origin Token', cost: 1500 },
     ],
   },
+
+  // ── Boss Fights ────────────────────────────────────────────────────────────
   ascension: {
     label: 'Instant Ascension',
     emoji: '🚀',
     image: '/images/items/ascension.jpg',
+    group: 'bossFights',
     tiers: [
       { id: 'ascension_full', name: 'Instant Ascension → Level 180', cost: 2500 },
     ],
   },
-  dinoColor: {
-    label: 'Dino Color Token',
-    emoji: '🌈',
-    image: '/images/items/dinocolor.jpg',
-    note: 'Redeemable for a custom color recolor on any dino of your choice.',
+  manticore: {
+    label: 'Manticore Boss Reward',
+    emoji: '🦁',
+    image: '/images/items/manticore.jpg',
+    group: 'bossFights',
+    note: 'Grants +15 levels, as if you had defeated the Manticore boss fight.',
     tiers: [
-      { id: 'dinocolor_1', name: '1 Dino Color Token', cost: 600 },
-      { id: 'dinocolor_4', name: '4 Dino Color Tokens', cost: 1200 },
-      { id: 'dinocolor_8', name: '8 Dino Color Tokens', cost: 2000 },
+      { id: 'manticore_15', name: 'Manticore Reward (+15 Levels)', cost: 750 },
+    ],
+  },
+  overseer: {
+    label: 'Overseer Boss Reward',
+    emoji: '👁️',
+    image: '/images/items/overseer.jpg',
+    group: 'bossFights',
+    note: 'Grants +15 levels, as if you had defeated the Overseer boss fight.',
+    tiers: [
+      { id: 'overseer_15', name: 'Overseer Reward (+15 Levels)', cost: 750 },
     ],
   },
 };

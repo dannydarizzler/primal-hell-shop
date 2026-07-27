@@ -647,22 +647,25 @@ function renderCategoryCard(category) {
 let latestCatalog = null;
 
 async function renderCatalog() {
-  const singleContainer = document.getElementById('catalogCategories');
-  const otherContainer = document.getElementById('otherCategories');
+  const containers = {
+    single: document.getElementById('catalogCategories'),
+    cosmetics: document.getElementById('cosmeticsCategories'),
+    chaosDinos: document.getElementById('chaosDinosCategories'),
+    bossFights: document.getElementById('bossFightsCategories'),
+  };
   const res = await fetch('/api/catalog');
   latestCatalog = await res.json();
-  singleContainer.innerHTML = '';
-  otherContainer.innerHTML = '';
+  Object.values(containers).forEach((c) => { c.innerHTML = ''; });
 
   Object.values(latestCatalog).forEach((category) => {
-    // Categories with exactly 3 tiers are the "Single Items" (Tier 1/2/3 style);
-    // everything else (single fixed-price items) goes under "Other Stuff".
-    const target = category.tiers.length === 3 ? singleContainer : otherContainer;
+    const target = containers[category.group] || containers.single;
     target.appendChild(renderCategoryCard(category));
   });
 
-  document.querySelectorAll('.catalog-buy-btn').forEach((btn) => {
-    btn.addEventListener('click', () => buyCatalogItem(btn.dataset.tier, btn, btn.dataset.name, btn.dataset.cost));
+  Object.values(containers).forEach((c) => {
+    c.querySelectorAll('.catalog-buy-btn').forEach((btn) => {
+      btn.addEventListener('click', () => buyCatalogItem(btn.dataset.tier, btn, btn.dataset.name, btn.dataset.cost));
+    });
   });
 
   renderSaleTab();
@@ -1073,12 +1076,18 @@ function renderSaleTab() {
 
 // ── Shop sub-navigation (Sale / Single Items / Combo Packs / Other Stuff) ─────
 function setupShopSubnav() {
-  document.querySelectorAll('.subnav-tab').forEach((tab) => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.subnav-tab').forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
-      document.querySelectorAll('.sub-panel').forEach((p) => p.classList.remove('active'));
-      document.getElementById(`subpanel-${tab.dataset.subtab}`).classList.add('active');
+  document.querySelectorAll('.shop-group-tile').forEach((tile) => {
+    tile.addEventListener('click', () => {
+      document.getElementById('shopGroupsGrid').style.display = 'none';
+      document.querySelectorAll('#tab-shop .sub-panel').forEach((p) => p.classList.remove('active'));
+      document.getElementById(`subpanel-${tile.dataset.group}`).classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('[data-back="shop"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#tab-shop .sub-panel').forEach((p) => p.classList.remove('active'));
+      document.getElementById('shopGroupsGrid').style.display = 'grid';
     });
   });
 }
