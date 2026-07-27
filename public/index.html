@@ -288,8 +288,51 @@
 
 <footer class="site-footer">
   <p>Primal Hell — ARK: Survival Ascended Community Server</p>
-  <p><button class="admin-link" id="adminLinkBtn">Admin</button></p>
+  <p>
+    <button class="admin-link" id="privacyLinkBtn">Privacy Policy</button>
+    &nbsp;·&nbsp;
+    <button class="admin-link" id="adminLinkBtn">Admin</button>
+  </p>
 </footer>
+
+<!-- ───────────────────────── PRIVACY POLICY MODAL ───────────────────────── -->
+<div class="modal-overlay" id="privacyModal">
+  <div class="modal privacy-modal">
+    <button class="modal-close" id="privacyClose" aria-label="Close">✕</button>
+    <h3 class="confirm-title">🔒 Privacy Policy</h3>
+    <div class="privacy-body">
+      <p class="privacy-updated">Last updated: July 2026</p>
+
+      <h4>1. Who we are</h4>
+      <p>The Primal Hell Shop ("we", "us") is operated as part of the Primal Hell ARK: Survival Ascended community Discord server. This page explains what data we collect when you use the Shop and why.</p>
+
+      <h4>2. What we collect</h4>
+      <ul>
+        <li><strong>Discord User ID</strong> — used to identify your account and to know who to deliver in-game items to. We do not collect your Discord email, phone number, or other Discord account details.</li>
+        <li><strong>Password</strong> — stored only as a salted cryptographic hash. We cannot see or recover your actual password.</li>
+        <li><strong>Display name</strong> — the name you choose to show in the Shop, shown only to you and to server staff.</li>
+        <li><strong>Purchase &amp; balance history</strong> — Coin balance, purchases, chest openings, Lucky Wheel spins, and redeemed promo codes, so we can track what you've bought and what's still owed to you in-game.</li>
+        <li><strong>Payment data</strong> — when you top up Coins with PayPal, PayPal processes your payment directly. We only receive the order ID, amount, and payment status — we never see or store your card, bank, or PayPal login details.</li>
+        <li><strong>Session cookie</strong> — a small signed cookie that keeps you logged in. It contains no personal data beyond your Discord ID and expires automatically.</li>
+      </ul>
+
+      <h4>3. What we don't collect</h4>
+      <p>We don't collect your real name, email address, physical address, or any government ID. We don't use analytics or advertising trackers, and we don't sell or share your data with advertisers.</p>
+
+      <h4>4. How we use your data</h4>
+      <p>Solely to operate the Shop: authenticating your account, crediting Coins, fulfilling purchases in-game, preventing abuse (e.g. Lucky Wheel cooldowns, promo code limits), and letting our Discord bot notify you about purchases, Lucky Wheel wins, and redeemed codes.</p>
+
+      <h4>5. Third parties</h4>
+      <p><strong>PayPal</strong> processes all real-money payments under its own privacy policy. <strong>Discord</strong> is used to identify your account and to send you DM notifications via our bot; Discord's own privacy policy applies to your use of Discord itself.</p>
+
+      <h4>6. Data retention &amp; deletion</h4>
+      <p>Your account data is kept for as long as your Shop account exists. You can request deletion of your account and associated data at any time by contacting a staff member on Discord.</p>
+
+      <h4>7. Contact</h4>
+      <p>Questions about this policy or your data? Message <strong>@DM7OP</strong> on Discord.</p>
+    </div>
+  </div>
+</div>
 
 <!-- ───────────────────────── ADMIN PANEL LOGIN MODAL ───────────────────────── -->
 <div class="modal-overlay" id="adminLoginModal">

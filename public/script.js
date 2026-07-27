@@ -1119,6 +1119,16 @@ function setupShopSubnav() {
 // ── Admin Panel (password-gated sales management) ─────────────────────────────
 let adminPanelItemsCache = [];
 
+function setupPrivacyModal() {
+  const linkBtn = document.getElementById('privacyLinkBtn');
+  const modal = document.getElementById('privacyModal');
+  const closeBtn = document.getElementById('privacyClose');
+
+  linkBtn.addEventListener('click', () => modal.classList.add('show'));
+  closeBtn.addEventListener('click', () => modal.classList.remove('show'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+}
+
 function setupAdminPanel() {
   const linkBtn = document.getElementById('adminLinkBtn');
   const loginModal = document.getElementById('adminLoginModal');
@@ -1380,6 +1390,7 @@ async function init() {
   setupProfileEdit();
   setupShopSubnav();
   setupAdminPanel();
+  setupPrivacyModal();
   setupItemsFilter();
 
   await refreshMe();
