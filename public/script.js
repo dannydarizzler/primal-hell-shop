@@ -617,18 +617,16 @@ function renderTierPrice(tier) {
 }
 
 function renderCategoryCard(category) {
-  const section = document.createElement('div');
-  section.className = 'catalog-category';
   const headerIcon = category.image
     ? `<img class="catalog-category-thumb" src="${category.image}" alt="" />`
     : `<span class="catalog-category-emoji">${category.emoji}</span>`;
-  const noteHtml = category.note ? `<p class="catalog-category-note">ℹ️ ${category.note}</p>` : '';
-  section.innerHTML = `
+
+  const frontInner = `
     <div class="catalog-category-header">
       ${headerIcon}
       <h3 class="catalog-category-label">${category.label}</h3>
+      ${category.note ? `<button class="catalog-info-btn" data-catflip="${category.label}" title="Details">ℹ️</button>` : ''}
     </div>
-    ${noteHtml}
     <div class="catalog-tiers">
       ${category.tiers.map((tier) => `
         <div class="catalog-tier">
@@ -641,7 +639,27 @@ function renderCategoryCard(category) {
       `).join('')}
     </div>
   `;
-  return section;
+
+  if (!category.note) {
+    const section = document.createElement('div');
+    section.className = 'catalog-category';
+    section.innerHTML = frontInner;
+    return section;
+  }
+
+  const wrap = document.createElement('div');
+  wrap.className = 'catalog-flip';
+  wrap.innerHTML = `
+    <div class="catalog-flip-inner">
+      <div class="catalog-face catalog-category">${frontInner}</div>
+      <div class="catalog-face catalog-face-back">
+        <h3 class="catalog-category-label">${category.label}</h3>
+        <p class="catalog-back-note">ℹ️ ${category.note}</p>
+        <button class="btn-ghost catalog-back-btn" data-catflip="${category.label}">← Back</button>
+      </div>
+    </div>
+  `;
+  return wrap;
 }
 
 let latestCatalog = null;
@@ -665,6 +683,9 @@ async function renderCatalog() {
   Object.values(containers).forEach((c) => {
     c.querySelectorAll('.catalog-buy-btn').forEach((btn) => {
       btn.addEventListener('click', () => buyCatalogItem(btn.dataset.tier, btn, btn.dataset.name, btn.dataset.cost));
+    });
+    c.querySelectorAll('[data-catflip]').forEach((btn) => {
+      btn.addEventListener('click', () => btn.closest('.catalog-flip').classList.toggle('flipped'));
     });
   });
 
@@ -1065,6 +1086,9 @@ function renderSaleTab() {
 
   container.querySelectorAll('.catalog-buy-btn').forEach((btn) => {
     btn.addEventListener('click', () => buyCatalogItem(btn.dataset.tier, btn, btn.dataset.name, btn.dataset.cost));
+  });
+  container.querySelectorAll('[data-catflip]').forEach((btn) => {
+    btn.addEventListener('click', () => btn.closest('.catalog-flip').classList.toggle('flipped'));
   });
   container.querySelectorAll('[data-goto-chest]').forEach((btn) => {
     btn.addEventListener('click', () => switchTab('chests'));

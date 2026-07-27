@@ -110,15 +110,6 @@ const CATALOG = {
   },
 
   // ── Boss Fights ────────────────────────────────────────────────────────────
-  ascension: {
-    label: 'Instant Ascension',
-    emoji: '🚀',
-    image: '/images/items/ascension.jpg',
-    group: 'bossFights',
-    tiers: [
-      { id: 'ascension_full', name: 'Instant Ascension → Level 180', cost: 2500 },
-    ],
-  },
   manticore: {
     label: 'Manticore Boss Reward',
     emoji: '🦁',
@@ -137,6 +128,26 @@ const CATALOG = {
     note: 'Grants +15 levels, as if you had defeated the Overseer boss fight.',
     tiers: [
       { id: 'overseer_15', name: 'Overseer Reward (+15 Levels)', cost: 750 },
+    ],
+  },
+  rockwell: {
+    label: 'Rockwell Boss Reward',
+    emoji: '🧟',
+    image: '/images/items/rockwell.jpg',
+    group: 'bossFights',
+    note: 'Grants +15 levels, as if you had defeated the Rockwell boss fight.',
+    tiers: [
+      { id: 'rockwell_15', name: 'Rockwell Reward (+15 Levels)', cost: 750 },
+    ],
+  },
+  ascensionPack: {
+    label: 'Ascension Pack',
+    emoji: '🚀',
+    image: '/images/items/ascension.jpg',
+    group: 'bossFights',
+    note: 'Bundles all 3 individually-sellable boss rewards — Manticore + Overseer + Rockwell (+45 Levels total) — for 300 Coins less than buying them separately (2,250 → 1,950).',
+    tiers: [
+      { id: 'ascension_pack', name: 'Ascension Pack (+45 Levels — Manticore + Overseer + Rockwell)', cost: 1950 },
     ],
   },
 };
