@@ -602,8 +602,8 @@ main {
 }
 .admin-link:hover { opacity: 1; }
 
-.privacy-modal { max-width: 640px; text-align: left; max-height: 80vh; display: flex; flex-direction: column; }
-.privacy-body { overflow-y: auto; padding-right: 0.4rem; }
+.privacy-modal { max-width: 820px; text-align: left; max-height: 68vh; display: flex; flex-direction: column; }
+.privacy-body { overflow-y: auto; padding-right: 0.4rem; flex: 1; min-height: 0; }
 .privacy-updated { color: var(--ash-dim); font-size: 0.8rem; margin-top: -0.5rem; }
 .privacy-body h4 { color: var(--ember); font-family: 'Oswald', sans-serif; font-size: 1rem; margin: 1.2rem 0 0.4rem; }
 .privacy-body h4:first-of-type { margin-top: 0; }
@@ -612,8 +612,15 @@ main {
 .privacy-body li { color: var(--ash); font-size: 0.88rem; line-height: 1.6; margin-bottom: 0.4rem; }
 .privacy-body strong { color: #fff; }
 
-.admin-panel-modal { max-width: 640px; text-align: left; max-height: 80vh; display: flex; flex-direction: column; }
-.admin-panel-search { margin-bottom: 1rem; }
+.admin-panel-modal {
+  max-width: 960px;
+  text-align: left;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.admin-panel-search { margin-bottom: 1rem; flex-shrink: 0; }
 .admin-panel-search input {
   width: 100%;
   background: var(--obsidian);
@@ -624,7 +631,15 @@ main {
   font-family: inherit;
   font-size: 0.9rem;
 }
-.admin-panel-list { overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-right: 0.3rem; }
+.admin-panel-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-right: 0.3rem;
+}
 .admin-panel-row {
   display: flex;
   align-items: center;
@@ -650,7 +665,7 @@ main {
 }
 .admin-row-btn { font-size: 0.75rem; padding: 0.35rem 0.7rem; }
 
-.admin-panel-tabs { display: flex; gap: 0.6rem; margin: 0.8rem 0 1rem; }
+.admin-panel-tabs { display: flex; gap: 0.6rem; margin: 0.8rem 0 1rem; flex-shrink: 0; }
 .admin-panel-tab {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -664,7 +679,12 @@ main {
 }
 .admin-panel-tab.active { background: var(--lava-deep); color: #fff; border-color: var(--lava); }
 .admin-panel-tabpanel { display: none; }
-.admin-panel-tabpanel.active { display: block; }
+.admin-panel-tabpanel.active {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
 
 .admin-account-row {
   display: flex;
