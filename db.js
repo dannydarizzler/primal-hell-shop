@@ -465,6 +465,16 @@ function getUser(discordId) {
   return db.prepare(`SELECT * FROM users WHERE discord_id = ?`).get(discordId);
 }
 
+function getAllAccounts() {
+  return db.prepare(`
+    SELECT u.discord_id, u.display_name, u.is_vip, u.created_at,
+           COALESCE(b.coins, 0) AS coins
+    FROM users u
+    LEFT JOIN balances b ON b.discord_id = u.discord_id
+    ORDER BY b.coins DESC
+  `).all();
+}
+
 function updateDisplayName(discordId, name) {
   db.prepare(`UPDATE users SET display_name = ? WHERE discord_id = ?`).run(name, discordId);
 }
@@ -575,6 +585,7 @@ module.exports = {
   markProcessedByBot,
   createUser,
   getUser,
+  getAllAccounts,
   updateDisplayName,
   getSpinStatus,
   trySpin,

@@ -352,14 +352,28 @@
 <div class="modal-overlay" id="adminPanelModal">
   <div class="modal admin-panel-modal">
     <button class="modal-close" id="adminPanelClose" aria-label="Close">✕</button>
-    <h3 class="confirm-title">🛠️ Sales Admin Panel</h3>
-    <p class="section-sub">Set a discount on any item, chest, package, or combo. Players see the sale price instantly.</p>
+    <h3 class="confirm-title">🛠️ Admin Panel</h3>
 
-    <div class="admin-panel-search">
-      <input type="text" id="adminSearchInput" placeholder="Search items…" />
+    <div class="admin-panel-tabs">
+      <button class="admin-panel-tab active" data-admintab="sales">Sales</button>
+      <button class="admin-panel-tab" data-admintab="accounts">Accounts</button>
     </div>
 
-    <div class="admin-panel-list" id="adminPanelList"></div>
+    <div class="admin-panel-tabpanel active" id="admintab-sales">
+      <p class="section-sub">Set a discount on any item, chest, package, or combo. Players see the sale price instantly.</p>
+      <div class="admin-panel-search">
+        <input type="text" id="adminSearchInput" placeholder="Search items…" />
+      </div>
+      <div class="admin-panel-list" id="adminPanelList"></div>
+    </div>
+
+    <div class="admin-panel-tabpanel" id="admintab-accounts">
+      <p class="section-sub">Every account that has signed up, with current Coin balance.</p>
+      <div class="admin-panel-search">
+        <input type="text" id="adminAccountSearchInput" placeholder="Search by name or Discord ID…" />
+      </div>
+      <div class="admin-panel-list" id="adminAccountsList"></div>
+    </div>
   </div>
 </div>
 

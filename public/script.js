@@ -1187,6 +1187,59 @@ function setupAdminPanel() {
       row.style.display = row.dataset.label.toLowerCase().includes(q) ? 'flex' : 'none';
     });
   });
+
+  document.querySelectorAll('.admin-panel-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.admin-panel-tab').forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.admin-panel-tabpanel').forEach((p) => p.classList.remove('active'));
+      document.getElementById(`admintab-${tab.dataset.admintab}`).classList.add('active');
+      if (tab.dataset.admintab === 'accounts') loadAdminAccounts();
+    });
+  });
+
+  const accountSearchInput = document.getElementById('adminAccountSearchInput');
+  accountSearchInput.addEventListener('input', () => {
+    const q = accountSearchInput.value.trim().toLowerCase();
+    document.querySelectorAll('.admin-account-row').forEach((row) => {
+      row.style.display = row.dataset.search.includes(q) ? 'flex' : 'none';
+    });
+  });
+}
+
+async function loadAdminAccounts() {
+  const list = document.getElementById('adminAccountsList');
+  list.innerHTML = '<p class="spin-status">Loading…</p>';
+
+  try {
+    const res = await fetch('/api/admin-panel/accounts');
+    if (res.status === 401) {
+      list.innerHTML = '<p class="form-error">Session expired — please log in again.</p>';
+      return;
+    }
+    const accounts = await res.json();
+
+    if (accounts.length === 0) {
+      list.innerHTML = '<p class="spin-status">No accounts have signed up yet.</p>';
+      return;
+    }
+
+    list.innerHTML = accounts.map((acc) => {
+      const joined = new Date(acc.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      const searchBlob = `${acc.display_name} ${acc.discord_id}`.toLowerCase();
+      return `
+        <div class="admin-account-row" data-search="${searchBlob}">
+          <span class="admin-account-name">${acc.display_name || acc.discord_id}</span>
+          ${acc.is_vip ? '<span class="admin-account-vip">VIP</span>' : ''}
+          <span class="admin-account-id">${acc.discord_id}</span>
+          <span class="admin-account-coins">${acc.coins.toLocaleString('en-US')} Coins</span>
+          <span class="admin-account-date">Joined ${joined}</span>
+        </div>
+      `;
+    }).join('');
+  } catch {
+    list.innerHTML = '<p class="form-error">Could not load accounts. Please try again.</p>';
+  }
 }
 
 async function openAdminPanel() {

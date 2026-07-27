@@ -598,6 +598,11 @@ app.get('/api/admin-panel/check', (req, res) => {
 });
 
 // ── Sellable items list + current sales, for the admin panel UI ────────────────
+// ── Accounts overview: who has signed up, how many Coins, since when ──────────
+app.get('/api/admin-panel/accounts', adminPanel.requireAdminPanel, (req, res) => {
+  res.json(db.getAllAccounts());
+});
+
 app.get('/api/admin-panel/items', adminPanel.requireAdminPanel, (req, res) => {
   const catalogItems = [];
   for (const category of Object.values(CATALOG)) {

@@ -650,6 +650,38 @@ main {
 }
 .admin-row-btn { font-size: 0.75rem; padding: 0.35rem 0.7rem; }
 
+.admin-panel-tabs { display: flex; gap: 0.6rem; margin: 0.8rem 0 1rem; }
+.admin-panel-tab {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--ash-dim);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.admin-panel-tab.active { background: var(--lava-deep); color: #fff; border-color: var(--lava); }
+.admin-panel-tabpanel { display: none; }
+.admin-panel-tabpanel.active { display: block; }
+
+.admin-account-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  flex-wrap: wrap;
+}
+.admin-account-name { font-weight: 600; color: var(--ash); min-width: 140px; }
+.admin-account-id { font-family: monospace; font-size: 0.78rem; color: var(--ash-dim); flex: 1; min-width: 160px; }
+.admin-account-coins { font-weight: 700; color: var(--ember); white-space: nowrap; }
+.admin-account-date { font-size: 0.75rem; color: var(--ash-dim); white-space: nowrap; }
+.admin-account-vip { font-size: 0.7rem; background: var(--purple); color: #fff; padding: 0.1rem 0.5rem; border-radius: 999px; }
+
 /* ── Chests (flip cards) ────────────────────────────────────────────────── */
 .chests-grid {
   display: flex;
