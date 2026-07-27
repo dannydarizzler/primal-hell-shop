@@ -613,7 +613,8 @@ main {
 .privacy-body strong { color: #fff; }
 
 .admin-panel-modal {
-  max-width: 960px;
+  max-width: 2880px;
+  width: 95vw;
   text-align: left;
   max-height: 85vh;
   display: flex;
