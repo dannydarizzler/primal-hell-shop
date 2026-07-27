@@ -616,6 +616,13 @@ app.get('/api/admin-panel/accounts', adminPanel.requireAdminPanel, (req, res) =>
   res.json(db.getAllAccounts());
 });
 
+app.post('/api/admin-panel/exclude-analytics', adminPanel.requireAdminPanel, (req, res) => {
+  const { discordId, excluded } = req.body;
+  if (!discordId) return res.status(400).json({ error: 'discordId is required.' });
+  db.setExcludeFromAnalytics(discordId, !!excluded);
+  res.json({ ok: true, discordId, excluded: !!excluded });
+});
+
 // ── Live visitor heartbeat (public — no personal data, just a rotating ID kept
 // in the browser tab's sessionStorage, never persisted server-side beyond 60s) ──
 app.post('/api/heartbeat', (req, res) => {

@@ -149,6 +149,9 @@ db.exec(`
   if (!userColumns.includes('is_vip')) {
     db.exec(`ALTER TABLE users ADD COLUMN is_vip INTEGER NOT NULL DEFAULT 0`);
   }
+  if (!userColumns.includes('exclude_from_analytics')) {
+    db.exec(`ALTER TABLE users ADD COLUMN exclude_from_analytics INTEGER NOT NULL DEFAULT 0`);
+  }
 }
 
 // ── Chest opening history ───────────────────────────────────────────────────────
@@ -476,7 +479,7 @@ function getUser(discordId) {
 
 function getAllAccounts() {
   return db.prepare(`
-    SELECT u.discord_id, u.display_name, u.is_vip, u.created_at,
+    SELECT u.discord_id, u.display_name, u.is_vip, u.created_at, u.exclude_from_analytics,
            COALESCE(b.coins, 0) AS coins
     FROM users u
     LEFT JOIN balances b ON b.discord_id = u.discord_id
@@ -484,13 +487,19 @@ function getAllAccounts() {
   `).all();
 }
 
-// ── Analytics: revenue (LIVE payments only — sandbox test payments excluded) ──
+function setExcludeFromAnalytics(discordId, excluded) {
+  db.prepare(`UPDATE users SET exclude_from_analytics = ? WHERE discord_id = ?`).run(excluded ? 1 : 0, discordId);
+}
+
+// ── Analytics: revenue (LIVE payments only — sandbox test payments AND
+// admin-excluded test accounts are left out) ────────────────────────────────
 function getRevenueAnalytics() {
   const rows = db.prepare(`
     SELECT p.discord_id, u.display_name, SUM(p.price_eur) AS total_eur, COUNT(*) AS purchase_count
     FROM purchases p
     LEFT JOIN users u ON u.discord_id = p.discord_id
     WHERE p.status = 'completed' AND p.is_sandbox = 0
+      AND (u.exclude_from_analytics IS NULL OR u.exclude_from_analytics = 0)
     GROUP BY p.discord_id
     ORDER BY total_eur DESC
   `).all();
@@ -504,7 +513,11 @@ function getEconomyStats() {
   const totalCoins = db.prepare(`SELECT COALESCE(SUM(coins), 0) AS total FROM balances`).get().total;
   const totalAccounts = db.prepare(`SELECT COUNT(*) AS c FROM users`).get().c;
   const payingAccounts = db.prepare(`
-    SELECT COUNT(DISTINCT discord_id) AS c FROM purchases WHERE status = 'completed' AND is_sandbox = 0
+    SELECT COUNT(DISTINCT p.discord_id) AS c
+    FROM purchases p
+    LEFT JOIN users u ON u.discord_id = p.discord_id
+    WHERE p.status = 'completed' AND p.is_sandbox = 0
+      AND (u.exclude_from_analytics IS NULL OR u.exclude_from_analytics = 0)
   `).get().c;
   const topItems = db.prepare(`
     SELECT item_won, COUNT(*) AS cnt
@@ -627,6 +640,7 @@ module.exports = {
   createUser,
   getUser,
   getAllAccounts,
+  setExcludeFromAnalytics,
   getRevenueAnalytics,
   getEconomyStats,
   updateDisplayName,

@@ -1228,16 +1228,36 @@ async function loadAdminAccounts() {
     list.innerHTML = accounts.map((acc) => {
       const joined = new Date(acc.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
       const searchBlob = `${acc.display_name} ${acc.discord_id}`.toLowerCase();
+      const excluded = !!acc.exclude_from_analytics;
       return `
-        <div class="admin-account-row" data-search="${searchBlob}">
+        <div class="admin-account-row ${excluded ? 'excluded' : ''}" data-search="${searchBlob}">
           <span class="admin-account-name">${acc.display_name || acc.discord_id}</span>
           ${acc.is_vip ? '<span class="admin-account-vip">VIP</span>' : ''}
+          ${excluded ? '<span class="admin-account-excluded-badge">Excluded from Analytics</span>' : ''}
           <span class="admin-account-id">${acc.discord_id}</span>
           <span class="admin-account-coins">${acc.coins.toLocaleString('en-US')} Coins</span>
           <span class="admin-account-date">Joined ${joined}</span>
+          <button class="btn-ghost admin-row-btn" data-toggle-exclude="${acc.discord_id}" data-currently-excluded="${excluded}">
+            ${excluded ? 'Include in Analytics' : 'Exclude from Analytics'}
+          </button>
         </div>
       `;
     }).join('');
+
+    list.querySelectorAll('[data-toggle-exclude]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const discordId = btn.dataset.toggleExclude;
+        const currentlyExcluded = btn.dataset.currentlyExcluded === 'true';
+        const res = await fetch('/api/admin-panel/exclude-analytics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ discordId, excluded: !currentlyExcluded }),
+        });
+        if (!res.ok) { showToast('Could not update this account.', 'error'); return; }
+        showToast(!currentlyExcluded ? 'Account excluded from Analytics.' : 'Account included in Analytics again.', 'success');
+        loadAdminAccounts();
+      });
+    });
   } catch {
     list.innerHTML = '<p class="form-error">Could not load accounts. Please try again.</p>';
   }

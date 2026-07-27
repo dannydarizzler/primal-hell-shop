@@ -602,7 +602,7 @@ main {
 }
 .admin-link:hover { opacity: 1; }
 
-.privacy-modal { max-width: 820px; text-align: left; max-height: 68vh; display: flex; flex-direction: column; }
+.modal.privacy-modal { max-width: 820px; text-align: left; max-height: 68vh; display: flex; flex-direction: column; }
 .privacy-body { overflow-y: auto; padding-right: 0.4rem; flex: 1; min-height: 0; }
 .privacy-updated { color: var(--ash-dim); font-size: 0.8rem; margin-top: -0.5rem; }
 .privacy-body h4 { color: var(--ember); font-family: 'Oswald', sans-serif; font-size: 1rem; margin: 1.2rem 0 0.4rem; }
@@ -612,7 +612,7 @@ main {
 .privacy-body li { color: var(--ash); font-size: 0.88rem; line-height: 1.6; margin-bottom: 0.4rem; }
 .privacy-body strong { color: #fff; }
 
-.admin-panel-modal {
+.modal.admin-panel-modal {
   max-width: 2880px;
   width: 95vw;
   text-align: left;
@@ -703,6 +703,8 @@ main {
 .admin-account-coins { font-weight: 700; color: var(--ember); white-space: nowrap; }
 .admin-account-date { font-size: 0.75rem; color: var(--ash-dim); white-space: nowrap; }
 .admin-account-vip { font-size: 0.7rem; background: var(--purple); color: #fff; padding: 0.1rem 0.5rem; border-radius: 999px; }
+.admin-account-excluded-badge { font-size: 0.7rem; background: rgba(255, 255, 255, 0.08); color: var(--ash-dim); padding: 0.1rem 0.5rem; border-radius: 999px; }
+.admin-account-row.excluded { opacity: 0.6; }
 
 .analytics-stats {
   display: grid;
