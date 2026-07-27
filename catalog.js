@@ -72,6 +72,17 @@ const CATALOG = {
       { id: 'healthkit_500', name: '500x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)', cost: 1700 },
     ],
   },
+  xpparty: {
+    label: 'XP Party',
+    emoji: '⭐',
+    image: '/images/items/xppotions.jpg',
+    group: 'single',
+    tiers: [
+      { id: 'xpparty_100', name: '100x XP Potion Set', cost: 800 },
+      { id: 'xpparty_250', name: '250x XP Potion Set', cost: 1300 },
+      { id: 'xpparty_500', name: '500x XP Potion Set', cost: 1800 },
+    ],
+  },
 
   // ── Cosmetics ──────────────────────────────────────────────────────────────
   dinoColor: {

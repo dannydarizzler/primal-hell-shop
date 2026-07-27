@@ -511,23 +511,23 @@ main {
 /* ── Shop category tiles (click in, then use Back to return) ──────────────── */
 .shop-groups-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1.1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
 }
 .shop-group-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.9rem;
   background: var(--obsidian-2);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
-  padding: 1rem 1rem 1.2rem;
+  padding: 1.25rem 1.25rem 1.5rem;
   cursor: pointer;
   color: var(--ash);
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.15rem;
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
 .shop-group-tile:hover { border-color: var(--lava); transform: translateY(-2px); }
