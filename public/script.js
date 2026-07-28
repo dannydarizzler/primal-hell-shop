@@ -632,26 +632,30 @@ function renderTierPrice(tier) {
 }
 
 function renderCategoryCard(category) {
-  const headerIcon = category.image
-    ? `<img class="catalog-category-thumb" src="${category.image}" alt="" />`
-    : `<span class="catalog-category-emoji">${category.emoji}</span>`;
+  const imageHtml = category.image
+    ? `<div class="catalog-category-image-wrap"><img src="${category.image}" alt="" loading="lazy" /></div>`
+    : '';
+  const headerIcon = category.image ? '' : `<span class="catalog-category-emoji">${category.emoji}</span>`;
 
   const frontInner = `
-    <div class="catalog-category-header">
-      ${headerIcon}
-      <h3 class="catalog-category-label">${category.label}</h3>
-      ${category.note ? `<button class="catalog-info-btn" data-catflip="${category.label}" title="Details">ℹ️</button>` : ''}
-    </div>
-    <div class="catalog-tiers">
-      ${category.tiers.map((tier) => `
-        <div class="catalog-tier">
-          <span class="catalog-tier-name">${tier.name}</span>
-          ${renderTierPrice(tier)}
-          <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" data-name="${tier.name.replace(/"/g, '&quot;')}" data-cost="${tier.discountPercent > 0 ? tier.salePrice : tier.cost}" ${!currentUser ? 'disabled' : ''}>
-            ${currentUser ? 'Buy' : 'Log in to buy'}
-          </button>
-        </div>
-      `).join('')}
+    ${imageHtml}
+    <div class="catalog-category-body">
+      <div class="catalog-category-header">
+        ${headerIcon}
+        <h3 class="catalog-category-label">${category.label}</h3>
+        ${category.note ? `<button class="catalog-info-btn" data-catflip="${category.label}" title="Details">ℹ️</button>` : ''}
+      </div>
+      <div class="catalog-tiers">
+        ${category.tiers.map((tier) => `
+          <div class="catalog-tier">
+            <span class="catalog-tier-name">${tier.name}</span>
+            ${renderTierPrice(tier)}
+            <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" data-name="${tier.name.replace(/"/g, '&quot;')}" data-cost="${tier.discountPercent > 0 ? tier.salePrice : tier.cost}" ${!currentUser ? 'disabled' : ''}>
+              ${currentUser ? 'Buy' : 'Log in to buy'}
+            </button>
+          </div>
+        `).join('')}
+      </div>
     </div>
   `;
 

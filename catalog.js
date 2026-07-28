@@ -97,6 +97,30 @@ const CATALOG = {
       { id: 'dinocolor_8', name: '8 Dino Color Tokens', cost: 2000 },
     ],
   },
+  chibisRandom: {
+    label: 'Chibis — Random',
+    emoji: '🦖',
+    image: '/images/items/chibi.jpg',
+    group: 'cosmetics',
+    note: 'Chibis are purely cosmetic companion pets. This pack gives random Chibis from the pool — no picking.',
+    tiers: [
+      { id: 'chibis_random_5', name: '5 Random Chibis', cost: 800 },
+      { id: 'chibis_random_15', name: '15 Random Chibis', cost: 1400 },
+      { id: 'chibis_random_30', name: '30 Random Chibis', cost: 2000 },
+    ],
+  },
+  chibisChoice: {
+    label: 'Chibis — Choice',
+    emoji: '🦖',
+    image: '/images/items/chibi.jpg',
+    group: 'cosmetics',
+    note: 'Chibis are purely cosmetic companion pets. Pick exactly which Chibis you want — no randomness.',
+    tiers: [
+      { id: 'chibis_choice_1', name: '1 Chibi of choice', cost: 800 },
+      { id: 'chibis_choice_2', name: '2 Chibis of choice', cost: 1400 },
+      { id: 'chibis_choice_5', name: '5 Chibis of choice', cost: 2000 },
+    ],
+  },
 
   // ── Chaos Dinos ────────────────────────────────────────────────────────────
   nightmareToken: {
