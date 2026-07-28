@@ -631,54 +631,61 @@ function renderTierPrice(tier) {
   return `<span class="catalog-tier-cost">${tier.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>`;
 }
 
-function renderCategoryCard(category) {
-  const imageHtml = category.image
-    ? `<div class="catalog-category-image-wrap"><img src="${category.image}" alt="" loading="lazy" /></div>`
-    : '';
-  const headerIcon = category.image ? '' : `<span class="catalog-category-emoji">${category.emoji}</span>`;
-
-  const frontInner = `
-    ${imageHtml}
-    <div class="catalog-category-body">
-      <div class="catalog-category-header">
-        ${headerIcon}
-        <h3 class="catalog-category-label">${category.label}</h3>
-        ${category.note ? `<button class="catalog-info-btn" data-catflip="${category.label}" title="Details">ℹ️</button>` : ''}
-      </div>
-      <div class="catalog-tiers">
-        ${category.tiers.map((tier) => `
-          <div class="catalog-tier">
-            <span class="catalog-tier-name">${tier.name}</span>
-            ${renderTierPrice(tier)}
-            <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" data-name="${tier.name.replace(/"/g, '&quot;')}" data-cost="${tier.discountPercent > 0 ? tier.salePrice : tier.cost}" ${!currentUser ? 'disabled' : ''}>
-              ${currentUser ? 'Buy' : 'Log in to buy'}
-            </button>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-
-  if (!category.note) {
-    const section = document.createElement('div');
-    section.className = 'catalog-category';
-    section.innerHTML = frontInner;
-    return section;
-  }
+function renderTierCard(category, tier) {
+  const priceHtml = tier.discountPercent > 0
+    ? `<span class="chest-cost"><span class="price-original">${tier.cost.toLocaleString('en-US')}</span> <span class="price-sale">${tier.salePrice.toLocaleString('en-US')}</span> Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /><span class="sale-badge">-${tier.discountPercent}%</span></span>`
+    : `<span class="chest-cost">${tier.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>`;
+  const effectiveCost = tier.discountPercent > 0 ? tier.salePrice : tier.cost;
+  const safeName = tier.name.replace(/"/g, '&quot;');
+  const backNote = category.note
+    ? `ℹ️ ${category.note}`
+    : `Part of the <strong>${category.label}</strong> catalog.`;
 
   const wrap = document.createElement('div');
-  wrap.className = 'catalog-flip';
+  wrap.className = 'chest-card-flip';
   wrap.innerHTML = `
-    <div class="catalog-flip-inner">
-      <div class="catalog-face catalog-category">${frontInner}</div>
-      <div class="catalog-face catalog-face-back">
-        <h3 class="catalog-category-label">${category.label}</h3>
-        <p class="catalog-back-note">ℹ️ ${category.note}</p>
-        <button class="btn-ghost catalog-back-btn" data-catflip="${category.label}">← Back</button>
+    <div class="chest-card-inner">
+      <div class="chest-face">
+        <div class="chest-image-wrap">
+          <img src="${category.image}" alt="${tier.name}" loading="lazy" />
+          <button class="chest-details-btn" data-tierflip="${tier.id}">Details</button>
+        </div>
+        <div class="chest-body">
+          <h3 class="chest-title">${tier.name}</h3>
+          ${priceHtml}
+          <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" data-name="${safeName}" data-cost="${effectiveCost}" ${!currentUser ? 'disabled' : ''}>
+            ${currentUser ? 'Buy' : 'Log in to buy'}
+          </button>
+        </div>
+      </div>
+      <div class="chest-face chest-face-back">
+        <h3 class="chest-back-title">${tier.name}</h3>
+        <p class="catalog-back-note">${backNote}</p>
+        <button class="btn-ghost chest-back-btn" data-tierflip="${tier.id}">← Back</button>
       </div>
     </div>
   `;
   return wrap;
+}
+
+function renderCategoryCard(category) {
+  const group = document.createElement('div');
+  group.className = 'catalog-category-group';
+
+  const headerIcon = category.image
+    ? `<img class="catalog-group-icon" src="${category.image}" alt="" />`
+    : `<span class="catalog-category-emoji">${category.emoji}</span>`;
+  const header = document.createElement('div');
+  header.className = 'catalog-group-header';
+  header.innerHTML = `${headerIcon}<h3 class="catalog-category-label">${category.label}</h3>`;
+  group.appendChild(header);
+
+  const grid = document.createElement('div');
+  grid.className = 'combo-grid';
+  category.tiers.forEach((tier) => grid.appendChild(renderTierCard(category, tier)));
+  group.appendChild(grid);
+
+  return group;
 }
 
 let latestCatalog = null;
@@ -703,8 +710,8 @@ async function renderCatalog() {
     c.querySelectorAll('.catalog-buy-btn').forEach((btn) => {
       btn.addEventListener('click', () => buyCatalogItem(btn.dataset.tier, btn, btn.dataset.name, btn.dataset.cost));
     });
-    c.querySelectorAll('[data-catflip]').forEach((btn) => {
-      btn.addEventListener('click', () => btn.closest('.catalog-flip').classList.toggle('flipped'));
+    c.querySelectorAll('[data-tierflip]').forEach((btn) => {
+      btn.addEventListener('click', () => btn.closest('.chest-card-flip').classList.toggle('flipped'));
     });
   });
 
@@ -1106,8 +1113,8 @@ function renderSaleTab() {
   container.querySelectorAll('.catalog-buy-btn').forEach((btn) => {
     btn.addEventListener('click', () => buyCatalogItem(btn.dataset.tier, btn, btn.dataset.name, btn.dataset.cost));
   });
-  container.querySelectorAll('[data-catflip]').forEach((btn) => {
-    btn.addEventListener('click', () => btn.closest('.catalog-flip').classList.toggle('flipped'));
+  container.querySelectorAll('[data-tierflip]').forEach((btn) => {
+    btn.addEventListener('click', () => btn.closest('.chest-card-flip').classList.toggle('flipped'));
   });
   container.querySelectorAll('[data-goto-chest]').forEach((btn) => {
     btn.addEventListener('click', () => switchTab('chests'));
