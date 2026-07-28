@@ -112,7 +112,7 @@ const CATALOG = {
   chibisChoice: {
     label: 'Chibis — Choice',
     emoji: '🦖',
-    image: '/images/items/chibi.jpg',
+    image: '/images/items/chibi_choice.jpg',
     group: 'cosmetics',
     note: 'Chibis are purely cosmetic companion pets. Pick exactly which Chibis you want — no randomness.',
     tiers: [

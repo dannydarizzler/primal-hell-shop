@@ -467,6 +467,7 @@ main {
 .catalog-categories { display: flex; flex-direction: column; gap: 1.75rem; }
 
 .catalog-category-group { display: flex; flex-direction: column; gap: 0.9rem; }
+.tier-grid { display: grid; gap: 1.25rem; }
 .catalog-group-header { display: flex; align-items: center; gap: 0.7rem; }
 .catalog-group-icon { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; background: #000; flex-shrink: 0; }
 .catalog-category-emoji { font-size: 1.4rem; }

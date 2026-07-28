@@ -681,7 +681,8 @@ function renderCategoryCard(category) {
   group.appendChild(header);
 
   const grid = document.createElement('div');
-  grid.className = 'combo-grid';
+  grid.className = 'tier-grid';
+  grid.style.gridTemplateColumns = `repeat(${category.tiers.length}, minmax(0, 1fr))`;
   category.tiers.forEach((tier) => grid.appendChild(renderTierCard(category, tier)));
   group.appendChild(grid);
 
