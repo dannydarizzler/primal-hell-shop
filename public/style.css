@@ -377,6 +377,42 @@ main {
 .package-card:hover { border-color: rgba(255, 90, 31, 0.4); transform: translateY(-2px); }
 .package-card.featured { border-color: var(--lava); box-shadow: 0 0 24px rgba(255, 90, 31, 0.15); }
 
+/* ── VIP promo card (Buy Coins tab) ─────────────────────────────────────── */
+.vip-promo-card {
+  max-width: 340px;
+  margin-top: 1.5rem;
+  border-color: rgba(255, 105, 180, 0.4);
+  box-shadow: 0 0 24px rgba(255, 105, 180, 0.15);
+  overflow: hidden;
+}
+.vip-ribbon {
+  position: absolute;
+  top: 16px;
+  right: -38px;
+  background: #ff5fa2;
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  padding: 5px 42px;
+  transform: rotate(45deg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.vip-benefits { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+.vip-benefits li { font-size: 0.88rem; color: var(--ash); line-height: 1.4; }
+.vip-cta {
+  margin: 0.3rem 0 0;
+  padding: 0.7rem 0.9rem;
+  background: rgba(255, 105, 180, 0.12);
+  border: 1px solid rgba(255, 105, 180, 0.35);
+  border-radius: 8px;
+  color: #ff9fc7;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .package-badge {
   position: absolute;
   top: -0.6rem;
