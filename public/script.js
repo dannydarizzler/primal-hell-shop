@@ -273,6 +273,7 @@ async function renderPackages() {
 
     card.innerHTML = `
       ${pkg.id === 'premium' ? '<span class="package-badge">Popular</span>' : ''}
+      <div class="package-image-wrap"><img src="${pkg.image}" alt="" loading="lazy" /></div>
       <span class="package-label">${pkg.label}</span>
       <span class="package-coins">${pkg.baseCoins.toLocaleString('en-US')} <small>Primal Coins</small> <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>
       ${bonusHtml}
@@ -285,6 +286,20 @@ async function renderPackages() {
       renderPayPalButton(pkg.id);
     }
   });
+
+  const vipCard = document.createElement('div');
+  vipCard.className = 'package-card vip-promo-card';
+  vipCard.innerHTML = `
+    <div class="vip-ribbon">VIP</div>
+    <span class="package-label">💎 VIP Access</span>
+    <ul class="vip-benefits">
+      <li>🎡 Extra spin on the exclusive VIP Lucky Wheel</li>
+      <li>🪙 1,000 Primal Coins every month</li>
+      <li>🎉 Access to VIP-only Giveaways</li>
+    </ul>
+    <p class="vip-cta">Boost the server to gain VIP access</p>
+  `;
+  packagesEl.appendChild(vipCard);
 
   renderSaleTab();
 }
@@ -1196,6 +1211,7 @@ function setupAdminPanel() {
       document.getElementById(`admintab-${tab.dataset.admintab}`).classList.add('active');
       if (tab.dataset.admintab === 'accounts') loadAdminAccounts();
       if (tab.dataset.admintab === 'analytics') loadAdminAnalytics();
+      if (tab.dataset.admintab === 'announcement') loadAdminAnnouncement();
     });
   });
 
@@ -1328,6 +1344,63 @@ async function loadAdminAnalytics() {
   } catch {
     statsEl.innerHTML = '<p class="form-error">Could not load analytics. Please try again.</p>';
   }
+}
+
+let announcementSaveWired = false;
+
+async function loadAdminAnnouncement() {
+  const input = document.getElementById('announcementInput');
+  const toggle = document.getElementById('announcementActiveToggle');
+  const errorEl = document.getElementById('announcementError');
+  errorEl.textContent = '';
+
+  try {
+    const res = await fetch('/api/announcement');
+    const data = await res.json();
+    input.value = data.message || '';
+    toggle.checked = !!data.active;
+  } catch {
+    errorEl.textContent = 'Could not load the current announcement.';
+  }
+
+  if (!announcementSaveWired) {
+    announcementSaveWired = true;
+    document.getElementById('announcementSaveBtn').addEventListener('click', async () => {
+      errorEl.textContent = '';
+      try {
+        const res = await fetch('/api/admin-panel/announcement', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: input.value, active: toggle.checked }),
+        });
+        const data = await res.json();
+        if (!res.ok) { errorEl.textContent = data.error; return; }
+        showToast(toggle.checked ? 'Announcement is now live for all players.' : 'Announcement saved (currently off).', 'success');
+      } catch {
+        errorEl.textContent = 'Something went wrong. Please try again.';
+      }
+    });
+  }
+}
+
+// ── Announcement popup shown to every player while active ─────────────────────
+async function checkAnnouncementPopup() {
+  try {
+    const res = await fetch('/api/announcement');
+    const data = await res.json();
+    if (data.active && data.message) {
+      document.getElementById('announcementModalText').textContent = data.message;
+      document.getElementById('announcementModal').classList.add('show');
+    }
+  } catch {
+    // fail silently — a broken announcement check shouldn't block the shop
+  }
+}
+
+function setupAnnouncementPopup() {
+  document.getElementById('announcementDismissBtn').addEventListener('click', () => {
+    document.getElementById('announcementModal').classList.remove('show');
+  });
 }
 
 async function openAdminPanel() {
@@ -1550,6 +1623,7 @@ async function init() {
   setupShopSubnav();
   setupAdminPanel();
   setupPrivacyModal();
+  setupAnnouncementPopup();
   setupItemsFilter();
 
   await refreshMe();
@@ -1568,6 +1642,8 @@ init().catch((err) => {
   console.error(err);
   showToast('The shop could not load. Please refresh the page.', 'error');
 });
+
+checkAnnouncementPopup();
 
 sendHeartbeat();
 setInterval(sendHeartbeat, 20000);

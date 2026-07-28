@@ -312,6 +312,27 @@ function markRedemptionNotified(id) {
   db.prepare(`UPDATE promo_redemptions SET notified_by_bot = 1 WHERE rowid = ?`).run(id);
 }
 
+// ── Shop-wide announcement popup (admin-controlled) ─────────────────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS announcement (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    message TEXT NOT NULL DEFAULT '',
+    active INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+db.prepare(`INSERT OR IGNORE INTO announcement (id, message, active) VALUES (1, '', 0)`).run();
+
+function getAnnouncement() {
+  return db.prepare(`SELECT message, active FROM announcement WHERE id = 1`).get();
+}
+
+function setAnnouncement(message, active) {
+  db.prepare(`
+    UPDATE announcement SET message = ?, active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = 1
+  `).run(message, active ? 1 : 0);
+}
+
 // ── Sales (admin-controlled discounts on catalog items, chests, packages, combos) ──
 db.exec(`
   CREATE TABLE IF NOT EXISTS sales (
@@ -658,6 +679,8 @@ module.exports = {
   removeSale,
   getSale,
   getAllSales,
+  getAnnouncement,
+  setAnnouncement,
   migrateDiscordId,
   createPromoCode,
   getPromoCode,

@@ -616,6 +616,20 @@ app.get('/api/admin-panel/accounts', adminPanel.requireAdminPanel, (req, res) =>
   res.json(db.getAllAccounts());
 });
 
+// ── Shop-wide announcement popup ────────────────────────────────────────────────
+app.get('/api/announcement', (req, res) => {
+  res.json(db.getAnnouncement());
+});
+
+app.post('/api/admin-panel/announcement', adminPanel.requireAdminPanel, (req, res) => {
+  const { message, active } = req.body;
+  if (active && (!message || !message.trim())) {
+    return res.status(400).json({ error: 'Please enter a message before activating the announcement.' });
+  }
+  db.setAnnouncement((message || '').trim(), !!active);
+  res.json({ ok: true });
+});
+
 app.post('/api/admin-panel/exclude-analytics', adminPanel.requireAdminPanel, (req, res) => {
   const { discordId, excluded } = req.body;
   if (!discordId) return res.status(400).json({ error: 'discordId is required.' });
