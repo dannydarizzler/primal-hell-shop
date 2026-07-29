@@ -26,33 +26,48 @@ const ORIGIN_NIGHTMARE_DINOS = [
 // no small/filler creatures (Dilophosaur, drones, etc.). Equal odds each.
 // Names are prefixed with their chaos tier since several dinos have multiple
 // tiered versions in the mod (e.g. Toxic/Alpha/Fabled/Legendary/Mythic Pteranodon).
-// NOTE: Griffin only shows up in the reference data as its Fairy-tier chaos
-// variant "Grifficorn" — flag if that's wrong and the plain Griffin should be used.
+// NOTE on assumptions — flag if any of these are wrong:
+// - "Grifficorn" (Fairy) and "Argycorn" (Fairy) are treated as the Fairy-tier
+//   chaos variants of Griffin/Argentavis (matching the Doedicorn/Jerboacorn
+//   naming pattern). Griffin also has its own literal "Griffin" entry in the
+//   Electric tier, which is kept as a separate, un-renamed entry.
+// - "Ptera" in the Volcanic list was NOT matched to Pteranodon since it reads
+//   as a distinct/truncated entry — let me know if it should be added.
 const FLYER_DINOS = [
   'Alpha Argentavis', 'Alpha Pteranodon', 'Alpha Quetzal', 'Alpha Tapejara',
+  'Electric Argentavis', 'Electric Dragon', 'Electric Griffin',
   'Fabled Argentavis', 'Fabled Pteranodon', 'Fabled Quetzal', 'Fabled Tapejara',
-  'Fairy Grifficorn', 'Fairy Wyvern',
+  'Fairy Argycorn', 'Fairy Grifficorn', 'Fairy Pegasus', 'Fairy Wyvern',
+  'Hydro Dragon',
   'Legendary Pteranodon', 'Legendary Wyvern',
   'Mythic Argentavis', 'Mythic Pteranodon', 'Mythic Quetzal', 'Mythic Tapejara',
   'Toxic Argentavis', 'Toxic Pteranodon', 'Toxic Quetzal', 'Toxic Tapejara',
+  'Volcanic Dragon', 'Volcanic Tapejara', 'Volcanic Wyvern',
 ];
 const NON_FLYER_DINOS = [
   'Alpha Allosaurus', 'Alpha Baryonyx', 'Alpha Carcharodontosaurus', 'Alpha Carnotaurus',
   'Alpha Giganotosaurus', 'Alpha Megalosaurus', 'Alpha Rex', 'Alpha Spino',
   'Alpha Therizinosaurus', 'Alpha Yutyrannus',
+  'Electric Allosaurus', 'Electric Rex',
   'Fabled Therizinosaurus',
+  'Hydro Allosaurus', 'Hydro Baryonyx', 'Hydro Rex', 'Hydro Spino',
   'Legendary Allosaurus', 'Legendary Baryonyx', 'Legendary Carnotaurus',
   'Legendary Indominus Rex', 'Legendary Spino', 'Legendary Thorny Dragon',
   'Mythic Therizinosaurus',
   'Toxic Allosaurus', 'Toxic Baryonyx', 'Toxic Carcharodontosaurus', 'Toxic Carnotaurus',
   'Toxic Giganotosaurus', 'Toxic Megalosaurus', 'Toxic Rex', 'Toxic Spino',
   'Toxic Therizinosaurus', 'Toxic Yutyrannus',
+  'Volcanic Allosaurus', 'Volcanic Rex', 'Volcanic Spino',
 ];
-// Only the Alpha tier list included water creatures in the reference data —
-// let me know if Toxic/Fabled/Legendary/Mythic also have water variants.
 const WATER_DINOS = [
   'Alpha Basilosaurus', 'Alpha Dunkleosteus', 'Alpha Liopleurodon', 'Alpha Megalodon',
   'Alpha Mosasaurus', 'Alpha Plesiosaur', 'Alpha Tusoteuthis',
+  'Electric Basilosaurus', 'Electric Dunkleosteus', 'Electric Liopleurodon', 'Electric Megalodon',
+  'Electric Mosasaurus', 'Electric Plesiosaur', 'Electric Tusoteuthis',
+  'Hydro Basilosaurus', 'Hydro Dunkleosteus', 'Hydro Liopleurodon', 'Hydro Megalodon',
+  'Hydro Mosasaurus', 'Hydro Plesiosaur', 'Hydro Tusoteuthis',
+  'Volcanic Basilosaurus', 'Volcanic Dunkleosteus', 'Volcanic Liopleurodon', 'Volcanic Megalodon',
+  'Volcanic Mosasaurus', 'Volcanic Plesiosaur', 'Volcanic Tusoteuthis',
 ];
 
 const CHESTS = {
