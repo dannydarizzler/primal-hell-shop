@@ -795,6 +795,8 @@ main {
 .chest-face.flyer { border-color: rgba(120, 190, 255, 0.35); }
 .chest-face.land { border-color: rgba(200, 140, 50, 0.4); }
 .chest-face.water { border-color: rgba(40, 190, 220, 0.4); }
+.chest-face.angelicdemonic { border-color: rgba(220, 220, 230, 0.4); }
+.chest-face.spiritchaos { border-color: rgba(255, 20, 40, 0.45); }
 
 .chests-row-title {
   color: var(--ember, #ff5a1f);
@@ -842,6 +844,8 @@ main {
 .chest-face.flyer .chest-cost { color: #78beff; }
 .chest-face.land .chest-cost { color: #c88c32; }
 .chest-face.water .chest-cost { color: #28bedc; }
+.chest-face.angelicdemonic .chest-cost { color: #e8e8f0; }
+.chest-face.spiritchaos .chest-cost { color: #ff2838; }
 .chest-open-btn { margin-top: auto; }
 
 .chest-back-title { font-family: 'Oswald', sans-serif; color: #fff; font-size: 1.05rem; margin: 0 0 0.9rem; }

@@ -70,6 +70,27 @@ const WATER_DINOS = [
   'Volcanic Mosasaurus', 'Volcanic Plesiosaur', 'Volcanic Tusoteuthis',
 ];
 
+// Angelic/Demonic Chest — every dino from both lists, tier-prefixed.
+const ANGELIC_DINOS = [
+  'Allosaurus', 'Argentavis', 'Dire Bear', 'Direwolf', 'Griffin', 'Manticore',
+  'Pegasus', 'Rex', 'Spino', 'Therizinosaur', 'Thylacoleo', 'Wyvern', 'Yutyrannus',
+];
+const DEMONIC_DINOS = [
+  'Bulbdog', 'Dilophosaur', 'Dodo', 'Equus', 'Ferox', 'Glowtail', 'Gorilla',
+  'Hyaenodon', 'Kaprosuchus', 'Megatherium', 'Mesopithecus', 'Ovis', 'Parasaur',
+  'Reaper Queen', 'Shinehorn', 'Thorny Dragon',
+];
+
+// Spirit Chaos Chest — every dino from both lists, tier-prefixed.
+const SPIRIT_DINOS = [
+  'Brontosaurus', 'Carnotaurus', 'Dodo Rex', 'Giganotosaurus', 'Indominus Rex',
+  'Jerboa', 'Quetzal', 'Raptor', 'Rex', 'Stegosaurus', 'Triceratops', 'Wyvern',
+];
+const CHAOS_DINOS = [
+  'Dodo Rex', 'Griffin', 'Indominus Rex', 'Rex', 'Rockdrake', 'Spino',
+  'Therizinosaur', 'Thylacoleo', 'Wyvern',
+];
+
 const CHESTS = {
   tier1: {
     id: 'tier1',
@@ -127,7 +148,7 @@ const CHESTS = {
   origin: {
     id: 'origin',
     label: 'Origin Chest',
-    cost: 1200,
+    cost: 1400,
     image: '/images/chest-origin.jpg',
     color: 'origin',
     category: 'dino',
@@ -138,7 +159,7 @@ const CHESTS = {
   nightmare: {
     id: 'nightmare',
     label: 'Nightmare Chest',
-    cost: 1700,
+    cost: 1900,
     image: '/images/chest-nightmare.jpg',
     color: 'nightmare',
     category: 'dino',
@@ -172,6 +193,30 @@ const CHESTS = {
     color: 'water',
     category: 'dino',
     pool: WATER_DINOS.map((name) => ({ name, emoji: '🌊', image: null, weight: 1 })),
+  },
+  angelicdemonic: {
+    id: 'angelicdemonic',
+    label: 'Angelic/Demonic Chest',
+    cost: 600,
+    image: '/images/chest-angelicdemonic.jpg',
+    color: 'angelicdemonic',
+    category: 'dino',
+    pool: [
+      ...ANGELIC_DINOS.map((name) => ({ name: `Angelic ${name}`, emoji: '👼', image: null, weight: 1 })),
+      ...DEMONIC_DINOS.map((name) => ({ name: `Demonic ${name}`, emoji: '😈', image: null, weight: 1 })),
+    ].sort((a, b) => a.name.localeCompare(b.name)),
+  },
+  spiritchaos: {
+    id: 'spiritchaos',
+    label: 'Spirit Chaos Chest',
+    cost: 1000,
+    image: '/images/chest-spiritchaos.jpg',
+    color: 'spiritchaos',
+    category: 'dino',
+    pool: [
+      ...SPIRIT_DINOS.map((name) => ({ name: `Spirit ${name}`, emoji: '👻', image: null, weight: 1 })),
+      ...CHAOS_DINOS.map((name) => ({ name: `Chaos ${name}`, emoji: '⚔️', image: null, weight: 1 })),
+    ].sort((a, b) => a.name.localeCompare(b.name)),
   },
 };
 

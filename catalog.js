@@ -130,7 +130,7 @@ const CATALOG = {
     group: 'chaosDinos',
     note: 'Redeemable for any Nightmare Dino in the game.',
     tiers: [
-      { id: 'nightmare_token', name: 'Nightmare Token', cost: 2000 },
+      { id: 'nightmare_token', name: 'Nightmare Token', cost: 2200 },
     ],
   },
   originToken: {
@@ -140,7 +140,7 @@ const CATALOG = {
     group: 'chaosDinos',
     note: 'Redeemable for any Origin Dino in the game.',
     tiers: [
-      { id: 'origin_token', name: 'Origin Token', cost: 1500 },
+      { id: 'origin_token', name: 'Origin Token', cost: 1700 },
     ],
   },
 
