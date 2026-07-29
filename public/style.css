@@ -687,6 +687,7 @@ main {
 .admin-account-name { font-weight: 600; color: var(--ash); min-width: 140px; }
 .admin-account-id { font-family: monospace; font-size: 0.78rem; color: var(--ash-dim); flex: 1; min-width: 160px; }
 .admin-account-coins { font-weight: 700; color: var(--ember); white-space: nowrap; }
+.admin-account-rank { font-size: 0.75rem; color: var(--ash-dim); white-space: nowrap; }
 .admin-account-date { font-size: 0.75rem; color: var(--ash-dim); white-space: nowrap; }
 .admin-account-vip { font-size: 0.7rem; background: var(--purple); color: #fff; padding: 0.1rem 0.5rem; border-radius: 999px; }
 .admin-account-excluded-badge { font-size: 0.7rem; background: rgba(255, 255, 255, 0.08); color: var(--ash-dim); padding: 0.1rem 0.5rem; border-radius: 999px; }
@@ -709,6 +710,16 @@ main {
 .analytics-stat-label { font-size: 0.75rem; color: var(--ash-dim); }
 .analytics-subheading { color: var(--ash); font-family: 'Oswald', sans-serif; font-size: 0.95rem; margin: 1.2rem 0 0.6rem; flex-shrink: 0; }
 .analytics-subheading:first-of-type { margin-top: 0; }
+
+.discord-api-status {
+  font-size: 0.85rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  margin: 0 0 1rem;
+}
+.discord-api-status:empty { display: none; }
+.discord-api-status.ok { background: rgba(60, 200, 100, 0.12); border: 1px solid rgba(60, 200, 100, 0.3); color: #8ee6a8; }
+.discord-api-status.warn { background: rgba(255, 190, 60, 0.12); border: 1px solid rgba(255, 190, 60, 0.3); color: #ffd27a; }
 
 .analytics-row {
   display: flex;

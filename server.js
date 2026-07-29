@@ -713,6 +713,11 @@ app.get('/api/admin-panel/accounts', adminPanel.requireAdminPanel, async (req, r
       acc.display_name = guildMap.get(acc.discord_id);
       db.updateDisplayName(acc.discord_id, acc.display_name);
     }
+    // Surfaced for admin diagnostics only (never shown to players) — lets staff
+    // see the raw message count backing a rank, to tell apart "still building
+    // up activity" from "bot isn't pushing data" from "thresholds changed".
+    const { currentTier } = computeTierProgress(acc.message_count || 0);
+    acc.rank_name = currentTier ? currentTier.name : 'Unranked';
   }
 
   res.json(accounts);
@@ -770,6 +775,10 @@ app.get('/api/admin-panel/analytics', adminPanel.requireAdminPanel, async (req, 
     onlineUsers,
     revenue: db.getRevenueAnalytics(),
     economy: db.getEconomyStats(),
+    discordApi: {
+      configured: discordapi.isConfigured(),
+      guildMembersCached: guildMap.size,
+    },
   });
 });
 

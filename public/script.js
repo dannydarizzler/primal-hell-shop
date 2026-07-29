@@ -1293,6 +1293,7 @@ async function loadAdminAccounts() {
           ${excluded ? '<span class="admin-account-excluded-badge">Excluded from Analytics</span>' : ''}
           <span class="admin-account-id">${acc.discord_id}</span>
           <span class="admin-account-coins">${acc.coins.toLocaleString('en-US')} Coins</span>
+          <span class="admin-account-rank" title="Raw message count backing this rank">${acc.rank_name} (${acc.message_count || 0} msgs)</span>
           <span class="admin-account-date">Joined ${joined}</span>
           <button class="btn-ghost admin-row-btn" data-toggle-exclude="${acc.discord_id}" data-currently-excluded="${excluded}">
             ${excluded ? 'Include in Analytics' : 'Exclude from Analytics'}
@@ -1346,6 +1347,7 @@ async function loadAdminAnalytics() {
   const revenueEl = document.getElementById('analyticsRevenueList');
   const topItemsEl = document.getElementById('analyticsTopItemsList');
   statsEl.innerHTML = '<p class="spin-status">Loading…</p>';
+  document.getElementById('discordApiStatus').innerHTML = '';
   onlineEl.innerHTML = '';
   revenueEl.innerHTML = '';
   topItemsEl.innerHTML = '';
@@ -1357,6 +1359,12 @@ async function loadAdminAnalytics() {
       return;
     }
     const data = await res.json();
+
+    const apiStatusHtml = data.discordApi.configured
+      ? `🟢 Discord name resolution is active — ${data.discordApi.guildMembersCached} members cached.`
+      : `🟡 Discord name resolution is NOT configured — set DISCORD_BOT_TOKEN and DISCORD_GUILD_ID on the shop's Railway service. Until then, names fall back to raw Discord IDs.`;
+    document.getElementById('discordApiStatus').innerHTML = apiStatusHtml;
+    document.getElementById('discordApiStatus').className = `discord-api-status ${data.discordApi.configured ? 'ok' : 'warn'}`;
 
     statsEl.innerHTML = `
       <div class="analytics-stat-card">

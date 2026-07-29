@@ -591,9 +591,10 @@ function getUser(discordId) {
 function getAllAccounts() {
   return db.prepare(`
     SELECT u.discord_id, u.display_name, u.is_vip, u.created_at, u.exclude_from_analytics,
-           COALESCE(b.coins, 0) AS coins
+           COALESCE(b.coins, 0) AS coins, tp.message_count
     FROM users u
     LEFT JOIN balances b ON b.discord_id = u.discord_id
+    LEFT JOIN tier_progress tp ON tp.discord_id = u.discord_id
     ORDER BY b.coins DESC
   `).all();
 }

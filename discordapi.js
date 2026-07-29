@@ -23,7 +23,13 @@ async function discordFetch(path) {
   const res = await fetch(`${DISCORD_API_BASE}${path}`, {
     headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    // Logged (not thrown) so a bad token/guild ID/missing intent shows up in
+    // Railway logs instead of silently degrading to "shows raw Discord IDs".
+    const body = await res.text().catch(() => '');
+    console.error(`[discordapi] GET ${path} -> ${res.status} ${res.statusText}: ${body.slice(0, 300)}`);
+    return null;
+  }
   return res.json();
 }
 
@@ -58,9 +64,10 @@ async function getGuildMemberMap() {
       }
       guildMemberCache = map;
       guildMemberCacheAt = Date.now();
-    } catch {
+    } catch (err) {
       // Network hiccup or bad token — keep serving the previous cache (or empty)
       // rather than throwing, since this must never block registration/analytics.
+      console.error('[discordapi] getGuildMemberMap failed:', err.message);
     }
     refreshInFlight = null;
     return guildMemberCache;
@@ -87,3 +94,9 @@ async function resolveDiscordName(discordId) {
 }
 
 module.exports = { isConfigured, getGuildMemberMap, resolveDiscordName };
+
+if (isConfigured() && DISCORD_GUILD_ID) {
+  console.log('[discordapi] Discord name resolution is configured (guild ' + DISCORD_GUILD_ID + ').');
+} else {
+  console.log('[discordapi] Not configured — set DISCORD_BOT_TOKEN and DISCORD_GUILD_ID to enable automatic Discord name resolution. Falling back to raw Discord IDs until then.');
+}
