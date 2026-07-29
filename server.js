@@ -8,6 +8,7 @@ const { CATALOG, findTier } = require('./catalog');
 const { SPIN_SEGMENTS, drawSpinSegmentIndex } = require('./spinwheel');
 const { VIP_SPIN_SEGMENTS, drawVipSpinSegmentIndex } = require('./vipspinwheel');
 const { COMBO_PACKS, findCombo } = require('./combopacks');
+const { computeTierProgress } = require('./tierprogress');
 const paypal = require('./paypal');
 const db = require('./db');
 const auth = require('./auth');
@@ -493,6 +494,34 @@ app.post('/api/admin/set-vip', requireBotSecret, (req, res) => {
 
   db.setVip(discordId, !!vipFlag);
   res.json({ ok: true, discordId, isVip: !!vipFlag });
+});
+
+// ── Directly credit Coins to a player's balance (used for Discord-activity tier
+// rewards — no promo code / manual redemption needed, same as the Lucky Wheel) ──
+app.post('/api/admin/grant-coins', requireBotSecret, (req, res) => {
+  const { discordId, amount } = req.body;
+  if (!discordId || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
+    return res.status(400).json({ error: 'discordId and a positive amount are required.' });
+  }
+  if (!db.getUser(discordId)) return res.status(404).json({ error: 'No shop account found for that Discord ID.' });
+
+  db.addCoins(discordId, Math.round(Number(amount)));
+  res.json({ ok: true, discordId, newBalance: db.getBalance(discordId) });
+});
+
+// ── Discord-activity tier progress (message count pushed live from the bot) ────
+app.post('/api/admin/update-tier-progress', requireBotSecret, (req, res) => {
+  const { discordId, messageCount } = req.body;
+  if (!discordId || !Number.isFinite(Number(messageCount))) {
+    return res.status(400).json({ error: 'discordId and messageCount are required.' });
+  }
+  db.setTierProgress(discordId, Math.round(Number(messageCount)));
+  res.json({ ok: true });
+});
+
+app.get('/api/me/tier-progress', auth.requireAuth, (req, res) => {
+  const messageCount = db.getTierProgress(req.user.discordId);
+  res.json(computeTierProgress(messageCount));
 });
 
 // ── Bot sync for VIP spin-win DMs ────────────────────────────────────────────────

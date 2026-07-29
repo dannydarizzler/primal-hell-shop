@@ -312,6 +312,27 @@ function markRedemptionNotified(id) {
   db.prepare(`UPDATE promo_redemptions SET notified_by_bot = 1 WHERE rowid = ?`).run(id);
 }
 
+// ── Discord activity tier progress (message count, pushed from the bot) ────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tier_progress (
+    discord_id TEXT PRIMARY KEY,
+    message_count INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+function setTierProgress(discordId, messageCount) {
+  db.prepare(`
+    INSERT INTO tier_progress (discord_id, message_count, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(discord_id) DO UPDATE SET message_count = excluded.message_count, updated_at = CURRENT_TIMESTAMP
+  `).run(discordId, messageCount);
+}
+
+function getTierProgress(discordId) {
+  const row = db.prepare(`SELECT message_count FROM tier_progress WHERE discord_id = ?`).get(discordId);
+  return row ? row.message_count : 0;
+}
+
 // ── Shop-wide announcement popup (admin-controlled) ─────────────────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS announcement (
@@ -681,6 +702,8 @@ module.exports = {
   getAllSales,
   getAnnouncement,
   setAnnouncement,
+  setTierProgress,
+  getTierProgress,
   migrateDiscordId,
   createPromoCode,
   getPromoCode,

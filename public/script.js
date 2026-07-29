@@ -169,12 +169,44 @@ function renderLoginGates() {
 
 function renderProfile() {
   const card = document.getElementById('profileCard');
-  if (!currentUser) { card.style.display = 'none'; return; }
+  const tierCard = document.getElementById('tierProgressCard');
+  if (!currentUser) { card.style.display = 'none'; tierCard.style.display = 'none'; return; }
 
   document.getElementById('profileName').textContent = currentUser.name;
   document.getElementById('profileDiscordId').textContent = currentUser.discordId;
   document.getElementById('profileBalance').textContent = `${currentUser.coins.toLocaleString('en-US')} Primal Coins`;
   card.style.display = 'block';
+
+  renderTierProgress();
+}
+
+async function renderTierProgress() {
+  const tierCard = document.getElementById('tierProgressCard');
+  try {
+    const res = await fetch('/api/me/tier-progress');
+    if (!res.ok) { tierCard.style.display = 'none'; return; }
+    const data = await res.json();
+
+    const currentLabel = document.getElementById('tierCurrentLabel');
+    const nextLabel = document.getElementById('tierNextLabel');
+    const fill = document.getElementById('tierProgressFill');
+
+    currentLabel.innerHTML = data.currentTier
+      ? `Current tier: <strong>${data.currentTier.name}</strong> (${data.messageCount.toLocaleString('en-US')} messages)`
+      : `No tier yet — start chatting! (${data.messageCount.toLocaleString('en-US')} messages so far)`;
+
+    if (data.nextTier) {
+      fill.style.width = `${Math.max(2, Math.min(100, data.progressPercent))}%`;
+      nextLabel.innerHTML = `${data.progressPercent}% to <strong>${data.nextTier.name}</strong> — reward: <strong>${data.nextTier.reward.toLocaleString('en-US')} Coins</strong> at ${data.nextTier.threshold.toLocaleString('en-US')} messages`;
+    } else {
+      fill.style.width = '100%';
+      nextLabel.innerHTML = `<strong>Max tier reached!</strong> 🎉`;
+    }
+
+    tierCard.style.display = 'block';
+  } catch {
+    tierCard.style.display = 'none';
+  }
 }
 
 function setupProfileEdit() {
