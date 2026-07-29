@@ -48,7 +48,7 @@ const NON_FLYER_DINOS = [
   'Alpha Allosaurus', 'Alpha Baryonyx', 'Alpha Carcharodontosaurus', 'Alpha Carnotaurus',
   'Alpha Giganotosaurus', 'Alpha Megalosaurus', 'Alpha Rex', 'Alpha Spino',
   'Alpha Therizinosaurus', 'Alpha Yutyrannus',
-  'Electric Allosaurus', 'Electric Rex',
+  'Electric Allosaurus', 'Electric Dodo Rex', 'Electric Rex',
   'Fabled Therizinosaurus',
   'Hydro Allosaurus', 'Hydro Baryonyx', 'Hydro Rex', 'Hydro Spino',
   'Legendary Allosaurus', 'Legendary Baryonyx', 'Legendary Carnotaurus',
@@ -57,16 +57,16 @@ const NON_FLYER_DINOS = [
   'Toxic Allosaurus', 'Toxic Baryonyx', 'Toxic Carcharodontosaurus', 'Toxic Carnotaurus',
   'Toxic Giganotosaurus', 'Toxic Megalosaurus', 'Toxic Rex', 'Toxic Spino',
   'Toxic Therizinosaurus', 'Toxic Yutyrannus',
-  'Volcanic Allosaurus', 'Volcanic Rex', 'Volcanic Spino',
+  'Volcanic Allosaurus', 'Volcanic Dodo Rex', 'Volcanic Rex', 'Volcanic Spino',
 ];
 const WATER_DINOS = [
-  'Alpha Basilosaurus', 'Alpha Dunkleosteus', 'Alpha Liopleurodon', 'Alpha Megalodon',
+  'Alpha Basilosaurus', 'Alpha Dunkleosteus', 'Alpha Megalodon',
   'Alpha Mosasaurus', 'Alpha Plesiosaur', 'Alpha Tusoteuthis',
-  'Electric Basilosaurus', 'Electric Dunkleosteus', 'Electric Liopleurodon', 'Electric Megalodon',
+  'Electric Basilosaurus', 'Electric Dunkleosteus', 'Electric Megalodon',
   'Electric Mosasaurus', 'Electric Plesiosaur', 'Electric Tusoteuthis',
-  'Hydro Basilosaurus', 'Hydro Dunkleosteus', 'Hydro Liopleurodon', 'Hydro Megalodon',
+  'Hydro Basilosaurus', 'Hydro Dunkleosteus', 'Hydro Megalodon',
   'Hydro Mosasaurus', 'Hydro Plesiosaur', 'Hydro Tusoteuthis',
-  'Volcanic Basilosaurus', 'Volcanic Dunkleosteus', 'Volcanic Liopleurodon', 'Volcanic Megalodon',
+  'Volcanic Basilosaurus', 'Volcanic Dunkleosteus', 'Volcanic Megalodon',
   'Volcanic Mosasaurus', 'Volcanic Plesiosaur', 'Volcanic Tusoteuthis',
 ];
 
