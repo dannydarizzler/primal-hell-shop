@@ -8,7 +8,7 @@ const { CATALOG, findTier } = require('./catalog');
 const { SPIN_SEGMENTS, drawSpinSegmentIndex } = require('./spinwheel');
 const { VIP_SPIN_SEGMENTS, drawVipSpinSegmentIndex } = require('./vipspinwheel');
 const { COMBO_PACKS, findCombo } = require('./combopacks');
-const { computeTierProgress } = require('./tierprogress');
+const { computeTierProgress, getPublicTierProgress } = require('./tierprogress');
 const paypal = require('./paypal');
 const db = require('./db');
 const auth = require('./auth');
@@ -132,10 +132,16 @@ app.get('/api/chests', (req, res) => {
       discountPercent,
       image: c.image,
       color: c.color,
+      category: c.category || 'dino',
       possibleItems: c.pool.map((i) => ({ name: i.name, emoji: i.emoji, image: i.image })),
     };
   });
-  publicChests.sort((a, b) => a.cost - b.cost);
+  // Tier chests first (row 1), then dino chests (row 2) — ascending cost within each row.
+  const categoryOrder = { tier: 0, dino: 1 };
+  publicChests.sort((a, b) => {
+    const catDiff = (categoryOrder[a.category] ?? 1) - (categoryOrder[b.category] ?? 1);
+    return catDiff !== 0 ? catDiff : a.cost - b.cost;
+  });
   res.json(publicChests);
 });
 
@@ -521,7 +527,7 @@ app.post('/api/admin/update-tier-progress', requireBotSecret, (req, res) => {
 
 app.get('/api/me/tier-progress', auth.requireAuth, (req, res) => {
   const messageCount = db.getTierProgress(req.user.discordId);
-  res.json(computeTierProgress(messageCount));
+  res.json(getPublicTierProgress(messageCount));
 });
 
 // ── Bot sync for VIP spin-win DMs ────────────────────────────────────────────────

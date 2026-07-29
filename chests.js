@@ -22,6 +22,21 @@ const ORIGIN_NIGHTMARE_DINOS = [
   'Raptor', 'Rex', 'Spino', 'Triceratops', 'Wyvern', 'Yutyrannus',
 ];
 
+// Dino pools for the Flyer / Non-Flyer / Water chests — "cool" dinos only,
+// no small/filler creatures (Dilophosaur, drones, etc.). Equal odds each.
+const FLYER_DINOS = [
+  'Argentavis', 'Griffin', 'Pelagornis', 'Pteranodon', 'Quetzal', 'Tapejara', 'Wyvern',
+];
+const NON_FLYER_DINOS = [
+  'Allosaurus', 'Baryonyx', 'Carcharodontosaurus', 'Carnotaurus', 'Giganotosaurus',
+  'Indominus Rex', 'Megalosaurus', 'Rex', 'Sabertooth', 'Spino', 'Therizinosaurus',
+  'Thorny Dragon', 'Titanoboa', 'Yutyrannus',
+];
+const WATER_DINOS = [
+  'Basilosaurus', 'Dunkleosteus', 'Liopleurodon', 'Manta', 'Megalodon',
+  'Mosasaurus', 'Plesiosaur', 'Tusoteuthis',
+];
+
 const CHESTS = {
   tier1: {
     id: 'tier1',
@@ -29,6 +44,7 @@ const CHESTS = {
     cost: 800,
     image: '/images/chest-tier1.jpg',
     color: 'gold',
+    category: 'tier',
     pool: [
       { name: '2 Breedpairs', emoji: '🥚', image: IMG.breedpairs, weight: 18 },
       { name: '5 Blueprints of choice', emoji: '📜', image: IMG.bpset, weight: 18 },
@@ -45,6 +61,7 @@ const CHESTS = {
     cost: 1600,
     image: '/images/chest-tier2.jpg',
     color: 'purple',
+    category: 'tier',
     pool: [
       { name: '4 Breedpairs', emoji: '🥚', image: IMG.breedpairs, weight: 18 },
       { name: '10 Blueprints of choice', emoji: '📜', image: IMG.bpset, weight: 18 },
@@ -62,6 +79,7 @@ const CHESTS = {
     cost: 2400,
     image: '/images/chest-tier3.jpg',
     color: 'red',
+    category: 'tier',
     pool: [
       { name: '8 Breedpairs', emoji: '🥚', image: IMG.breedpairs, weight: 17 },
       { name: '15 Blueprints of choice', emoji: '📜', image: IMG.bpset, weight: 17 },
@@ -79,6 +97,7 @@ const CHESTS = {
     cost: 1200,
     image: '/images/chest-origin.jpg',
     color: 'origin',
+    category: 'dino',
     pool: ORIGIN_NIGHTMARE_DINOS.map((name) => ({
       name: `${name} (Origin)`, emoji: '🔮', image: IMG.originToken, weight: 1,
     })),
@@ -89,9 +108,37 @@ const CHESTS = {
     cost: 1700,
     image: '/images/chest-nightmare.jpg',
     color: 'nightmare',
+    category: 'dino',
     pool: ORIGIN_NIGHTMARE_DINOS.map((name) => ({
       name: `${name} (Nightmare)`, emoji: '💀', image: IMG.nightmareToken, weight: 1,
     })),
+  },
+  flyer: {
+    id: 'flyer',
+    label: 'Flyer Chest',
+    cost: 400,
+    image: '/images/chest-flyer.jpg',
+    color: 'flyer',
+    category: 'dino',
+    pool: FLYER_DINOS.map((name) => ({ name, emoji: '🦅', image: null, weight: 1 })),
+  },
+  nonflyer: {
+    id: 'nonflyer',
+    label: 'Non-Flyer Chest',
+    cost: 400,
+    image: '/images/chest-nonflyer.jpg',
+    color: 'land',
+    category: 'dino',
+    pool: NON_FLYER_DINOS.map((name) => ({ name, emoji: '🦖', image: null, weight: 1 })),
+  },
+  water: {
+    id: 'water',
+    label: 'Water Chest',
+    cost: 400,
+    image: '/images/chest-water.jpg',
+    color: 'water',
+    category: 'dino',
+    pool: WATER_DINOS.map((name) => ({ name, emoji: '🌊', image: null, weight: 1 })),
   },
 };
 

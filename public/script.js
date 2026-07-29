@@ -189,18 +189,15 @@ async function renderTierProgress() {
 
     const currentLabel = document.getElementById('tierCurrentLabel');
     const nextLabel = document.getElementById('tierNextLabel');
-    const fill = document.getElementById('tierProgressFill');
 
-    currentLabel.innerHTML = data.currentTier
-      ? `Current tier: <strong>${data.currentTier.name}</strong> (${data.messageCount.toLocaleString('en-US')} messages)`
-      : `No tier yet — start chatting! (${data.messageCount.toLocaleString('en-US')} messages so far)`;
+    currentLabel.innerHTML = data.currentTierName
+      ? `Current rank: <strong>${data.currentTierName}</strong>`
+      : `No rank yet — get active in Discord!`;
 
-    if (data.nextTier) {
-      fill.style.width = `${Math.max(2, Math.min(100, data.progressPercent))}%`;
-      nextLabel.innerHTML = `${data.progressPercent}% to <strong>${data.nextTier.name}</strong> — reward: <strong>${data.nextTier.reward.toLocaleString('en-US')} Coins</strong> at ${data.nextTier.threshold.toLocaleString('en-US')} messages`;
+    if (data.maxed) {
+      nextLabel.innerHTML = `<strong>Max rank reached!</strong> 🎉`;
     } else {
-      fill.style.width = '100%';
-      nextLabel.innerHTML = `<strong>Max tier reached!</strong> 🎉`;
+      nextLabel.innerHTML = `Next rank: <strong>${data.nextTierName}</strong> — reward: <strong>${data.nextTierReward.toLocaleString('en-US')} Coins</strong>`;
     }
 
     tierCard.style.display = 'block';
@@ -406,62 +403,71 @@ function showConfirm(message) {
 // ── Chests ─────────────────────────────────────────────────────────────────────
 let latestChests = [];
 
+function buildChestCard(chest) {
+  chest.possibleItems.forEach((i) => { CHEST_ITEM_EMOJI[i.name] = i.emoji; });
+
+  const backItems = chest.possibleItems.map((i) => {
+    const icon = i.image
+      ? `<img class="chest-back-thumb" src="${i.image}" alt="" />`
+      : `<span class="chest-back-emoji">${i.emoji}</span>`;
+    return `<li>${icon}${i.name}</li>`;
+  }).join('');
+
+  const costHtml = chest.discountPercent > 0
+    ? `<span class="chest-cost"><span class="price-original">${chest.cost.toLocaleString('en-US')}</span> <span class="price-sale">${chest.salePrice.toLocaleString('en-US')}</span> Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /><span class="sale-badge">-${chest.discountPercent}%</span></span>`
+    : `<span class="chest-cost">${chest.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>`;
+  const effectiveCost = chest.discountPercent > 0 ? chest.salePrice : chest.cost;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'chest-card-flip';
+  wrap.innerHTML = `
+    <div class="chest-card-inner">
+      <div class="chest-face ${chest.color}">
+        <div class="chest-image-wrap">
+          <img src="${chest.image}" alt="${chest.label}" loading="lazy" />
+          <button class="chest-details-btn" data-flip="${chest.id}">Details</button>
+        </div>
+        <div class="chest-body">
+          <h3 class="chest-title">${chest.label}</h3>
+          ${costHtml}
+          <button class="btn-primary chest-open-btn" data-chest="${chest.id}" data-image="${chest.image}" data-label="${chest.label}" data-cost="${effectiveCost}" ${!currentUser ? 'disabled' : ''}>
+            ${currentUser ? 'Open Chest' : 'Log in to open'}
+          </button>
+        </div>
+      </div>
+      <div class="chest-face chest-face-back ${chest.color}">
+        <h3 class="chest-back-title">Possible Items</h3>
+        <ul class="chest-back-list">${backItems}</ul>
+        <button class="btn-ghost chest-back-btn" data-flip="${chest.id}">← Back</button>
+      </div>
+    </div>
+  `;
+  return wrap;
+}
+
 async function renderChests() {
-  const grid = document.getElementById('chestsGrid');
+  const gridTiers = document.getElementById('chestsGridTiers');
+  const gridDinos = document.getElementById('chestsGridDinos');
   const res = await fetch('/api/chests');
   const chests = await res.json();
   latestChests = chests;
-  grid.innerHTML = '';
+  gridTiers.innerHTML = '';
+  gridDinos.innerHTML = '';
 
   chests.forEach((chest) => {
-    chest.possibleItems.forEach((i) => { CHEST_ITEM_EMOJI[i.name] = i.emoji; });
-
-    const backItems = chest.possibleItems.map((i) => {
-      const icon = i.image
-        ? `<img class="chest-back-thumb" src="${i.image}" alt="" />`
-        : `<span class="chest-back-emoji">${i.emoji}</span>`;
-      return `<li>${icon}${i.name}</li>`;
-    }).join('');
-
-    const costHtml = chest.discountPercent > 0
-      ? `<span class="chest-cost"><span class="price-original">${chest.cost.toLocaleString('en-US')}</span> <span class="price-sale">${chest.salePrice.toLocaleString('en-US')}</span> Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /><span class="sale-badge">-${chest.discountPercent}%</span></span>`
-      : `<span class="chest-cost">${chest.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>`;
-    const effectiveCost = chest.discountPercent > 0 ? chest.salePrice : chest.cost;
-
-    const wrap = document.createElement('div');
-    wrap.className = 'chest-card-flip';
-    wrap.innerHTML = `
-      <div class="chest-card-inner">
-        <div class="chest-face ${chest.color}">
-          <div class="chest-image-wrap">
-            <img src="${chest.image}" alt="${chest.label}" loading="lazy" />
-            <button class="chest-details-btn" data-flip="${chest.id}">Details</button>
-          </div>
-          <div class="chest-body">
-            <h3 class="chest-title">${chest.label}</h3>
-            ${costHtml}
-            <button class="btn-primary chest-open-btn" data-chest="${chest.id}" data-image="${chest.image}" data-label="${chest.label}" data-cost="${effectiveCost}" ${!currentUser ? 'disabled' : ''}>
-              ${currentUser ? 'Open Chest' : 'Log in to open'}
-            </button>
-          </div>
-        </div>
-        <div class="chest-face chest-face-back ${chest.color}">
-          <h3 class="chest-back-title">Possible Items</h3>
-          <ul class="chest-back-list">${backItems}</ul>
-          <button class="btn-ghost chest-back-btn" data-flip="${chest.id}">← Back</button>
-        </div>
-      </div>
-    `;
-    grid.appendChild(wrap);
+    const card = buildChestCard(chest);
+    (chest.category === 'tier' ? gridTiers : gridDinos).appendChild(card);
   });
 
-  grid.querySelectorAll('.chest-open-btn').forEach((btn) => {
-    btn.addEventListener('click', () => openChest(btn.dataset.chest, btn.dataset.image, btn, btn.dataset.label, btn.dataset.cost));
-  });
-  grid.querySelectorAll('[data-flip]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const flipCard = btn.closest('.chest-card-flip');
-      flipCard.classList.toggle('flipped');
+  [gridTiers, gridDinos].forEach((grid) => {
+    grid.querySelectorAll('.chest-open-btn').forEach((btn) => {
+      btn.addEventListener('click', () => openChest(btn.dataset.chest, btn.dataset.image, btn, btn.dataset.label, btn.dataset.cost));
+    });
+    grid.querySelectorAll('[data-flip]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const flipCard = btn.closest('.chest-card-flip');
+        flipCard.classList.toggle('flipped');
+      });
     });
   });
 

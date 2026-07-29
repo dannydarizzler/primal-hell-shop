@@ -37,4 +37,17 @@ function computeTierProgress(messageCount) {
   return { messageCount, currentTier, nextTier, progressPercent };
 }
 
-module.exports = { TIER_ROLES, computeTierProgress };
+// Sanitized version for the Shop's Profile tab — deliberately excludes message
+// counts, thresholds, and percentages so players can't reverse-engineer how
+// ranks are earned (that's intentionally kept vague — "be active in Discord").
+function getPublicTierProgress(messageCount) {
+  const full = computeTierProgress(messageCount);
+  return {
+    currentTierName: full.currentTier ? full.currentTier.name : null,
+    nextTierName: full.nextTier ? full.nextTier.name : null,
+    nextTierReward: full.nextTier ? full.nextTier.reward : null,
+    maxed: !full.nextTier,
+  };
+}
+
+module.exports = { TIER_ROLES, computeTierProgress, getPublicTierProgress };
