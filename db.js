@@ -276,6 +276,22 @@ function getAllPromoCodes() {
   return db.prepare(`SELECT * FROM promo_codes ORDER BY created_at DESC`).all();
 }
 
+function deletePromoCode(code) {
+  const normalized = code.trim().toUpperCase();
+  const result = db.prepare(`DELETE FROM promo_codes WHERE code = ?`).run(normalized);
+  return result.changes > 0;
+}
+
+function deleteInactivePromoCodes() {
+  const nowIso = new Date().toISOString();
+  const result = db.prepare(`
+    DELETE FROM promo_codes
+    WHERE (expires_at IS NOT NULL AND expires_at < ?)
+       OR (max_uses IS NOT NULL AND uses_count >= max_uses)
+  `).run(nowIso);
+  return result.changes;
+}
+
 function hasUserRedeemed(code, discordId) {
   const row = db.prepare(`SELECT 1 FROM promo_redemptions WHERE code = ? AND discord_id = ?`).get(code.trim().toUpperCase(), discordId);
   return !!row;
@@ -710,6 +726,8 @@ module.exports = {
   validatePromoCode,
   incrementPromoUse,
   getAllPromoCodes,
+  deletePromoCode,
+  deleteInactivePromoCodes,
   hasUserRedeemed,
   redeemPromoForUser,
   getUnnotifiedRedemptions,

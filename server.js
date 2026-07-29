@@ -610,6 +610,17 @@ app.get('/api/admin/promo', requireBotSecret, (req, res) => {
   res.json(db.getAllPromoCodes());
 });
 
+app.delete('/api/admin/promo/:code', requireBotSecret, (req, res) => {
+  const deleted = db.deletePromoCode(req.params.code);
+  if (!deleted) return res.status(404).json({ error: 'No promo code found with that name.' });
+  res.json({ deleted: true });
+});
+
+app.delete('/api/admin/promo/cleanup/inactive', requireBotSecret, (req, res) => {
+  const count = db.deleteInactivePromoCodes();
+  res.json({ deletedCount: count });
+});
+
 // ── Live balance lookup for the Discord bot's /balance command ────────────────
 // (the bot no longer keeps its own copy of the balance — the shop is the only
 // source of truth, since coins can be spent in the shop without the bot knowing)
