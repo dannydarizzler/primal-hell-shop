@@ -78,9 +78,9 @@ const CATALOG = {
     image: '/images/items/xppotions.jpg',
     group: 'single',
     tiers: [
-      { id: 'xpparty_100', name: '100x XP Potion Set', cost: 800 },
-      { id: 'xpparty_250', name: '250x XP Potion Set', cost: 1300 },
-      { id: 'xpparty_500', name: '500x XP Potion Set', cost: 1800 },
+      { id: 'xpparty_100', name: '100x XP Potion Set', cost: 800, note: 'Contains: 25 Max XP Potions, 25 Large XP Potions, 50 Medium XP Potions.' },
+      { id: 'xpparty_250', name: '250x XP Potion Set', cost: 1300, note: 'Contains: 50 Max XP Potions, 100 Large XP Potions, 100 Medium XP Potions.' },
+      { id: 'xpparty_500', name: '500x XP Potion Set', cost: 1800, note: 'Contains: 100 Max XP Potions, 400 Large XP Potions.' },
     ],
   },
 

@@ -637,8 +637,11 @@ function renderTierCard(category, tier) {
     : `<span class="chest-cost">${tier.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>`;
   const effectiveCost = tier.discountPercent > 0 ? tier.salePrice : tier.cost;
   const safeName = tier.name.replace(/"/g, '&quot;');
-  const backNote = category.note
-    ? `ℹ️ ${category.note}`
+  const noteParts = [];
+  if (tier.note) noteParts.push(tier.note);
+  if (category.note) noteParts.push(category.note);
+  const backNote = noteParts.length > 0
+    ? `ℹ️ ${noteParts.join(' ')}`
     : `Part of the <strong>${category.label}</strong> catalog.`;
 
   const wrap = document.createElement('div');
