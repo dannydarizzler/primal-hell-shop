@@ -17,12 +17,18 @@ const adminPanel = require('./adminpanel');
 // ── Live visitor tracking (ephemeral, in-memory only — never written to disk,
 // never shared with anyone, just a count for the admin panel) ─────────────────
 const activeVisitors = new Map(); // visitorId -> last-seen timestamp (ms)
+// Logged-in members currently active — shown by name to staff in the admin
+// panel (see privacy policy). Separate from the anonymous count above.
+const onlineAuthedUsers = new Map(); // discordId -> last-seen timestamp (ms)
 const HEARTBEAT_TIMEOUT_MS = 60 * 1000;
 
 function pruneStaleVisitors() {
   const now = Date.now();
   for (const [id, lastSeen] of activeVisitors) {
     if (now - lastSeen > HEARTBEAT_TIMEOUT_MS) activeVisitors.delete(id);
+  }
+  for (const [id, lastSeen] of onlineAuthedUsers) {
+    if (now - lastSeen > HEARTBEAT_TIMEOUT_MS) onlineAuthedUsers.delete(id);
   }
 }
 
@@ -43,7 +49,7 @@ const DISCORD_ID_PATTERN = /^\d{15,25}$/;
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 app.post('/api/auth/register', (req, res) => {
-  const { discordId, password, name } = req.body;
+  const { discordId, password } = req.body;
 
   if (!discordId || !DISCORD_ID_PATTERN.test(discordId.trim())) {
     return res.status(400).json({ error: 'Please enter a valid Discord User ID (15-25 digits).' });
@@ -51,15 +57,16 @@ app.post('/api/auth/register', (req, res) => {
   if (!password || password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters long.' });
   }
-  const cleanName = (name || '').trim();
-  if (!cleanName || cleanName.length < 2 || cleanName.length > 30) {
-    return res.status(400).json({ error: 'Please enter a name between 2 and 30 characters.' });
-  }
 
   const cleanId = discordId.trim();
   if (db.getUser(cleanId)) {
     return res.status(409).json({ error: 'An account with this Discord ID already exists. Try logging in instead.' });
   }
+
+  // Display names are no longer typed by the player — pulled from the Discord
+  // name the bot has already synced for this ID. If the bot hasn't seen this
+  // member yet, fall back to their raw ID until the next sync corrects it.
+  const cleanName = db.getCachedDiscordName(cleanId) || cleanId;
 
   const passwordHash = auth.hashPassword(password);
   db.createUser(cleanId, passwordHash, cleanName);
@@ -97,12 +104,18 @@ app.get('/api/me', (req, res) => {
   });
 });
 
-app.post('/api/me/name', auth.requireAuth, (req, res) => {
+// Display names are auto-synced from Discord and are no longer player-
+// editable (see privacy policy) — this is now an admin-panel-only action for
+// correcting a name manually (e.g. before the bot has synced someone yet).
+app.post('/api/admin-panel/accounts/:discordId/name', adminPanel.requireAdminPanel, (req, res) => {
   const name = (req.body.name || '').trim();
   if (!name || name.length < 2 || name.length > 30) {
     return res.status(400).json({ error: 'Please enter a name between 2 and 30 characters.' });
   }
-  db.updateDisplayName(req.user.discordId, name);
+  if (!db.getUser(req.params.discordId)) {
+    return res.status(404).json({ error: 'No account found with that Discord ID.' });
+  }
+  db.updateDisplayName(req.params.discordId, name);
   res.json({ name });
 });
 
@@ -517,17 +530,31 @@ app.post('/api/admin/grant-coins', requireBotSecret, (req, res) => {
 
 // ── Discord-activity tier progress (message count pushed live from the bot) ────
 app.post('/api/admin/update-tier-progress', requireBotSecret, (req, res) => {
-  const { discordId, messageCount } = req.body;
+  const { discordId, messageCount, discordName } = req.body;
   if (!discordId || !Number.isFinite(Number(messageCount))) {
     return res.status(400).json({ error: 'discordId and messageCount are required.' });
   }
-  db.setTierProgress(discordId, Math.round(Number(messageCount)));
+  db.setTierProgress(discordId, Math.round(Number(messageCount)), discordName);
   res.json({ ok: true });
 });
 
 app.get('/api/me/tier-progress', auth.requireAuth, (req, res) => {
   const messageCount = db.getTierProgress(req.user.discordId);
   res.json(getPublicTierProgress(messageCount));
+});
+
+// ── Public leaderboard for the Spotlight tab ─────────────────────────────────
+app.get('/api/leaderboard/top-ranks', (req, res) => {
+  const rows = db.getTopTierProgress(5);
+  const leaderboard = rows.map((row, index) => {
+    const { currentTier } = computeTierProgress(row.message_count);
+    return {
+      rank: index + 1,
+      name: row.display_name || `Player #${row.discord_id.slice(-4)}`,
+      tierName: currentTier ? currentTier.name : 'Unranked',
+    };
+  });
+  res.json(leaderboard);
 });
 
 // ── Bot sync for VIP spin-win DMs ────────────────────────────────────────────────
@@ -683,12 +710,15 @@ app.post('/api/admin-panel/exclude-analytics', adminPanel.requireAdminPanel, (re
   res.json({ ok: true, discordId, excluded: !!excluded });
 });
 
-// ── Live visitor heartbeat (public — no personal data, just a rotating ID kept
-// in the browser tab's sessionStorage, never persisted server-side beyond 60s) ──
+// ── Live visitor heartbeat (public — anonymous unless logged in; see privacy
+// policy for what's shown to staff while a member is active) ──────────────────
 app.post('/api/heartbeat', (req, res) => {
   const { visitorId } = req.body;
   if (visitorId && typeof visitorId === 'string' && visitorId.length <= 100) {
     activeVisitors.set(visitorId, Date.now());
+  }
+  if (req.user) {
+    onlineAuthedUsers.set(req.user.discordId, Date.now());
   }
   res.json({ ok: true });
 });
@@ -696,8 +726,13 @@ app.post('/api/heartbeat', (req, res) => {
 // ── Analytics ──────────────────────────────────────────────────────────────────
 app.get('/api/admin-panel/analytics', adminPanel.requireAdminPanel, (req, res) => {
   pruneStaleVisitors();
+  const onlineUsers = [...onlineAuthedUsers.keys()].map((discordId) => {
+    const user = db.getUser(discordId);
+    return { discordId, displayName: (user?.display_name && user.display_name.trim()) || discordId };
+  });
   res.json({
     online: activeVisitors.size,
+    onlineUsers,
     revenue: db.getRevenueAnalytics(),
     economy: db.getEconomyStats(),
   });

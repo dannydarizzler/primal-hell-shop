@@ -337,16 +337,61 @@ db.exec(`
   )
 `);
 
-function setTierProgress(discordId, messageCount) {
+// ── Migration: tier_progress needs a Discord display name for the public
+// leaderboard — most active members won't have a shop account/display_name,
+// so the bot pushes their live Discord name alongside the message count.
+{
+  const tierProgressColumns = db.prepare(`PRAGMA table_info(tier_progress)`).all().map((c) => c.name);
+  if (!tierProgressColumns.includes('discord_name')) {
+    db.exec(`ALTER TABLE tier_progress ADD COLUMN discord_name TEXT`);
+  }
+}
+
+function setTierProgress(discordId, messageCount, discordName) {
   db.prepare(`
-    INSERT INTO tier_progress (discord_id, message_count, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
-    ON CONFLICT(discord_id) DO UPDATE SET message_count = excluded.message_count, updated_at = CURRENT_TIMESTAMP
-  `).run(discordId, messageCount);
+    INSERT INTO tier_progress (discord_id, message_count, discord_name, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(discord_id) DO UPDATE SET
+      message_count = excluded.message_count,
+      discord_name = COALESCE(excluded.discord_name, tier_progress.discord_name),
+      updated_at = CURRENT_TIMESTAMP
+  `).run(discordId, messageCount, discordName || null);
+
+  // Display names are no longer player-editable — whenever the bot pushes a
+  // live Discord name, keep the shop account's display_name in sync with it
+  // automatically (only if that person already has a shop account).
+  if (discordName) {
+    db.prepare(`UPDATE users SET display_name = ? WHERE discord_id = ?`).run(discordName, discordId);
+  }
 }
 
 function getTierProgress(discordId) {
   const row = db.prepare(`SELECT message_count FROM tier_progress WHERE discord_id = ?`).get(discordId);
   return row ? row.message_count : 0;
+}
+
+/** Looks up the most recent Discord name the bot has pushed for this ID —
+ * used to auto-fill the display name at registration time, before a users
+ * row (and therefore a display_name) even exists yet. */
+function getCachedDiscordName(discordId) {
+  const row = db.prepare(`SELECT discord_name FROM tier_progress WHERE discord_id = ?`).get(discordId);
+  return row ? row.discord_name : null;
+}
+
+/** Top-N most active members by message count, for the public leaderboard.
+ * Excludes admin/test accounts flagged via exclude_from_analytics. Prefers the
+ * player's shop display_name if they have an account, else the bot-pushed
+ * Discord name, else falls back to a masked ID. */
+function getTopTierProgress(limit = 5) {
+  return db.prepare(`
+    SELECT tp.discord_id, tp.message_count,
+           COALESCE(NULLIF(u.display_name, ''), tp.discord_name) AS display_name
+    FROM tier_progress tp
+    LEFT JOIN users u ON u.discord_id = tp.discord_id
+    WHERE tp.message_count > 0
+      AND (u.exclude_from_analytics IS NULL OR u.exclude_from_analytics = 0)
+    ORDER BY tp.message_count DESC
+    LIMIT ?
+  `).all(limit);
 }
 
 // ── Shop-wide announcement popup (admin-controlled) ─────────────────────────────
@@ -578,9 +623,11 @@ function getEconomyStats() {
       AND (u.exclude_from_analytics IS NULL OR u.exclude_from_analytics = 0)
   `).get().c;
   const topItems = db.prepare(`
-    SELECT item_won, COUNT(*) AS cnt
-    FROM chest_openings
-    GROUP BY item_won
+    SELECT co.item_won, COUNT(*) AS cnt
+    FROM chest_openings co
+    LEFT JOIN users u ON u.discord_id = co.discord_id
+    WHERE (u.exclude_from_analytics IS NULL OR u.exclude_from_analytics = 0)
+    GROUP BY co.item_won
     ORDER BY cnt DESC
     LIMIT 8
   `).all();
@@ -720,6 +767,8 @@ module.exports = {
   setAnnouncement,
   setTierProgress,
   getTierProgress,
+  getCachedDiscordName,
+  getTopTierProgress,
   migrateDiscordId,
   createPromoCode,
   getPromoCode,

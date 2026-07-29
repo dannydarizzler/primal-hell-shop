@@ -89,7 +89,6 @@ function setupAuthModal() {
 
   document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = document.getElementById('registerName').value.trim();
     const discordId = document.getElementById('registerDiscordId').value.trim();
     const password = document.getElementById('registerPassword').value;
     const errorEl = document.getElementById('registerError');
@@ -99,7 +98,7 @@ function setupAuthModal() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, discordId, password }),
+        body: JSON.stringify({ discordId, password }),
       });
       const data = await res.json();
       if (!res.ok) { errorEl.textContent = data.error; return; }
@@ -213,50 +212,30 @@ async function renderTierProgress() {
   }
 }
 
-function setupProfileEdit() {
-  const editBtn = document.getElementById('editNameBtn');
-  const cancelBtn = document.getElementById('cancelNameBtn');
-  const form = document.getElementById('editNameForm');
-  const input = document.getElementById('editNameInput');
-  const errorEl = document.getElementById('editNameError');
-  const nameRow = document.getElementById('profileName').closest('.profile-row');
+async function renderLeaderboard() {
+  const body = document.getElementById('leaderboardBody');
+  if (!body) return;
+  try {
+    const res = await fetch('/api/leaderboard/top-ranks');
+    if (!res.ok) throw new Error('bad response');
+    const rows = await res.json();
 
-  editBtn.addEventListener('click', () => {
-    input.value = currentUser.name;
-    errorEl.textContent = '';
-    nameRow.style.display = 'none';
-    form.style.display = 'flex';
-    input.focus();
-  });
-
-  cancelBtn.addEventListener('click', () => {
-    form.style.display = 'none';
-    nameRow.style.display = 'flex';
-  });
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = input.value.trim();
-    errorEl.textContent = '';
-
-    try {
-      const res = await fetch('/api/me/name', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
-      });
-      const data = await res.json();
-      if (!res.ok) { errorEl.textContent = data.error; return; }
-
-      currentUser.name = data.name;
-      renderAuthArea();
-      form.style.display = 'none';
-      nameRow.style.display = 'flex';
-      showToast('Name updated.', 'success');
-    } catch {
-      errorEl.textContent = 'Something went wrong. Please try again.';
+    if (rows.length === 0) {
+      body.innerHTML = `<tr><td colspan="3" class="leaderboard-empty">No ranked members yet — get active in Discord!</td></tr>`;
+      return;
     }
-  });
+
+    const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
+    body.innerHTML = rows.map((row) => `
+      <tr>
+        <td class="leaderboard-rank">${medals[row.rank] || row.rank}</td>
+        <td class="leaderboard-name">${row.name}</td>
+        <td class="leaderboard-tier">${row.tierName}</td>
+      </tr>
+    `).join('');
+  } catch {
+    body.innerHTML = `<tr><td colspan="3" class="leaderboard-empty">Could not load the leaderboard.</td></tr>`;
+  }
 }
 
 // ── PayPal SDK + Packages ─────────────────────────────────────────────────────
@@ -1316,9 +1295,29 @@ async function loadAdminAccounts() {
           <button class="btn-ghost admin-row-btn" data-toggle-exclude="${acc.discord_id}" data-currently-excluded="${excluded}">
             ${excluded ? 'Include in Analytics' : 'Exclude from Analytics'}
           </button>
+          <button class="btn-ghost admin-row-btn" data-rename="${acc.discord_id}" data-current-name="${(acc.display_name || '').replace(/"/g, '&quot;')}">
+            Rename
+          </button>
         </div>
       `;
     }).join('');
+
+    list.querySelectorAll('[data-rename]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const discordId = btn.dataset.rename;
+        const newName = window.prompt('Correct name (this overrides the auto-sync from Discord until it next syncs):', btn.dataset.currentName);
+        if (newName === null) return;
+        const res = await fetch(`/api/admin-panel/accounts/${discordId}/name`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newName.trim() }),
+        });
+        const data = await res.json();
+        if (!res.ok) { showToast(data.error || 'Could not rename this account.', 'error'); return; }
+        showToast('Name updated.', 'success');
+        loadAdminAccounts();
+      });
+    });
 
     list.querySelectorAll('[data-toggle-exclude]').forEach((btn) => {
       btn.addEventListener('click', async () => {
@@ -1341,9 +1340,11 @@ async function loadAdminAccounts() {
 
 async function loadAdminAnalytics() {
   const statsEl = document.getElementById('analyticsStats');
+  const onlineEl = document.getElementById('analyticsOnlineList');
   const revenueEl = document.getElementById('analyticsRevenueList');
   const topItemsEl = document.getElementById('analyticsTopItemsList');
   statsEl.innerHTML = '<p class="spin-status">Loading…</p>';
+  onlineEl.innerHTML = '';
   revenueEl.innerHTML = '';
   topItemsEl.innerHTML = '';
 
@@ -1381,6 +1382,15 @@ async function loadAdminAnalytics() {
         <span class="analytics-stat-label">Conversion (${data.economy.payingAccounts} paying)</span>
       </div>
     `;
+
+    onlineEl.innerHTML = data.onlineUsers.length === 0
+      ? '<p class="spin-status">No logged-in members active right now.</p>'
+      : data.onlineUsers.map((u) => `
+        <div class="analytics-row">
+          <span class="analytics-row-name">🟢 ${u.displayName}</span>
+          <span class="analytics-row-value">${u.discordId}</span>
+        </div>
+      `).join('');
 
     revenueEl.innerHTML = data.revenue.rows.length === 0
       ? '<p class="spin-status">No live payments yet.</p>'
@@ -1679,7 +1689,6 @@ async function init() {
   setupGateButtons();
   setupPromoBox();
   setupWheel();
-  setupProfileEdit();
   setupShopSubnav();
   setupAdminPanel();
   setupPrivacyModal();
@@ -1696,6 +1705,7 @@ async function init() {
   await renderWheel();
   await refreshSpinStatus();
   await refreshVipWheel();
+  await renderLeaderboard();
 }
 
 init().catch((err) => {

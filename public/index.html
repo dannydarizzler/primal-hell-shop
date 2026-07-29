@@ -23,6 +23,7 @@
 
   <nav class="main-nav" id="mainNav">
     <button class="nav-tab active" data-tab="home">Home</button>
+    <button class="nav-tab" data-tab="spotlight">Spotlight</button>
     <button class="nav-tab" data-tab="coins">Buy Coins</button>
     <button class="nav-tab" data-tab="shop">Shop</button>
     <button class="nav-tab" data-tab="chests">Chests</button>
@@ -109,6 +110,28 @@
         <button class="btn-primary" id="vipSpinBtn">Spin the VIP Wheel</button>
         <p class="spin-status" id="vipSpinStatus"></p>
       </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── SPOTLIGHT TAB ───────────────────────── -->
+  <section class="tab-panel" id="tab-spotlight">
+    <h2 class="section-title">🏆 Player Spotlight</h2>
+    <p class="section-sub">The most active members of Primal Hell, ranked by Discord activity.</p>
+
+    <div class="leaderboard-card">
+      <h3 class="leaderboard-title">Top 5 Highest Ranked Members</h3>
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Discord Name</th>
+            <th>Rank</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody">
+          <tr><td colspan="3" class="leaderboard-empty">Loading…</td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
@@ -268,15 +291,9 @@
         <span class="profile-label">Name</span>
         <span class="profile-edit-group">
           <span class="profile-value" id="profileName"></span>
-          <button class="btn-ghost profile-edit-btn" id="editNameBtn">Edit</button>
+          <span class="profile-name-synced" title="Automatically synced from your Discord username">🔒 Synced from Discord</span>
         </span>
       </div>
-      <form id="editNameForm" class="edit-name-form" style="display:none;">
-        <input type="text" id="editNameInput" maxlength="30" />
-        <button type="submit" class="btn-primary">Save</button>
-        <button type="button" class="btn-ghost" id="cancelNameBtn">Cancel</button>
-        <p class="form-error" id="editNameError"></p>
-      </form>
       <div class="profile-row">
         <span class="profile-label">Discord User ID</span>
         <span class="profile-value profile-id" id="profileDiscordId"></span>
@@ -325,11 +342,11 @@
       <ul>
         <li><strong>Discord User ID</strong> — used to identify your account and to know who to deliver in-game items to. We do not collect your Discord email, phone number, or other Discord account details.</li>
         <li><strong>Password</strong> — stored only as a salted cryptographic hash. We cannot see or recover your actual password.</li>
-        <li><strong>Display name</strong> — the name you choose to show in the Shop, shown only to you and to server staff.</li>
+        <li><strong>Display name</strong> — automatically synced from your Discord username (via the community's Discord bot) so it always matches your real Discord identity. It is not something you can freely type or change yourself, and is shown only to you and to server staff.</li>
         <li><strong>Purchase &amp; balance history</strong> — Coin balance, purchases, chest openings, Lucky Wheel spins, and redeemed promo codes, so we can track what you've bought and what's still owed to you in-game.</li>
         <li><strong>Payment data</strong> — when you top up Coins with PayPal, PayPal processes your payment directly. We only receive the order ID, amount, and payment status — we never see or store your card, bank, or PayPal login details.</li>
         <li><strong>Session cookie</strong> — a small signed cookie that keeps you logged in. It contains no personal data beyond your Discord ID and expires automatically.</li>
-      <li><strong>Anonymous "online now" counter</strong> — while a Shop tab is open, your browser sends a small anonymous signal every 20 seconds so staff can see how many people are using the Shop right now. This uses a random ID that resets when you close the tab — it is never linked to your account, never written to a database, and is discarded automatically after about a minute of inactivity.</li>
+      <li><strong>"Online now" presence</strong> — while a Shop tab is open, your browser sends a small signal every 20 seconds so staff can see how many people are using the Shop right now. If you are logged in, staff can see your display name in this "who's online" list for as long as you're active; the moment you close the tab or go inactive for about a minute, you're removed from it and nothing is written to a database. If you are not logged in, this signal is a fully anonymous random ID that is never linked to any account.</li>
       </ul>
 
       <h4>3. What we don't collect</h4>
@@ -395,9 +412,11 @@
 
     <div class="admin-panel-tabpanel" id="admintab-analytics">
       <div class="analytics-stats" id="analyticsStats"></div>
+      <h4 class="analytics-subheading">🟢 Online Now (logged-in members)</h4>
+      <div class="analytics-list" id="analyticsOnlineList"></div>
       <h4 class="analytics-subheading">💰 Top Spenders (live payments only — sandbox test payments excluded)</h4>
       <div class="analytics-list" id="analyticsRevenueList"></div>
-      <h4 class="analytics-subheading">📦 Most Obtained Items</h4>
+      <h4 class="analytics-subheading">📦 Most Obtained Items (excludes admin/test accounts)</h4>
       <div class="analytics-list" id="analyticsTopItemsList"></div>
     </div>
 
@@ -447,12 +466,9 @@
     </form>
 
     <form id="registerForm" class="auth-form">
-      <label for="registerName">Name</label>
-      <input type="text" id="registerName" placeholder="Your Discord username" maxlength="30" required />
-
       <label for="registerDiscordId">Discord User ID</label>
       <input type="text" id="registerDiscordId" placeholder="e.g. 123456789012345678" inputmode="numeric" required />
-      <p class="hint">Right-click your name in Discord → "Copy User ID". Enable Developer Mode in Discord Settings → Advanced if you don't see this option.</p>
+      <p class="hint">Right-click your name in Discord → "Copy User ID". Enable Developer Mode in Discord Settings → Advanced if you don't see this option. Your display name is pulled automatically from Discord — no need to type it.</p>
 
       <label for="registerPassword">Password</label>
       <input type="password" id="registerPassword" placeholder="At least 8 characters" required />

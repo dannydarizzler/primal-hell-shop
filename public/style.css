@@ -1174,7 +1174,7 @@ main {
 .tier-hint { color: var(--ash-dim); font-size: 0.8rem; line-height: 1.5; margin: 0; }
 
 .profile-edit-group { display: flex; align-items: center; gap: 0.6rem; }
-.profile-edit-btn { font-size: 0.78rem; padding: 0.3rem 0.7rem; }
+.profile-name-synced { font-size: 0.72rem; color: var(--ash-dim); white-space: nowrap; }
 
 .edit-name-form {
   display: flex;
@@ -1207,6 +1207,40 @@ main {
   font-size: 0.8rem;
   padding: 2rem 0 3rem;
 }
+
+.leaderboard-card {
+  background: rgba(20, 10, 8, 0.55);
+  border: 1px solid rgba(255, 90, 31, 0.25);
+  border-radius: 16px;
+  padding: 1.5rem;
+  max-width: 640px;
+}
+.leaderboard-title {
+  font-family: 'Oswald', sans-serif;
+  color: #fff;
+  font-size: 1.15rem;
+  margin: 0 0 1rem;
+}
+.leaderboard-table { width: 100%; border-collapse: collapse; }
+.leaderboard-table thead th {
+  text-align: left;
+  color: var(--ash-dim);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 0.75rem 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.leaderboard-table tbody td {
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--ash);
+}
+.leaderboard-table tbody tr:last-child td { border-bottom: none; }
+.leaderboard-rank { font-weight: 700; font-size: 1.1rem; color: var(--ember); width: 2.5rem; }
+.leaderboard-name { color: #fff; font-weight: 600; }
+.leaderboard-tier { color: var(--ember); font-weight: 600; }
+.leaderboard-empty { text-align: center; color: var(--ash-dim); padding: 1.5rem 0 !important; }
 
 @media (max-width: 640px) {
   .site-header { padding: 1rem; }
