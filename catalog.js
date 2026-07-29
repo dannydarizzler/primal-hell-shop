@@ -31,7 +31,7 @@ const CATALOG = {
     emoji: '🥚',
     image: '/images/items/breedpairs.jpg',
     group: 'single',
-    note: 'The dino must be breedable and tameable.',
+    note: 'The dino must be breedable and tameable. Nightmares, Origins, Spirits and Chaos Dinos are excluded and can only be obtained by Tokens or chests.',
     tiers: [
       { id: 'breedpairs_2', name: '2 Breedpairs', cost: 1500 },
       { id: 'breedpairs_4', name: '4 Breedpairs', cost: 2100 },
@@ -141,6 +141,26 @@ const CATALOG = {
     note: 'Redeemable for any Origin Dino in the game.',
     tiers: [
       { id: 'origin_token', name: 'Origin Token', cost: 1700 },
+    ],
+  },
+  spiritToken: {
+    label: 'Spirit Token',
+    emoji: '👻',
+    image: '/images/items/spirit_token.jpg',
+    group: 'chaosDinos',
+    note: 'Redeemable for any Spirit Dino in the game.',
+    tiers: [
+      { id: 'spirit_token', name: 'Spirit Token', cost: 1200 },
+    ],
+  },
+  chaosToken: {
+    label: 'Chaos Token',
+    emoji: '⚔️',
+    image: '/images/items/chaos_token.jpg',
+    group: 'chaosDinos',
+    note: 'Redeemable for any Chaos Dino in the game.',
+    tiers: [
+      { id: 'chaos_token', name: 'Chaos Token', cost: 1200 },
     ],
   },
 

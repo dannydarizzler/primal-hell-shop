@@ -208,7 +208,7 @@ const CHESTS = {
   },
   spiritchaos: {
     id: 'spiritchaos',
-    label: 'Spirit Chaos Chest',
+    label: 'Spirit/Chaos Chest',
     cost: 1000,
     image: '/images/chest-spiritchaos.jpg',
     color: 'spiritchaos',

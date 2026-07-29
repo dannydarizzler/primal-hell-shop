@@ -730,7 +730,7 @@ function renderCategoryCard(category) {
 
   const grid = document.createElement('div');
   grid.className = 'tier-grid';
-  grid.style.gridTemplateColumns = `repeat(${category.tiers.length}, minmax(0, 1fr))`;
+  grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(220px, 260px))';
   category.tiers.forEach((tier) => grid.appendChild(renderTierCard(category, tier)));
   group.appendChild(grid);
 
