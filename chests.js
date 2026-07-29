@@ -24,17 +24,35 @@ const ORIGIN_NIGHTMARE_DINOS = [
 
 // Dino pools for the Flyer / Non-Flyer / Water chests — "cool" dinos only,
 // no small/filler creatures (Dilophosaur, drones, etc.). Equal odds each.
+// Names are prefixed with their chaos tier since several dinos have multiple
+// tiered versions in the mod (e.g. Toxic/Alpha/Fabled/Legendary/Mythic Pteranodon).
+// NOTE: Griffin only shows up in the reference data as its Fairy-tier chaos
+// variant "Grifficorn" — flag if that's wrong and the plain Griffin should be used.
 const FLYER_DINOS = [
-  'Argentavis', 'Griffin', 'Pelagornis', 'Pteranodon', 'Quetzal', 'Tapejara', 'Wyvern',
+  'Alpha Argentavis', 'Alpha Pteranodon', 'Alpha Quetzal', 'Alpha Tapejara',
+  'Fabled Argentavis', 'Fabled Pteranodon', 'Fabled Quetzal', 'Fabled Tapejara',
+  'Fairy Grifficorn', 'Fairy Wyvern',
+  'Legendary Pteranodon', 'Legendary Wyvern',
+  'Mythic Argentavis', 'Mythic Pteranodon', 'Mythic Quetzal', 'Mythic Tapejara',
+  'Toxic Argentavis', 'Toxic Pteranodon', 'Toxic Quetzal', 'Toxic Tapejara',
 ];
 const NON_FLYER_DINOS = [
-  'Allosaurus', 'Baryonyx', 'Carcharodontosaurus', 'Carnotaurus', 'Giganotosaurus',
-  'Indominus Rex', 'Megalosaurus', 'Rex', 'Sabertooth', 'Spino', 'Therizinosaurus',
-  'Thorny Dragon', 'Titanoboa', 'Yutyrannus',
+  'Alpha Allosaurus', 'Alpha Baryonyx', 'Alpha Carcharodontosaurus', 'Alpha Carnotaurus',
+  'Alpha Giganotosaurus', 'Alpha Megalosaurus', 'Alpha Rex', 'Alpha Spino',
+  'Alpha Therizinosaurus', 'Alpha Yutyrannus',
+  'Fabled Therizinosaurus',
+  'Legendary Allosaurus', 'Legendary Baryonyx', 'Legendary Carnotaurus',
+  'Legendary Indominus Rex', 'Legendary Spino', 'Legendary Thorny Dragon',
+  'Mythic Therizinosaurus',
+  'Toxic Allosaurus', 'Toxic Baryonyx', 'Toxic Carcharodontosaurus', 'Toxic Carnotaurus',
+  'Toxic Giganotosaurus', 'Toxic Megalosaurus', 'Toxic Rex', 'Toxic Spino',
+  'Toxic Therizinosaurus', 'Toxic Yutyrannus',
 ];
+// Only the Alpha tier list included water creatures in the reference data —
+// let me know if Toxic/Fabled/Legendary/Mythic also have water variants.
 const WATER_DINOS = [
-  'Basilosaurus', 'Dunkleosteus', 'Liopleurodon', 'Manta', 'Megalodon',
-  'Mosasaurus', 'Plesiosaur', 'Tusoteuthis',
+  'Alpha Basilosaurus', 'Alpha Dunkleosteus', 'Alpha Liopleurodon', 'Alpha Megalodon',
+  'Alpha Mosasaurus', 'Alpha Plesiosaur', 'Alpha Tusoteuthis',
 ];
 
 const CHESTS = {

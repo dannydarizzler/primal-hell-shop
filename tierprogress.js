@@ -46,6 +46,7 @@ function getPublicTierProgress(messageCount) {
     currentTierName: full.currentTier ? full.currentTier.name : null,
     nextTierName: full.nextTier ? full.nextTier.name : null,
     nextTierReward: full.nextTier ? full.nextTier.reward : null,
+    progressPercent: full.progressPercent,
     maxed: !full.nextTier,
   };
 }

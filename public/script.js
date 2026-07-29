@@ -189,6 +189,9 @@ async function renderTierProgress() {
 
     const currentLabel = document.getElementById('tierCurrentLabel');
     const nextLabel = document.getElementById('tierNextLabel');
+    const barFill = document.getElementById('tierProgressBarFill');
+    const barPercent = document.getElementById('tierProgressBarPercent');
+    const barTrack = document.querySelector('.tier-progress-bar-track');
 
     currentLabel.innerHTML = data.currentTierName
       ? `Current rank: <strong>${data.currentTierName}</strong>`
@@ -196,8 +199,12 @@ async function renderTierProgress() {
 
     if (data.maxed) {
       nextLabel.innerHTML = `<strong>Max rank reached!</strong> 🎉`;
+      barTrack.style.display = 'none';
     } else {
       nextLabel.innerHTML = `Next rank: <strong>${data.nextTierName}</strong> — reward: <strong>${data.nextTierReward.toLocaleString('en-US')} Coins</strong>`;
+      barTrack.style.display = 'block';
+      barFill.style.width = `${Math.max(0, Math.min(100, data.progressPercent))}%`;
+      barPercent.textContent = `${data.progressPercent}%`;
     }
 
     tierCard.style.display = 'block';

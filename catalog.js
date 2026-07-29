@@ -33,9 +33,9 @@ const CATALOG = {
     group: 'single',
     note: 'The dino must be breedable and tameable.',
     tiers: [
-      { id: 'breedpairs_2', name: '2 Breedpairs', cost: 900 },
-      { id: 'breedpairs_4', name: '4 Breedpairs', cost: 1600 },
-      { id: 'breedpairs_8', name: '8 Breedpairs', cost: 2300 },
+      { id: 'breedpairs_2', name: '2 Breedpairs', cost: 1500 },
+      { id: 'breedpairs_4', name: '4 Breedpairs', cost: 2100 },
+      { id: 'breedpairs_8', name: '8 Breedpairs', cost: 3200 },
     ],
   },
   bpset: {
