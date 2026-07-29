@@ -82,6 +82,7 @@ function setupAuthModal() {
       renderMyItems();
       refreshSpinStatus();
       refreshVipWheel();
+      checkSignupBonusPopup();
     } catch {
       errorEl.textContent = 'Something went wrong. Please try again.';
     }
@@ -112,6 +113,7 @@ function setupAuthModal() {
       renderMyItems();
       refreshSpinStatus();
       refreshVipWheel();
+      checkSignupBonusPopup();
     } catch {
       errorEl.textContent = 'Something went wrong. Please try again.';
     }
@@ -1473,6 +1475,37 @@ function setupAnnouncementPopup() {
   });
 }
 
+// ── Sign-up bonus (200 Coins, one-time, claimed via "Collect") ─────────────────
+function checkSignupBonusPopup() {
+  if (!currentUser || currentUser.signupBonusClaimed) return;
+  document.getElementById('signupBonusModal').classList.add('show');
+}
+
+function setupSignupBonusPopup() {
+  const btn = document.getElementById('signupBonusCollectBtn');
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/me/claim-signup-bonus', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.error || 'Could not claim your bonus.', 'error');
+        document.getElementById('signupBonusModal').classList.remove('show');
+        return;
+      }
+      currentUser.coins = data.newBalance;
+      currentUser.signupBonusClaimed = true;
+      renderAuthArea();
+      document.getElementById('signupBonusModal').classList.remove('show');
+      showToast('200 Primal Coins added to your balance!', 'success');
+    } catch {
+      showToast('Something went wrong. Please try again.', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
 async function openAdminPanel() {
   document.getElementById('adminPanelModal').classList.add('show');
   await loadAdminPanelItems();
@@ -1693,9 +1726,11 @@ async function init() {
   setupAdminPanel();
   setupPrivacyModal();
   setupAnnouncementPopup();
+  setupSignupBonusPopup();
   setupItemsFilter();
 
   await refreshMe();
+  checkSignupBonusPopup();
   await loadPayPalSdk();
   await renderPackages();
   await renderChests();

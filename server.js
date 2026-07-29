@@ -13,6 +13,7 @@ const paypal = require('./paypal');
 const db = require('./db');
 const auth = require('./auth');
 const adminPanel = require('./adminpanel');
+const discordapi = require('./discordapi');
 
 // ── Live visitor tracking (ephemeral, in-memory only — never written to disk,
 // never shared with anyone, just a count for the admin panel) ─────────────────
@@ -48,7 +49,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const DISCORD_ID_PATTERN = /^\d{15,25}$/;
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
   const { discordId, password } = req.body;
 
   if (!discordId || !DISCORD_ID_PATTERN.test(discordId.trim())) {
@@ -63,15 +64,16 @@ app.post('/api/auth/register', (req, res) => {
     return res.status(409).json({ error: 'An account with this Discord ID already exists. Try logging in instead.' });
   }
 
-  // Display names are no longer typed by the player — pulled from the Discord
-  // name the bot has already synced for this ID. If the bot hasn't seen this
-  // member yet, fall back to their raw ID until the next sync corrects it.
-  const cleanName = db.getCachedDiscordName(cleanId) || cleanId;
+  // Display names are no longer typed by the player — resolved automatically:
+  // 1) live lookup straight from the Discord API (server member list), 2) the
+  // bot's last cached push (if the API lookup isn't configured/available),
+  // 3) the raw Discord ID as a last resort until either source catches up.
+  const cleanName = (await discordapi.resolveDiscordName(cleanId)) || db.getCachedDiscordName(cleanId) || cleanId;
 
   const passwordHash = auth.hashPassword(password);
   db.createUser(cleanId, passwordHash, cleanName);
   auth.setSessionCookie(res, cleanId);
-  res.json({ discordId: cleanId, name: cleanName });
+  res.json({ discordId: cleanId, name: cleanName, signupBonusAvailable: true });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -101,7 +103,16 @@ app.get('/api/me', (req, res) => {
     name: (user?.display_name && user.display_name.trim()) || req.user.discordId,
     coins: db.getBalance(req.user.discordId),
     isVip: !!(user && user.is_vip),
+    signupBonusClaimed: !!(user && user.signup_bonus_claimed),
   });
+});
+
+app.post('/api/me/claim-signup-bonus', auth.requireAuth, (req, res) => {
+  const result = db.claimSignupBonus(req.user.discordId);
+  if (!result.ok) {
+    return res.status(409).json({ error: result.reason });
+  }
+  res.json({ ok: true, newBalance: result.newBalance });
 });
 
 // Display names are auto-synced from Discord and are no longer player-
@@ -544,13 +555,20 @@ app.get('/api/me/tier-progress', auth.requireAuth, (req, res) => {
 });
 
 // ── Public leaderboard for the Spotlight tab ─────────────────────────────────
-app.get('/api/leaderboard/top-ranks', (req, res) => {
+app.get('/api/leaderboard/top-ranks', async (req, res) => {
   const rows = db.getTopTierProgress(5);
+  const guildMap = await discordapi.getGuildMemberMap();
+
   const leaderboard = rows.map((row, index) => {
     const { currentTier } = computeTierProgress(row.message_count);
+    let name = row.display_name;
+    if (!name && guildMap.has(row.discord_id)) {
+      name = guildMap.get(row.discord_id);
+      db.setTierProgress(row.discord_id, row.message_count, name); // cache for next time
+    }
     return {
       rank: index + 1,
-      name: row.display_name || `Player #${row.discord_id.slice(-4)}`,
+      name: name || `Player #${row.discord_id.slice(-4)}`,
       tierName: currentTier ? currentTier.name : 'Unranked',
     };
   });
@@ -685,8 +703,19 @@ app.get('/api/admin-panel/check', (req, res) => {
 
 // ── Sellable items list + current sales, for the admin panel UI ────────────────
 // ── Accounts overview: who has signed up, how many Coins, since when ──────────
-app.get('/api/admin-panel/accounts', adminPanel.requireAdminPanel, (req, res) => {
-  res.json(db.getAllAccounts());
+app.get('/api/admin-panel/accounts', adminPanel.requireAdminPanel, async (req, res) => {
+  const accounts = db.getAllAccounts();
+  const guildMap = await discordapi.getGuildMemberMap();
+
+  for (const acc of accounts) {
+    const looksUnset = !acc.display_name || !acc.display_name.trim() || acc.display_name === acc.discord_id;
+    if (looksUnset && guildMap.has(acc.discord_id)) {
+      acc.display_name = guildMap.get(acc.discord_id);
+      db.updateDisplayName(acc.discord_id, acc.display_name);
+    }
+  }
+
+  res.json(accounts);
 });
 
 // ── Shop-wide announcement popup ────────────────────────────────────────────────
@@ -724,11 +753,17 @@ app.post('/api/heartbeat', (req, res) => {
 });
 
 // ── Analytics ──────────────────────────────────────────────────────────────────
-app.get('/api/admin-panel/analytics', adminPanel.requireAdminPanel, (req, res) => {
+app.get('/api/admin-panel/analytics', adminPanel.requireAdminPanel, async (req, res) => {
   pruneStaleVisitors();
+  const guildMap = await discordapi.getGuildMemberMap();
   const onlineUsers = [...onlineAuthedUsers.keys()].map((discordId) => {
     const user = db.getUser(discordId);
-    return { discordId, displayName: (user?.display_name && user.display_name.trim()) || discordId };
+    let displayName = (user?.display_name && user.display_name.trim()) || null;
+    if (!displayName && guildMap.has(discordId)) {
+      displayName = guildMap.get(discordId);
+      db.updateDisplayName(discordId, displayName);
+    }
+    return { discordId, displayName: displayName || discordId };
   });
   res.json({
     online: activeVisitors.size,

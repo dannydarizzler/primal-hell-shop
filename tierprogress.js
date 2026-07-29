@@ -4,12 +4,15 @@
 // needing a live connection to the bot.
 const TIER_ROLES = [
   { name: 'Toxic', threshold: 10, reward: 100 },
-  { name: 'Alpha', threshold: 20, reward: 200 },
-  { name: 'Elemental', threshold: 40, reward: 400 },
-  { name: 'Shadow', threshold: 80, reward: 800 },
-  { name: 'Mythic', threshold: 160, reward: 1000 },
-  { name: 'Demonic', threshold: 320, reward: 2000 },
-  { name: 'Spirit', threshold: 640, reward: 4000 },
+  { name: 'Alpha', threshold: 25, reward: 200 },
+  { name: 'Elemental', threshold: 60, reward: 300 },
+  { name: 'Shadow', threshold: 120, reward: 400 },
+  { name: 'Mythic', threshold: 240, reward: 500 },
+  { name: 'Legendary', threshold: 480, reward: 600 },
+  { name: 'Demonic', threshold: 900, reward: 700 },
+  { name: 'Spirit', threshold: 1400, reward: 800 },
+  { name: 'Origin', threshold: 1800, reward: 900 },
+  { name: 'Nightmare', threshold: 2500, reward: 1000 },
 ];
 
 function computeTierProgress(messageCount) {

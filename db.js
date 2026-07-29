@@ -6,6 +6,8 @@ const db = new DatabaseSync(dbPath);
 
 db.exec('PRAGMA journal_mode = WAL;');
 
+const SIGNUP_BONUS_COINS = 200;
+
 // ── Purchases (PayPal top-ups) ─────────────────────────────────────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS purchases (
@@ -151,6 +153,12 @@ db.exec(`
   }
   if (!userColumns.includes('exclude_from_analytics')) {
     db.exec(`ALTER TABLE users ADD COLUMN exclude_from_analytics INTEGER NOT NULL DEFAULT 0`);
+  }
+  if (!userColumns.includes('signup_bonus_claimed')) {
+    db.exec(`ALTER TABLE users ADD COLUMN signup_bonus_claimed INTEGER NOT NULL DEFAULT 0`);
+    // One-time backfill: existing accounts predate this feature and shouldn't
+    // retroactively get a free 200 Coins — only new signups from here on should.
+    db.exec(`UPDATE users SET signup_bonus_claimed = 1`);
   }
 }
 
@@ -638,6 +646,38 @@ function updateDisplayName(discordId, name) {
   db.prepare(`UPDATE users SET display_name = ? WHERE discord_id = ?`).run(name, discordId);
 }
 
+/** Claims the one-time 200-Coin signup bonus. Returns { ok: true, newBalance }
+ * or { ok: false, reason } if already claimed / no such account. Atomic so it
+ * can't be double-claimed by a double-click or a retried request. */
+function claimSignupBonus(discordId) {
+  let newBalance;
+  db.exec('BEGIN');
+  try {
+    const result = db.prepare(`
+      UPDATE users SET signup_bonus_claimed = 1
+      WHERE discord_id = ? AND signup_bonus_claimed = 0
+    `).run(discordId);
+
+    if (result.changes === 0) {
+      db.exec('ROLLBACK');
+      return { ok: false, reason: db.prepare(`SELECT 1 FROM users WHERE discord_id = ?`).get(discordId)
+        ? 'This bonus has already been claimed.'
+        : 'No account found.' };
+    }
+
+    db.prepare(`
+      INSERT INTO balances (discord_id, coins) VALUES (?, ?)
+      ON CONFLICT(discord_id) DO UPDATE SET coins = coins + excluded.coins
+    `).run(discordId, SIGNUP_BONUS_COINS);
+    db.exec('COMMIT');
+    newBalance = getBalance(discordId);
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+  return { ok: true, newBalance };
+}
+
 // ── Chest openings ───────────────────────────────────────────────────────────────
 // ── Migration: add columns if this table already existed without them ─────────
 // (needed because the shop is already deployed — CREATE TABLE IF NOT EXISTS
@@ -749,6 +789,7 @@ module.exports = {
   getRevenueAnalytics,
   getEconomyStats,
   updateDisplayName,
+  claimSignupBonus,
   getSpinStatus,
   trySpin,
   getUnnotifiedSpins,
