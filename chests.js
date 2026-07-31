@@ -10,7 +10,11 @@ const IMG = {
   kibble: '/images/items/kibble.jpg',
   dedi: '/images/items/dedibox.jpg',
   basekit: '/images/items/basekit.jpg',
-  ascension: '/images/items/ascension.jpg',
+  fullAscension: '/images/items/fullascension.jpg',
+  manticore: '/images/items/manticore.jpg',
+  overseer: '/images/items/overseer.jpg',
+  rockwell: '/images/items/rockwell.jpg',
+  extinction: '/images/items/extinction.jpg',
   healthkit: '/images/items/healthpotions.jpg',
   xpparty: '/images/items/xppotions.jpg',
   originToken: '/images/items/origin_token.jpg',
@@ -113,7 +117,11 @@ const CHESTS = {
       { name: '100x XP Potion Set', emoji: '⭐', image: IMG.xpparty, weight: 15 },
       { name: '2 Dedicated Storage Boxes of choice', emoji: '📦', image: IMG.dedi, weight: 15 },
       { name: '100x Tek Foundation/Wall/Ceiling + 1x Tek Generator + 100x Element', emoji: '⚡', image: IMG.basekit, weight: 7 },
-      // Cheapest combo deal only, ~1% chance (weight 1 in a pool totalling 107 → 0.93%).
+      { name: 'Manticore Reward (+15 Levels)', emoji: '🦁', image: IMG.manticore, weight: 5 },
+      { name: 'Overseer Reward (+15 Levels)', emoji: '👁️', image: IMG.overseer, weight: 5 },
+      { name: 'Rockwell Reward (+15 Levels)', emoji: '🧟', image: IMG.rockwell, weight: 5 },
+      { name: 'Extinction Reward (+15 Levels)', emoji: '☠️', image: IMG.extinction, weight: 5 },
+      // Cheapest combo deal only, ~1% chance (weight 1 in a pool totalling 127 → 0.79%).
       { name: COMBOS_BY_PRICE[0].name, emoji: '🎁', image: COMBOS_BY_PRICE[0].image, weight: 1 },
     ],
   },
@@ -132,8 +140,11 @@ const CHESTS = {
       { name: '250x XP Potion Set', emoji: '⭐', image: IMG.xpparty, weight: 14 },
       { name: '4 Dedicated Storage Boxes of choice', emoji: '📦', image: IMG.dedi, weight: 13 },
       { name: '250x Tek Foundation/Wall/Ceiling + 1x Tek Generator + 250x Element', emoji: '⚡', image: IMG.basekit, weight: 8 },
-      { name: 'Ascension Pack', emoji: '🚀', image: IMG.ascension, weight: 2 },
-      // Two cheapest combo deals, ~1% chance each (weight 1 each in a pool totalling 105 → 0.95% each).
+      { name: 'Manticore Reward (+15 Levels)', emoji: '🦁', image: IMG.manticore, weight: 6 },
+      { name: 'Overseer Reward (+15 Levels)', emoji: '👁️', image: IMG.overseer, weight: 6 },
+      { name: 'Rockwell Reward (+15 Levels)', emoji: '🧟', image: IMG.rockwell, weight: 6 },
+      { name: 'Extinction Reward (+15 Levels)', emoji: '☠️', image: IMG.extinction, weight: 6 },
+      // Two cheapest combo deals, ~1% chance each (weight 1 each in a pool totalling 127 → 0.79% each).
       { name: COMBOS_BY_PRICE[0].name, emoji: '🎁', image: COMBOS_BY_PRICE[0].image, weight: 1 },
       { name: COMBOS_BY_PRICE[1].name, emoji: '🎁', image: COMBOS_BY_PRICE[1].image, weight: 1 },
     ],
@@ -153,7 +164,7 @@ const CHESTS = {
       { name: '500x XP Potion Set', emoji: '⭐', image: IMG.xpparty, weight: 13 },
       { name: '7 Dedicated Storage Boxes of choice', emoji: '📦', image: IMG.dedi, weight: 15 },
       { name: '350x Tek Foundation/Wall/Ceiling + 1x Tek Generator + 350x Element', emoji: '⚡', image: IMG.basekit, weight: 12 },
-      { name: 'Ascension Pack', emoji: '🚀', image: IMG.ascension, weight: 10 },
+      { name: 'Full Ascension', emoji: '🚀', image: IMG.fullAscension, weight: 10 },
     ],
   },
   origin: {

@@ -466,6 +466,10 @@ main {
 
 .catalog-categories { display: flex; flex-direction: column; gap: 1.75rem; }
 
+#bossFightsCategories { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 1.75rem 1.5rem; }
+#bossFightsCategories .catalog-category-group { flex: 0 1 260px; }
+#bossFightsCategories .catalog-category-group--break { flex-basis: 100%; }
+
 .catalog-category-group { display: flex; flex-direction: column; gap: 0.9rem; }
 .tier-grid { display: grid; gap: 1.25rem; }
 .catalog-group-header { display: flex; align-items: center; gap: 0.7rem; }

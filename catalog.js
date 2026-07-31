@@ -199,7 +199,7 @@ const CATALOG = {
     group: 'bossFights',
     note: 'Grants +15 levels, as if you had defeated the Manticore boss fight.',
     tiers: [
-      { id: 'manticore_15', name: 'Manticore Reward (+15 Levels)', cost: 750 },
+      { id: 'manticore_15', name: 'Manticore Reward (+15 Levels)', cost: 800 },
     ],
   },
   overseer: {
@@ -209,7 +209,7 @@ const CATALOG = {
     group: 'bossFights',
     note: 'Grants +15 levels, as if you had defeated the Overseer boss fight.',
     tiers: [
-      { id: 'overseer_15', name: 'Overseer Reward (+15 Levels)', cost: 750 },
+      { id: 'overseer_15', name: 'Overseer Reward (+15 Levels)', cost: 800 },
     ],
   },
   rockwell: {
@@ -219,7 +219,7 @@ const CATALOG = {
     group: 'bossFights',
     note: 'Grants +15 levels, as if you had defeated the Rockwell boss fight.',
     tiers: [
-      { id: 'rockwell_15', name: 'Rockwell Reward (+15 Levels)', cost: 750 },
+      { id: 'rockwell_15', name: 'Rockwell Reward (+15 Levels)', cost: 800 },
     ],
   },
   extinction: {
@@ -229,17 +229,17 @@ const CATALOG = {
     group: 'bossFights',
     note: 'Grants +15 levels, as if you had defeated the Extinction boss fight.',
     tiers: [
-      { id: 'extinction_15', name: 'Extinction Reward (+15 Levels)', cost: 750 },
+      { id: 'extinction_15', name: 'Extinction Reward (+15 Levels)', cost: 800 },
     ],
   },
   ascensionPack: {
-    label: 'Ascension Pack',
+    label: 'Full Ascension',
     emoji: '🚀',
-    image: '/images/items/ascension.jpg',
+    image: '/images/items/fullascension.jpg',
     group: 'bossFights',
-    note: 'Bundles all 3 individually-sellable boss rewards — Manticore + Overseer + Rockwell (+45 Levels total).',
+    note: 'Bundles all 4 individually-sellable boss rewards — Manticore + Overseer + Rockwell + Extinction (+60 Levels total).',
     tiers: [
-      { id: 'ascension_pack', name: 'Ascension Pack (+45 Levels — Manticore + Overseer + Rockwell)', cost: 3000 },
+      { id: 'ascension_pack', name: 'Full Ascension (+60 Levels — Manticore + Overseer + Rockwell + Extinction)', cost: 2900 },
     ],
   },
 };

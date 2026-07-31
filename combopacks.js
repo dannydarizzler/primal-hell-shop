@@ -55,10 +55,10 @@ const COMBO_PACKS = [
     id: 'combo_endgame',
     name: 'Endgame Combo',
     image: '/images/combos/endgame.jpg',
-    // Ascension Pack (3000) + 2 Nightmare Tokens (5000) + 500x XP Potion Set (1800) = 9800 → -25% = 7350 → rounded up
-    cost: 7400,
+    // Full Ascension (2900) + 2 Nightmare Tokens (5000) + 500x XP Potion Set (1800) = 9700 → -25% = 7275 → rounded up
+    cost: 7300,
     contents: [
-      'Ascension Pack (+45 Levels — Manticore + Overseer + Rockwell)',
+      'Full Ascension (+60 Levels — Manticore + Overseer + Rockwell + Extinction)',
       '2 Nightmare Tokens',
       '500x XP Potion Set',
     ],
