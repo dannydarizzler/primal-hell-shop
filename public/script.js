@@ -549,7 +549,7 @@ async function openChest(tierId, chestImage, btnEl, chestLabel, chestCost) {
   }
 }
 
-function showResultModal(item) {
+function showResultModal(item, needsRedemption = true) {
   const thumbEl = document.getElementById('resultThumb');
   const emojiEl = document.getElementById('resultEmoji');
   if (item.image) {
@@ -562,6 +562,7 @@ function showResultModal(item) {
     emojiEl.textContent = item.emoji;
   }
   document.getElementById('resultName').textContent = item.name;
+  document.getElementById('resultNote').style.display = needsRedemption ? 'block' : 'none';
   document.getElementById('resultModal').classList.add('show');
 }
 function closeResultModal() {
@@ -921,7 +922,7 @@ async function spinWheelConfig(config) {
           : `${data.amount.toLocaleString('en-US')} Primal Coins`,
         emoji: data.jackpot ? '🎉' : '🪙',
         image: '/images/logo.jpg',
-      });
+      }, false);
     }, 4100);
   } catch {
     showToast('Something went wrong. Please try again.', 'error');
