@@ -1,6 +1,8 @@
 // Mystery Box / Chest tiers. Weights are placeholders for now — fine-tune later.
 // Each tier draws exactly ONE item from its own pool.
 
+const { COMBO_PACKS } = require('./combopacks');
+
 // Shared item images (falls back to emoji-only if no image is set, e.g. Origin Sets/Tokens).
 const IMG = {
   breedpairs: '/images/items/breedpairs.jpg',
@@ -14,6 +16,10 @@ const IMG = {
   originToken: '/images/items/origin_token.jpg',
   nightmareToken: '/images/items/nightmare_token.jpg',
 };
+
+// COMBO_PACKS sorted ascending by cost — used to pick "the cheapest" / "the two
+// cheapest" combo deals for the tier 1 / tier 2 chest pools below.
+const COMBOS_BY_PRICE = [...COMBO_PACKS].sort((a, b) => a.cost - b.cost);
 
 // Every Origin/Nightmare-capable dino — used by both the Origin Chest and the
 // Nightmare Chest pools below (equal odds per dino in each chest).
@@ -95,7 +101,7 @@ const CHESTS = {
   tier1: {
     id: 'tier1',
     label: 'Tier 1 Chest',
-    cost: 800,
+    cost: 900,
     image: '/images/chest-tier1.jpg',
     color: 'gold',
     category: 'tier',
@@ -107,12 +113,14 @@ const CHESTS = {
       { name: '100x XP Potion Set', emoji: '⭐', image: IMG.xpparty, weight: 15 },
       { name: '2 Dedicated Storage Boxes of choice', emoji: '📦', image: IMG.dedi, weight: 15 },
       { name: '100x Tek Foundation/Wall/Ceiling + 1x Tek Generator + 100x Element', emoji: '⚡', image: IMG.basekit, weight: 7 },
+      // Cheapest combo deal only, ~1% chance (weight 1 in a pool totalling 107 → 0.93%).
+      { name: COMBOS_BY_PRICE[0].name, emoji: '🎁', image: COMBOS_BY_PRICE[0].image, weight: 1 },
     ],
   },
   tier2: {
     id: 'tier2',
     label: 'Tier 2 Chest',
-    cost: 1600,
+    cost: 1800,
     image: '/images/chest-tier2.jpg',
     color: 'purple',
     category: 'tier',
@@ -125,12 +133,15 @@ const CHESTS = {
       { name: '4 Dedicated Storage Boxes of choice', emoji: '📦', image: IMG.dedi, weight: 13 },
       { name: '250x Tek Foundation/Wall/Ceiling + 1x Tek Generator + 250x Element', emoji: '⚡', image: IMG.basekit, weight: 8 },
       { name: 'Ascension Pack', emoji: '🚀', image: IMG.ascension, weight: 2 },
+      // Two cheapest combo deals, ~1% chance each (weight 1 each in a pool totalling 105 → 0.95% each).
+      { name: COMBOS_BY_PRICE[0].name, emoji: '🎁', image: COMBOS_BY_PRICE[0].image, weight: 1 },
+      { name: COMBOS_BY_PRICE[1].name, emoji: '🎁', image: COMBOS_BY_PRICE[1].image, weight: 1 },
     ],
   },
   tier3: {
     id: 'tier3',
     label: 'Tier 3 Chest',
-    cost: 2400,
+    cost: 2600,
     image: '/images/chest-tier3.jpg',
     color: 'red',
     category: 'tier',
@@ -148,7 +159,7 @@ const CHESTS = {
   origin: {
     id: 'origin',
     label: 'Origin Chest',
-    cost: 1400,
+    cost: 1900,
     image: '/images/chest-origin.jpg',
     color: 'origin',
     category: 'dino',
@@ -159,13 +170,21 @@ const CHESTS = {
   nightmare: {
     id: 'nightmare',
     label: 'Nightmare Chest',
-    cost: 1900,
+    cost: 2200,
     image: '/images/chest-nightmare.jpg',
     color: 'nightmare',
     category: 'dino',
-    pool: ORIGIN_NIGHTMARE_DINOS.map((name) => ({
-      name: `${name} (Nightmare)`, emoji: '💀', image: IMG.nightmareToken, weight: 1,
-    })),
+    // Dino weight rescaled from 1 to 90 each (still equal odds among themselves)
+    // so the 5 combo deals below can slot in at a clean ~1% each: 11×90=990 dino
+    // weight + 5×10=50 combo weight = 1040 total → each combo = 10/1040 ≈ 0.96%.
+    pool: [
+      ...ORIGIN_NIGHTMARE_DINOS.map((name) => ({
+        name: `${name} (Nightmare)`, emoji: '💀', image: IMG.nightmareToken, weight: 90,
+      })),
+      ...COMBO_PACKS.map((combo) => ({
+        name: combo.name, emoji: '🎁', image: combo.image, weight: 10,
+      })),
+    ],
   },
   flyer: {
     id: 'flyer',

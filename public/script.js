@@ -1154,7 +1154,7 @@ function renderSaleTab() {
   });
 }
 
-// ── Shop sub-navigation (Sale / Single Items / Combo Packs / Other Stuff) ─────
+// ── Shop sub-navigation (Sale / Essentials / Combo Packs / Other Stuff) ─────
 function setupShopSubnav() {
   document.querySelectorAll('.shop-group-tile').forEach((tile) => {
     tile.addEventListener('click', () => {

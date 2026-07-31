@@ -1,13 +1,13 @@
 // Combo Packs — bundled deals combining multiple items at a discount.
-// Pricing formula: sum of the component items' normal catalog prices, minus 30%,
-// then rounded to a clean number. Sorted ascending by price.
+// Pricing formula: sum of the component items' normal catalog prices, minus 25%,
+// then rounded UP to the nearest clean number (nearest 100). Sorted ascending by price.
 const COMBO_PACKS = [
   {
     id: 'combo_starter',
     name: 'Starter Combo',
-    image: '/images/groups/combo.jpg',
-    // 250x Kibble Set (1800) + 2 Breedpairs (900) + 5 Blueprints (800) = 3500 → -30% = 2450 → rounded
-    cost: 2500,
+    image: '/images/combos/starter.jpg',
+    // 250x Kibble Set (1800) + 2 Breedpairs (1600) + 5 Blueprints (800) = 4200 → -25% = 3150 → rounded up
+    cost: 3200,
     contents: [
       '250x Kibble Set',
       '2 Breedpairs',
@@ -15,41 +15,52 @@ const COMBO_PACKS = [
     ],
   },
   {
-    id: 'combo_base',
-    name: 'Base Combo',
-    image: '/images/groups/combo.jpg',
-    // 200x Base Kit (1800) + 4 Dedi Boxes (2000) + 4 Dino Color Tokens (1200) = 5000 → -30%
-    cost: 3500,
+    id: 'combo_dinos',
+    name: 'Dinos Combo',
+    image: '/images/combos/dinos.jpg',
+    // 8 Breedpairs (3600) + Spirit Token (1400) + Chaos Token (1400) + 500x Health Potion Kit (1700) = 8100 → -25% = 6075 → rounded up
+    cost: 6100,
     contents: [
-      '200x Foundation/Wall/Ceiling + 1x Tek Generator + 200x Element',
-      '4 Dedicated Storage Boxes of choice',
-      '4 Dino Color Tokens',
+      '8 Breedpairs',
+      '1 Spirit Token',
+      '1 Chaos Token',
+      '500x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)',
     ],
   },
   {
-    id: 'combo_dino',
-    name: 'Dino Combo',
-    image: '/images/groups/combo.jpg',
-    // 8 Breedpairs (2300) + 500 Health Potion Kit (1700) + 8 Dino Color Tokens (2000) + 5 Blueprints (800) = 6800 → -30% = 4760 → rounded
-    cost: 4800,
+    id: 'combo_gearup',
+    name: 'Gear Up Combo',
+    image: '/images/combos/gearup.jpg',
+    // Vault Tier 3 (4000) + 500x Health Potion Kit (1700) + 250x XP Potion Set (1300) = 7000 → -25% = 5250 → rounded up
+    cost: 5300,
     contents: [
-      '8 Breedpairs',
+      'Vault — Tier 3',
       '500x Health Potion Kit (Potent/Alpha/Mythic/Nightmare)',
-      '8 Dino Color Tokens',
-      '5 Blueprints of choice',
+      '250x XP Potion Set',
+    ],
+  },
+  {
+    id: 'combo_base',
+    name: 'Base Combo',
+    image: '/images/combos/base.jpg',
+    // 500x Base Kit (2600) + 7 Dedi Boxes (2900) + Vault Tier 2 (3000) = 8500 → -25% = 6375 → rounded up
+    cost: 6400,
+    contents: [
+      '500x Foundation/Wall/Ceiling + 1x Tek Generator + 500x Element',
+      '7 Dedicated Storage Boxes of choice',
+      'Vault — Tier 2',
     ],
   },
   {
     id: 'combo_endgame',
     name: 'Endgame Combo',
-    image: '/images/groups/combo.jpg',
-    // 500x Kibble Set (2600) + 8 Breedpairs (2300) + 15 Blueprints (2000) + Instant Ascension (2500) = 9400 → -30% = 6580 → rounded
-    cost: 6500,
+    image: '/images/combos/endgame.jpg',
+    // Ascension Pack (3000) + 2 Nightmare Tokens (5000) + 500x XP Potion Set (1800) = 9800 → -25% = 7350 → rounded up
+    cost: 7400,
     contents: [
-      '500x Kibble Set',
-      '8 Breedpairs',
-      '15 Blueprints of choice',
-      'Instant Ascension → Level 180',
+      'Ascension Pack (+45 Levels — Manticore + Overseer + Rockwell)',
+      '2 Nightmare Tokens',
+      '500x XP Potion Set',
     ],
   },
 ];

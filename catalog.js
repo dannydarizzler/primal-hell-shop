@@ -26,16 +26,43 @@ const CATALOG = {
       { id: 'basekit_500', name: '500x Foundation/Wall/Ceiling + 1x Tek Generator + 500x Element', cost: 2600 },
     ],
   },
+  vault: {
+    label: 'Vault',
+    emoji: '🗄️',
+    image: '/images/items/vault.jpg',
+    group: 'single',
+    note: 'All weapons, tools, and armor are capped (max stats).',
+    tiers: [
+      {
+        id: 'vault_tier1',
+        name: '5x Fab Sniper, 5x Longneck, 5x Mythic Hatchet, 5x Mythic Pickaxe, 5x Mythic Sickle, '
+          + '10x Flak Armor Set (50 pieces), 10x Riot Armor Set (50 pieces)',
+        cost: 2000,
+      },
+      {
+        id: 'vault_tier2',
+        name: '10x Fab Sniper, 10x Longneck, 10x Mythic Hatchet, 10x Mythic Pickaxe, 10x Mythic Sickle, '
+          + '20x Flak Armor Set (100 pieces), 20x Riot Armor Set (100 pieces)',
+        cost: 3000,
+      },
+      {
+        id: 'vault_tier3',
+        name: '20x Fab Sniper, 10x Longneck, 10x Mythic Hatchet, 10x Mythic Pickaxe, 10x Mythic Sickle, '
+          + '30x Flak Armor Set (150 pieces), 30x Riot Armor Set (150 pieces)',
+        cost: 4000,
+      },
+    ],
+  },
   breedpairs: {
     label: 'Breedpairs',
     emoji: '🥚',
     image: '/images/items/breedpairs.jpg',
-    group: 'single',
+    group: 'chaosDinos',
     note: 'The dino must be breedable and tameable. Nightmares, Origins, Spirits and Chaos Dinos are excluded and can only be obtained by Tokens or chests.',
     tiers: [
-      { id: 'breedpairs_2', name: '2 Breedpairs', cost: 1500 },
-      { id: 'breedpairs_4', name: '4 Breedpairs', cost: 2100 },
-      { id: 'breedpairs_8', name: '8 Breedpairs', cost: 3200 },
+      { id: 'breedpairs_2', name: '2 Breedpairs', cost: 1600 },
+      { id: 'breedpairs_4', name: '4 Breedpairs', cost: 2600 },
+      { id: 'breedpairs_8', name: '8 Breedpairs', cost: 3600 },
     ],
   },
   bpset: {
@@ -94,7 +121,7 @@ const CATALOG = {
     tiers: [
       { id: 'dinocolor_1', name: '1 Dino Color Token', cost: 600 },
       { id: 'dinocolor_4', name: '4 Dino Color Tokens', cost: 1200 },
-      { id: 'dinocolor_8', name: '8 Dino Color Tokens', cost: 2000 },
+      { id: 'dinocolor_8', name: '8 Dino Color Tokens', cost: 2200 },
     ],
   },
   chibisRandom: {
@@ -130,7 +157,7 @@ const CATALOG = {
     group: 'chaosDinos',
     note: 'Redeemable for any Nightmare Dino in the game.',
     tiers: [
-      { id: 'nightmare_token', name: 'Nightmare Token', cost: 2200 },
+      { id: 'nightmare_token', name: 'Nightmare Token', cost: 2500 },
     ],
   },
   originToken: {
@@ -140,7 +167,7 @@ const CATALOG = {
     group: 'chaosDinos',
     note: 'Redeemable for any Origin Dino in the game.',
     tiers: [
-      { id: 'origin_token', name: 'Origin Token', cost: 1700 },
+      { id: 'origin_token', name: 'Origin Token', cost: 2000 },
     ],
   },
   spiritToken: {
@@ -150,7 +177,7 @@ const CATALOG = {
     group: 'chaosDinos',
     note: 'Redeemable for any Spirit Dino in the game.',
     tiers: [
-      { id: 'spirit_token', name: 'Spirit Token', cost: 1200 },
+      { id: 'spirit_token', name: 'Spirit Token', cost: 1400 },
     ],
   },
   chaosToken: {
@@ -160,11 +187,11 @@ const CATALOG = {
     group: 'chaosDinos',
     note: 'Redeemable for any Chaos Dino in the game.',
     tiers: [
-      { id: 'chaos_token', name: 'Chaos Token', cost: 1200 },
+      { id: 'chaos_token', name: 'Chaos Token', cost: 1400 },
     ],
   },
 
-  // ── Boss Fights ────────────────────────────────────────────────────────────
+  // ── Ascension ──────────────────────────────────────────────────────────────
   manticore: {
     label: 'Manticore Boss Reward',
     emoji: '🦁',
@@ -195,14 +222,24 @@ const CATALOG = {
       { id: 'rockwell_15', name: 'Rockwell Reward (+15 Levels)', cost: 750 },
     ],
   },
+  extinction: {
+    label: 'Extinction Ascension',
+    emoji: '☠️',
+    image: '/images/items/extinction.jpg',
+    group: 'bossFights',
+    note: 'Grants +15 levels, as if you had defeated the Extinction boss fight.',
+    tiers: [
+      { id: 'extinction_15', name: 'Extinction Reward (+15 Levels)', cost: 750 },
+    ],
+  },
   ascensionPack: {
     label: 'Ascension Pack',
     emoji: '🚀',
     image: '/images/items/ascension.jpg',
     group: 'bossFights',
-    note: 'Bundles all 3 individually-sellable boss rewards — Manticore + Overseer + Rockwell (+45 Levels total) — for 300 Coins less than buying them separately (2,250 → 1,950).',
+    note: 'Bundles all 3 individually-sellable boss rewards — Manticore + Overseer + Rockwell (+45 Levels total).',
     tiers: [
-      { id: 'ascension_pack', name: 'Ascension Pack (+45 Levels — Manticore + Overseer + Rockwell)', cost: 1950 },
+      { id: 'ascension_pack', name: 'Ascension Pack (+45 Levels — Manticore + Overseer + Rockwell)', cost: 3000 },
     ],
   },
 };
