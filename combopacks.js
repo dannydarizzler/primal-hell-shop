@@ -43,10 +43,10 @@ const COMBO_PACKS = [
     id: 'combo_base',
     name: 'Base Combo',
     image: '/images/combos/base.jpg',
-    // 500x Base Kit (2600) + 7 Dedi Boxes (2900) + Vault Tier 2 (3000) = 8500 → -25% = 6375 → rounded up
-    cost: 6400,
+    // Base Kit Tier 3 (3000) + 7 Dedi Boxes (2900) + Vault Tier 2 (3000) = 8900 → -25% = 6675 → rounded up
+    cost: 6700,
     contents: [
-      '500x Foundation/Wall/Ceiling + 1x Tek Generator + 500x Element',
+      '2,000x Tek Structures + 3x Tek Generator + 500x Element + 3x Small Tek Teleporter + 3x Cloning Chamber + 1x Tek Replicator',
       '7 Dedicated Storage Boxes of choice',
       'Vault — Tier 2',
     ],

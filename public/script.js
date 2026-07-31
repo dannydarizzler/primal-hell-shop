@@ -658,7 +658,7 @@ function renderTierPrice(tier) {
   return `<span class="catalog-tier-cost">${tier.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>`;
 }
 
-function renderTierCard(category, tier) {
+function renderTierCard(category, tier, tierIndex) {
   const priceHtml = tier.discountPercent > 0
     ? `<span class="chest-cost"><span class="price-original">${tier.cost.toLocaleString('en-US')}</span> <span class="price-sale">${tier.salePrice.toLocaleString('en-US')}</span> Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /><span class="sale-badge">-${tier.discountPercent}%</span></span>`
     : `<span class="chest-cost">${tier.cost.toLocaleString('en-US')} Primal Coins <img class="coin-icon-sm" src="/images/logo.jpg" alt="" /></span>`;
@@ -667,9 +667,16 @@ function renderTierCard(category, tier) {
   const noteParts = [];
   if (tier.note) noteParts.push(tier.note);
   if (category.note) noteParts.push(category.note);
-  const backNote = noteParts.length > 0
-    ? `ℹ️ ${noteParts.join(' ')}`
-    : `Part of the <strong>${category.label}</strong> catalog.`;
+
+  // Essentials tab: front shows a clean "Tier N" instead of the full contents
+  // string, back explains what's actually included, with any disclaimer note
+  // pushed to the very bottom (via flex-grow on the contents block).
+  const isEssentials = category.group === 'single';
+  const frontTitle = isEssentials ? `Tier ${tierIndex + 1}` : tier.name;
+  const backTitle = isEssentials ? `${category.label} — Tier ${tierIndex + 1}` : tier.name;
+  const backBody = isEssentials
+    ? `<p class="catalog-back-contents">${tier.name}</p>${noteParts.length > 0 ? `<p class="catalog-back-note">ℹ️ ${noteParts.join(' ')}</p>` : ''}`
+    : `<p class="catalog-back-note">${noteParts.length > 0 ? `ℹ️ ${noteParts.join(' ')}` : `Part of the <strong>${category.label}</strong> catalog.`}</p>`;
 
   const wrap = document.createElement('div');
   wrap.className = 'chest-card-flip';
@@ -681,7 +688,7 @@ function renderTierCard(category, tier) {
           <button class="chest-details-btn" data-tierflip="${tier.id}">Details</button>
         </div>
         <div class="chest-body">
-          <h3 class="chest-title">${tier.name}</h3>
+          <h3 class="chest-title">${frontTitle}</h3>
           ${priceHtml}
           <button class="btn-primary catalog-buy-btn" data-tier="${tier.id}" data-name="${safeName}" data-cost="${effectiveCost}" ${!currentUser ? 'disabled' : ''}>
             ${currentUser ? 'Buy' : 'Log in to buy'}
@@ -689,8 +696,8 @@ function renderTierCard(category, tier) {
         </div>
       </div>
       <div class="chest-face chest-face-back">
-        <h3 class="chest-back-title">${tier.name}</h3>
-        <p class="catalog-back-note">${backNote}</p>
+        <h3 class="chest-back-title">${backTitle}</h3>
+        ${backBody}
         <button class="btn-ghost chest-back-btn" data-tierflip="${tier.id}">← Back</button>
       </div>
     </div>
@@ -716,7 +723,7 @@ function renderCategoryCard(category) {
   const grid = document.createElement('div');
   grid.className = 'tier-grid';
   grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(220px, 260px))';
-  category.tiers.forEach((tier) => grid.appendChild(renderTierCard(category, tier)));
+  category.tiers.forEach((tier, tierIndex) => grid.appendChild(renderTierCard(category, tier, tierIndex)));
   group.appendChild(grid);
 
   return group;

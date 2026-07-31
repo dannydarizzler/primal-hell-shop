@@ -20,10 +20,11 @@ const CATALOG = {
     emoji: '⚡',
     image: '/images/items/basekit.jpg',
     group: 'single',
+    note: 'Tek Structures are Tek Foundations, Tek Walls, Tek Ceilings, Tek Roofs, Tek Triangle Foundations, and Tek Gates. 1 Dino Gate counts as 10, 1 Behemoth Gate counts as 50.',
     tiers: [
-      { id: 'basekit_100', name: '100x Foundation/Wall/Ceiling + 1x Tek Generator + 100x Element', cost: 1000 },
-      { id: 'basekit_200', name: '200x Foundation/Wall/Ceiling + 1x Tek Generator + 200x Element', cost: 1800 },
-      { id: 'basekit_500', name: '500x Foundation/Wall/Ceiling + 1x Tek Generator + 500x Element', cost: 2600 },
+      { id: 'basekit_100', name: '800x Tek Structures + 1x Tek Generator + 100x Element + 2x Small Tek Teleporter + 1x Tek Replicator', cost: 1500 },
+      { id: 'basekit_200', name: '1,200x Tek Structures + 2x Tek Generator + 300x Element + 2x Small Tek Teleporter + 1x Cloning Chamber + 1x Tek Replicator', cost: 2200 },
+      { id: 'basekit_500', name: '2,000x Tek Structures + 3x Tek Generator + 500x Element + 3x Small Tek Teleporter + 3x Cloning Chamber + 1x Tek Replicator', cost: 3000 },
     ],
   },
   vault: {

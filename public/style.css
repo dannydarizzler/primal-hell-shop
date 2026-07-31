@@ -466,9 +466,8 @@ main {
 
 .catalog-categories { display: flex; flex-direction: column; gap: 1.75rem; }
 
-#bossFightsCategories { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 1.75rem 1.5rem; }
-#bossFightsCategories .catalog-category-group { flex: 0 1 260px; }
-#bossFightsCategories .catalog-category-group--break { flex-basis: 100%; }
+#bossFightsCategories { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; gap: 1.75rem 1.25rem; }
+#bossFightsCategories .catalog-category-group--break { grid-column: 1 / -1; }
 
 .catalog-category-group { display: flex; flex-direction: column; gap: 0.9rem; }
 .tier-grid { display: grid; gap: 1.25rem; }
@@ -477,8 +476,9 @@ main {
 .catalog-category-emoji { font-size: 1.4rem; }
 .catalog-category-label { font-family: 'Oswald', sans-serif; color: #fff; font-size: 1.1rem; margin: 0; }
 
-.catalog-back-note { font-size: 0.85rem; color: var(--ash-dim); line-height: 1.6; margin: 0; }
+.catalog-back-note { font-size: 0.8rem; color: var(--ash-dim); line-height: 1.55; margin: 0 0 1rem; }
 .catalog-back-note strong { color: var(--ash); }
+.catalog-back-contents { font-size: 0.88rem; color: var(--ash); line-height: 1.65; margin: 0 0 1rem; flex: 1; }
 
 .catalog-tiers {
   display: grid;
@@ -1267,4 +1267,5 @@ main {
   main { padding: 1rem 1rem 3rem; }
   .site-bg { background-attachment: scroll; }
   .combo-grid { grid-template-columns: 1fr; }
+  #bossFightsCategories { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
