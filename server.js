@@ -9,6 +9,7 @@ const { SPIN_SEGMENTS, drawSpinSegmentIndex } = require('./spinwheel');
 const { VIP_SPIN_SEGMENTS, drawVipSpinSegmentIndex } = require('./vipspinwheel');
 const { COMBO_PACKS, findCombo } = require('./combopacks');
 const { computeTierProgress, getPublicTierProgress } = require('./tierprogress');
+const { BADGES } = require('./badges');
 const paypal = require('./paypal');
 const db = require('./db');
 const auth = require('./auth');
@@ -94,9 +95,18 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ ok: true });
 });
 
-app.get('/api/me', (req, res) => {
+app.get('/api/me', async (req, res) => {
   if (!req.user) return res.json({ loggedIn: false });
   const user = db.getUser(req.user.discordId);
+  const tierRank = db.getTierRank(req.user.discordId);
+
+  // Best-effort — if the Discord API isn't configured/reachable, these three
+  // fields just come back null/empty rather than blocking the whole profile.
+  const memberInfo = await discordapi.getMemberInfo(req.user.discordId);
+  const badges = memberInfo
+    ? memberInfo.roleNames.filter((name) => BADGES[name]).map((name) => BADGES[name])
+    : [];
+
   res.json({
     loggedIn: true,
     discordId: req.user.discordId,
@@ -104,6 +114,12 @@ app.get('/api/me', (req, res) => {
     coins: db.getBalance(req.user.discordId),
     isVip: !!(user && user.is_vip),
     signupBonusClaimed: !!(user && user.signup_bonus_claimed),
+    memberSince: memberInfo ? memberInfo.joinedAt : null,
+    spotlightRank: tierRank.rank,
+    spotlightTotal: tierRank.total,
+    wheelTotalWon: db.getWheelTotalWon(req.user.discordId),
+    referralCoinsEarned: db.getCoinsEarnedByReason(req.user.discordId, 'referral'),
+    badges,
   });
 });
 
@@ -529,13 +545,15 @@ app.post('/api/admin/set-vip', requireBotSecret, (req, res) => {
 // ── Directly credit Coins to a player's balance (used for Discord-activity tier
 // rewards — no promo code / manual redemption needed, same as the Lucky Wheel) ──
 app.post('/api/admin/grant-coins', requireBotSecret, (req, res) => {
-  const { discordId, amount } = req.body;
+  const { discordId, amount, reason } = req.body;
   if (!discordId || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
     return res.status(400).json({ error: 'discordId and a positive amount are required.' });
   }
   if (!db.getUser(discordId)) return res.status(404).json({ error: 'No shop account found for that Discord ID.' });
 
-  db.addCoins(discordId, Math.round(Number(amount)));
+  const roundedAmount = Math.round(Number(amount));
+  db.addCoins(discordId, roundedAmount);
+  db.logCoinGrant(discordId, roundedAmount, typeof reason === 'string' ? reason : null);
   res.json({ ok: true, discordId, newBalance: db.getBalance(discordId) });
 });
 

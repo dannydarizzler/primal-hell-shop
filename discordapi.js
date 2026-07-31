@@ -11,9 +11,14 @@ const DISCORD_GUILD_ID = process.env.DISCORD_GUILD_ID || '';
 const DISCORD_API_BASE = 'https://discord.com/api/v10';
 const GUILD_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+let guildMembersRaw = []; // full raw member objects, refreshed alongside guildMemberCache
 let guildMemberCache = new Map(); // discordId -> displayName
 let guildMemberCacheAt = 0;
 let refreshInFlight = null;
+
+let guildRoleCache = new Map(); // roleId -> roleName
+let guildRoleCacheAt = 0;
+let roleRefreshInFlight = null;
 
 function isConfigured() {
   return !!DISCORD_BOT_TOKEN;
@@ -40,7 +45,9 @@ function bestName(member) {
 /** Fetches (and caches for a few minutes) the whole guild's member list as a
  * Map<discordId, displayName>. One-time cost per refresh window instead of
  * one API call per member — Discord has no bulk "get users by ID" endpoint,
- * but it does let a bot list all guild members a page (1000) at a time. */
+ * but it does let a bot list all guild members a page (1000) at a time.
+ * Also stashes the full raw member objects (join date, role IDs) for
+ * getMemberInfo() below, at no extra API cost. */
 async function getGuildMemberMap() {
   if (!isConfigured() || !DISCORD_GUILD_ID) return guildMemberCache;
 
@@ -50,12 +57,14 @@ async function getGuildMemberMap() {
 
   refreshInFlight = (async () => {
     const map = new Map();
+    const raw = [];
     try {
       let after = '0';
       for (let page = 0; page < 10; page++) { // up to 10,000 members
         const members = await discordFetch(`/guilds/${DISCORD_GUILD_ID}/members?limit=1000&after=${after}`);
         if (!members || members.length === 0) break;
         for (const m of members) {
+          raw.push(m);
           const name = bestName(m);
           if (m.user?.id && name) map.set(m.user.id, name);
         }
@@ -63,6 +72,7 @@ async function getGuildMemberMap() {
         after = members[members.length - 1].user.id;
       }
       guildMemberCache = map;
+      guildMembersRaw = raw;
       guildMemberCacheAt = Date.now();
     } catch (err) {
       // Network hiccup or bad token — keep serving the previous cache (or empty)
@@ -74,6 +84,51 @@ async function getGuildMemberMap() {
   })();
 
   return refreshInFlight;
+}
+
+/** Fetches (and caches) the guild's role list as a Map<roleId, roleName> —
+ * needed because a member's `roles` field is just a list of role IDs. */
+async function getGuildRoleMap() {
+  if (!isConfigured() || !DISCORD_GUILD_ID) return guildRoleCache;
+
+  const now = Date.now();
+  if (now - guildRoleCacheAt < GUILD_CACHE_TTL_MS) return guildRoleCache;
+  if (roleRefreshInFlight) return roleRefreshInFlight;
+
+  roleRefreshInFlight = (async () => {
+    const map = new Map();
+    try {
+      const roles = await discordFetch(`/guilds/${DISCORD_GUILD_ID}/roles`);
+      if (roles) {
+        for (const r of roles) map.set(r.id, r.name);
+      }
+      guildRoleCache = map;
+      guildRoleCacheAt = Date.now();
+    } catch (err) {
+      console.error('[discordapi] getGuildRoleMap failed:', err.message);
+    }
+    roleRefreshInFlight = null;
+    return guildRoleCache;
+  })();
+
+  return roleRefreshInFlight;
+}
+
+/** Returns { joinedAt, roleNames } for a member using the cached guild member
+ * + role lists (no extra API calls in the common case). Returns null if the
+ * member can't be found (left the server, or Discord API not configured). */
+async function getMemberInfo(discordId) {
+  await getGuildMemberMap();
+  const raw = guildMembersRaw.find((m) => m.user?.id === discordId);
+  if (!raw) return null;
+
+  const roleMap = await getGuildRoleMap();
+  const roleNames = (raw.roles || []).map((id) => roleMap.get(id)).filter(Boolean);
+
+  return {
+    joinedAt: raw.joined_at ? new Date(raw.joined_at).getTime() : null,
+    roleNames,
+  };
 }
 
 /** Resolves a single Discord ID to a display name. Checks the cached guild
@@ -93,7 +148,7 @@ async function resolveDiscordName(discordId) {
   }
 }
 
-module.exports = { isConfigured, getGuildMemberMap, resolveDiscordName };
+module.exports = { isConfigured, getGuildMemberMap, getGuildRoleMap, getMemberInfo, resolveDiscordName };
 
 if (isConfigured() && DISCORD_GUILD_ID) {
   console.log('[discordapi] Discord name resolution is configured (guild ' + DISCORD_GUILD_ID + ').');

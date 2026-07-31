@@ -291,6 +291,7 @@
         <span class="profile-label">Name</span>
         <span class="profile-edit-group">
           <span class="profile-value" id="profileName"></span>
+          <span class="profile-vip-badge" id="profileVipBadge" style="display:none;" title="VIP Member">💎 VIP</span>
           <span class="profile-name-synced" title="Automatically synced from your Discord username">🔒 Synced from Discord</span>
         </span>
       </div>
@@ -298,10 +299,31 @@
         <span class="profile-label">Discord User ID</span>
         <span class="profile-value profile-id" id="profileDiscordId"></span>
       </div>
+      <div class="profile-row" id="profileMemberSinceRow" style="display:none;">
+        <span class="profile-label">Discord Member Since</span>
+        <span class="profile-value" id="profileMemberSince"></span>
+      </div>
       <div class="profile-row">
         <span class="profile-label">Balance</span>
         <span class="profile-value" id="profileBalance"></span>
       </div>
+      <div class="profile-row" id="profileSpotlightRow" style="display:none;">
+        <span class="profile-label">Spotlight Rank</span>
+        <span class="profile-value" id="profileSpotlightRank"></span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-label">🎡 Coins Won on Lucky Wheel</span>
+        <span class="profile-value" id="profileWheelWon"></span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-label">🔥 Coins Earned Through Referrals</span>
+        <span class="profile-value" id="profileReferralEarned"></span>
+      </div>
+    </div>
+
+    <div class="badges-card" id="badgesCard" style="display:none;">
+      <h3 class="badges-title">🏆 Badges</h3>
+      <div class="badges-list" id="badgesList"></div>
     </div>
 
     <div class="tier-progress-card" id="tierProgressCard" style="display:none;">

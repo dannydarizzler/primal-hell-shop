@@ -171,11 +171,45 @@ function renderLoginGates() {
 function renderProfile() {
   const card = document.getElementById('profileCard');
   const tierCard = document.getElementById('tierProgressCard');
-  if (!currentUser) { card.style.display = 'none'; tierCard.style.display = 'none'; return; }
+  const badgesCard = document.getElementById('badgesCard');
+  if (!currentUser) { card.style.display = 'none'; tierCard.style.display = 'none'; badgesCard.style.display = 'none'; return; }
 
   document.getElementById('profileName').textContent = currentUser.name;
   document.getElementById('profileDiscordId').textContent = currentUser.discordId;
   document.getElementById('profileBalance').textContent = `${currentUser.coins.toLocaleString('en-US')} Primal Coins`;
+  document.getElementById('profileVipBadge').style.display = currentUser.isVip ? 'inline-flex' : 'none';
+  document.getElementById('profileWheelWon').textContent = `${(currentUser.wheelTotalWon || 0).toLocaleString('en-US')} Primal Coins`;
+  document.getElementById('profileReferralEarned').textContent = `${(currentUser.referralCoinsEarned || 0).toLocaleString('en-US')} Primal Coins`;
+
+  const memberSinceRow = document.getElementById('profileMemberSinceRow');
+  if (currentUser.memberSince) {
+    memberSinceRow.style.display = 'flex';
+    document.getElementById('profileMemberSince').textContent = new Date(currentUser.memberSince).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  } else {
+    memberSinceRow.style.display = 'none';
+  }
+
+  const spotlightRow = document.getElementById('profileSpotlightRow');
+  if (currentUser.spotlightRank) {
+    spotlightRow.style.display = 'flex';
+    document.getElementById('profileSpotlightRank').textContent = `#${currentUser.spotlightRank} of ${currentUser.spotlightTotal}`;
+  } else {
+    spotlightRow.style.display = 'none';
+  }
+
+  const badgesList = document.getElementById('badgesList');
+  if (currentUser.badges && currentUser.badges.length > 0) {
+    badgesCard.style.display = 'block';
+    badgesList.innerHTML = currentUser.badges.map((b) => `
+      <div class="badge-item" title="${b.label}">
+        <img src="${b.image}" alt="${b.label}" />
+        <span>${b.label}</span>
+      </div>
+    `).join('');
+  } else {
+    badgesCard.style.display = 'none';
+  }
+
   card.style.display = 'block';
 
   renderTierProgress();

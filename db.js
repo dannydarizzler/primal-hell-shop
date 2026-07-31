@@ -402,6 +402,41 @@ function getTopTierProgress(limit = 5) {
   `).all(limit);
 }
 
+/** A single player's own Spotlight leaderboard position — { rank, total } —
+ * even if they're well outside the public top 5. Returns null for rank if
+ * they have no tracked activity yet (never appear in tier_progress, or are
+ * excluded from analytics), so the Profile tab can show "Unranked" instead
+ * of a misleading rank number. */
+function getTierRank(discordId) {
+  const totalRow = db.prepare(`
+    SELECT COUNT(*) AS c
+    FROM tier_progress tp
+    LEFT JOIN users u ON u.discord_id = tp.discord_id
+    WHERE tp.message_count > 0
+      AND (u.exclude_from_analytics IS NULL OR u.exclude_from_analytics = 0)
+  `).get();
+  const total = totalRow ? totalRow.c : 0;
+
+  const me = db.prepare(`
+    SELECT tp.message_count
+    FROM tier_progress tp
+    LEFT JOIN users u ON u.discord_id = tp.discord_id
+    WHERE tp.discord_id = ? AND tp.message_count > 0
+      AND (u.exclude_from_analytics IS NULL OR u.exclude_from_analytics = 0)
+  `).get(discordId);
+  if (!me) return { rank: null, total };
+
+  const aheadRow = db.prepare(`
+    SELECT COUNT(*) AS c
+    FROM tier_progress tp
+    LEFT JOIN users u ON u.discord_id = tp.discord_id
+    WHERE tp.message_count > ?
+      AND (u.exclude_from_analytics IS NULL OR u.exclude_from_analytics = 0)
+  `).get(me.message_count);
+
+  return { rank: (aheadRow ? aheadRow.c : 0) + 1, total };
+}
+
 // ── Shop-wide announcement popup (admin-controlled) ─────────────────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS announcement (
@@ -494,6 +529,46 @@ db.exec(`
     notified_by_bot INTEGER NOT NULL DEFAULT 0
   )
 `);
+
+// ── Coin grant log — records WHY coins were credited via the generic
+// /api/admin/grant-coins endpoint (referral bonus, tier-up reward, etc), so
+// stats like "coins earned through referrals" can be shown on Profile.
+// NOTE: only grants made after this table existed have a reason attached —
+// historical grants before this predate tracking and can't be attributed. ──
+db.exec(`
+  CREATE TABLE IF NOT EXISTS coin_grant_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    discord_id TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    reason TEXT,
+    granted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+function logCoinGrant(discordId, amount, reason) {
+  db.prepare(`INSERT INTO coin_grant_log (discord_id, amount, reason) VALUES (?, ?, ?)`)
+    .run(discordId, amount, reason || null);
+}
+
+/** Sums how many coins a player has earned for a specific reason (e.g.
+ * 'referral') since coin_grant_log started tracking. Grants made before this
+ * table existed aren't included — there's no way to retroactively attribute
+ * them. */
+function getCoinsEarnedByReason(discordId, reason) {
+  const row = db.prepare(`
+    SELECT COALESCE(SUM(amount), 0) AS total FROM coin_grant_log
+    WHERE discord_id = ? AND reason = ?
+  `).get(discordId, reason);
+  return row ? row.total : 0;
+}
+
+/** Total coins won across both the regular and VIP Lucky Wheels, for the
+ * Profile tab's wheel stats. */
+function getWheelTotalWon(discordId) {
+  const regular = db.prepare(`SELECT COALESCE(SUM(amount), 0) AS s FROM spin_history WHERE discord_id = ?`).get(discordId).s;
+  const vip = db.prepare(`SELECT COALESCE(SUM(amount), 0) AS s FROM vip_spin_history WHERE discord_id = ?`).get(discordId).s;
+  return regular + vip;
+}
 
 // ── User accounts ────────────────────────────────────────────────────────────────
 const SPIN_COOLDOWN_MS = 24 * 60 * 60 * 1000;
@@ -811,6 +886,10 @@ module.exports = {
   getTierProgress,
   getCachedDiscordName,
   getTopTierProgress,
+  getTierRank,
+  logCoinGrant,
+  getCoinsEarnedByReason,
+  getWheelTotalWon,
   migrateDiscordId,
   createPromoCode,
   getPromoCode,
