@@ -555,7 +555,7 @@ main {
 /* ── Combo Packs ────────────────────────────────────────────────────────── */
 .combo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 320px));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
 }
 .combo-card {
@@ -1258,4 +1258,5 @@ main {
   .site-header { padding: 1rem; }
   main { padding: 1rem 1rem 3rem; }
   .site-bg { background-attachment: scroll; }
+  .combo-grid { grid-template-columns: 1fr; }
 }
