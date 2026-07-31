@@ -424,7 +424,7 @@ function buildChestCard(chest) {
         </div>
       </div>
       <div class="chest-face chest-face-back ${chest.color}">
-        <h3 class="chest-back-title">Possible Items</h3>
+        <h3 class="chest-back-title">Possible Items (${chest.possibleItems.length})${chest.possibleItems.length > 8 ? ' <span class="chest-back-scroll-hint">↕ scroll for full list</span>' : ''}</h3>
         <ul class="chest-back-list">${backItems}</ul>
         <button class="btn-ghost chest-back-btn" data-flip="${chest.id}">← Back</button>
       </div>
