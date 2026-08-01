@@ -516,6 +516,76 @@ function spawnParticles(container) {
   });
 }
 
+// Richer particle burst for the V2 animation: more particles, further travel,
+// and a mix of plain embers with small spinning sparkle glyphs for variety.
+const SPARK_GLYPHS = ['✨', '⭐', '🔥'];
+function spawnParticlesV2(container) {
+  container.innerHTML = '';
+  const total = 32;
+  for (let i = 0; i < total; i++) {
+    const isSpark = i % 3 === 0;
+    const p = document.createElement('div');
+    p.className = isSpark ? 'opening-particle spark' : 'opening-particle';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 120 + Math.random() * 180;
+    p.style.setProperty('--px', `${Math.cos(angle) * dist}px`);
+    p.style.setProperty('--py', `${Math.sin(angle) * dist}px`);
+    if (isSpark) {
+      p.textContent = SPARK_GLYPHS[Math.floor(Math.random() * SPARK_GLYPHS.length)];
+    } else {
+      p.style.background = Math.random() > 0.5 ? 'var(--ember)' : '#ffd27a';
+      const size = 4 + Math.random() * 4;
+      p.style.width = `${size}px`;
+      p.style.height = `${size}px`;
+    }
+    container.appendChild(p);
+  }
+  requestAnimationFrame(() => {
+    container.querySelectorAll('.opening-particle').forEach((p, i) => {
+      setTimeout(() => p.classList.add('fly'), i * 10);
+    });
+  });
+}
+
+// Tiny procedural "boom" — no audio file needed, synthesized with Web Audio.
+// Best-effort only: if the browser blocks it or anything goes wrong, the
+// animation carries on silently, this must never break chest opening.
+function playOpenBoomSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+
+    // Low thump
+    const thump = ctx.createOscillator();
+    const thumpGain = ctx.createGain();
+    thump.type = 'sine';
+    thump.frequency.setValueAtTime(160, now);
+    thump.frequency.exponentialRampToValueAtTime(45, now + 0.35);
+    thumpGain.gain.setValueAtTime(0.55, now);
+    thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    thump.connect(thumpGain).connect(ctx.destination);
+    thump.start(now);
+    thump.stop(now + 0.45);
+
+    // Short noise burst for the "crack"
+    const bufferSize = ctx.sampleRate * 0.15;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.35, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    noise.connect(noiseGain).connect(ctx.destination);
+    noise.start(now);
+
+    setTimeout(() => ctx.close().catch(() => {}), 600);
+  } catch {
+    // Silently ignore — sound is a nice-to-have, never block the animation on it.
+  }
+}
+
 function playOpeningAnimation(chestImage) {
   return new Promise((resolve) => {
     const overlay = document.getElementById('openingOverlay');
@@ -548,6 +618,53 @@ function playOpeningAnimation(chestImage) {
   });
 }
 
+// V2 — a more dramatic, escalating reveal: three stages of building shake
+// intensity (slow → medium → intense, with growing glow), then a shockwave
+// ring + screen shake + richer particle burst + a synthesized boom on top of
+// everything the original animation already does. Currently used only for
+// the Tier 1 chest as a trial — see openChest().
+function playOpeningAnimationV2(chestImage) {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('openingOverlay');
+    const stage = document.getElementById('openingStage');
+    const img = document.getElementById('openingChestImg');
+    const rays = document.getElementById('openingRays');
+    const flash = document.getElementById('openingFlash');
+    const shockwave = document.getElementById('openingShockwave');
+    const particles = document.getElementById('openingParticles');
+
+    img.src = chestImage;
+    img.className = 'opening-chest-img shake-slow';
+    rays.classList.remove('show');
+    flash.classList.remove('burst');
+    shockwave.classList.remove('expand');
+    stage.classList.remove('screen-shake');
+    particles.innerHTML = '';
+    overlay.classList.add('show');
+
+    setTimeout(() => rays.classList.add('show'), 50);
+
+    // Stage escalation: slow → medium → intense, building tension before the payoff.
+    setTimeout(() => { img.className = 'opening-chest-img shake-medium'; }, 600);
+    setTimeout(() => { img.className = 'opening-chest-img shake-intense'; }, 1100);
+
+    // The payoff — everything fires together for maximum impact.
+    setTimeout(() => {
+      img.classList.add('crack');
+      flash.classList.add('burst');
+      shockwave.classList.add('expand');
+      stage.classList.add('screen-shake');
+      spawnParticlesV2(particles);
+      playOpenBoomSound();
+    }, 1500);
+
+    setTimeout(() => {
+      overlay.classList.remove('show');
+      resolve();
+    }, 2100);
+  });
+}
+
 async function openChest(tierId, chestImage, btnEl, chestLabel, chestCost) {
   if (!currentUser) { openAuthModal('login'); return; }
 
@@ -562,7 +679,7 @@ async function openChest(tierId, chestImage, btnEl, chestLabel, chestCost) {
   try {
     const [apiResult] = await Promise.all([
       fetch(`/api/chests/${tierId}/open`, { method: 'POST' }).then(async (res) => ({ res, data: await res.json() })),
-      playOpeningAnimation(chestImage),
+      tierId === 'tier1' ? playOpeningAnimationV2(chestImage) : playOpeningAnimation(chestImage),
     ]);
 
     const { res, data } = apiResult;

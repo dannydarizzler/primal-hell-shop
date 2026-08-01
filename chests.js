@@ -165,6 +165,10 @@ const CHESTS = {
       { name: '7 Dedicated Storage Boxes of choice', emoji: '📦', image: IMG.dedi, weight: 15 },
       { name: '350x Tek Structures + 1x Tek Generator + 350x Element', emoji: '⚡', image: IMG.basekit, weight: 12 },
       { name: 'Full Ascension', emoji: '🚀', image: IMG.fullAscension, weight: 10 },
+      // All 5 combo packs, ~1% chance each (weight 1 each in a pool totalling 116 → 0.86% each).
+      ...COMBO_PACKS.map((combo) => ({
+        name: combo.name, emoji: '🎁', image: combo.image, weight: 1,
+      })),
     ],
   },
   origin: {
