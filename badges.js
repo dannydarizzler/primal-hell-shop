@@ -8,6 +8,18 @@
 // an entry below with the EXACT Discord role name as the key (case-sensitive).
 const BADGES = {
   'Beach Bob': { image: '/images/badges/beach-bob.jpg', label: 'Beach Bob' },
+  'Rank - Toxic': { image: '/images/badges/toxic.jpg', label: 'Toxic' },
+  'Rank - Alpha': { image: '/images/badges/alpha.jpg', label: 'Alpha' },
+  'Rank - Elemental': { image: '/images/badges/elemental.jpg', label: 'Elemental' },
+  'Rank - Shadow': { image: '/images/badges/shadow.jpg', label: 'Shadow' },
+  'Rank - Mythic': { image: '/images/badges/mythic.jpg', label: 'Mythic' },
+  'Rank - Legendary': { image: '/images/badges/legendary.jpg', label: 'Legendary' },
+  'Rank - Demonic': { image: '/images/badges/demonic.jpg', label: 'Demonic' },
+  'Rank - Spirit': { image: '/images/badges/spirit.jpg', label: 'Spirit' },
+  'Rank - Origin': { image: '/images/badges/origin.jpg', label: 'Origin' },
+  'Rank - Nightmare': { image: '/images/badges/nightmare.jpg', label: 'Nightmare' },
+  'VIP': { image: '/images/badges/vip.jpg', label: 'VIP' },
+  'Deathknight Slayer': { image: '/images/badges/deathknight-slayer.jpg', label: 'Deathknight Slayer' },
 };
 
 module.exports = { BADGES };
