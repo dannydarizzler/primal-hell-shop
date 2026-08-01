@@ -1126,12 +1126,17 @@ main {
 .items-empty { color: var(--ash-dim); text-align: center; padding: 2rem 0; }
 
 /* ── Profile ────────────────────────────────────────────────────────────── */
+.profile-top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: stretch;
+}
 .profile-card {
   background: var(--obsidian-2);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 0.5rem 1.5rem;
-  max-width: 420px;
 }
 .profile-row {
   display: flex;
@@ -1152,8 +1157,6 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 1.4rem 1.6rem;
-  max-width: 460px;
-  margin-top: 1.25rem;
 }
 .tier-progress-title { font-family: 'Oswald', sans-serif; color: #fff; font-size: 1.05rem; margin: 0 0 0.9rem; }
 .tier-current-label { color: var(--ash); font-size: 0.9rem; margin: 0 0 0.4rem; }
@@ -1223,7 +1226,7 @@ main {
   flex-direction: column;
   align-items: center;
   gap: 0.4rem;
-  width: 100px;
+  width: 200px;
 }
 .badge-item img { width: 100%; height: auto; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1); }
 .badge-item span { font-size: 0.75rem; color: var(--ash); text-align: center; }
@@ -1300,4 +1303,5 @@ main {
   .site-bg { background-attachment: scroll; }
   .combo-grid { grid-template-columns: 1fr; }
   #bossFightsCategories { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .profile-top-row { grid-template-columns: 1fr; }
 }
