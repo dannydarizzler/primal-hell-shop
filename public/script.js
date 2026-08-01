@@ -642,11 +642,12 @@ function playOpeningAnimationV2(chestImage) {
     particles.innerHTML = '';
     overlay.classList.add('show');
 
-    setTimeout(() => rays.classList.add('show'), 50);
+    setTimeout(() => rays.classList.add('show'), 100);
 
     // Stage escalation: slow → medium → intense, building tension before the payoff.
-    setTimeout(() => { img.className = 'opening-chest-img shake-medium'; }, 600);
-    setTimeout(() => { img.className = 'opening-chest-img shake-intense'; }, 1100);
+    // Slow 0-1.4s, medium 1.4-2.8s, intense 2.8-3.8s, burst at 3.8s, close at 4.5s.
+    setTimeout(() => { img.className = 'opening-chest-img shake-medium'; }, 1400);
+    setTimeout(() => { img.className = 'opening-chest-img shake-intense'; }, 2800);
 
     // The payoff — everything fires together for maximum impact.
     setTimeout(() => {
@@ -656,12 +657,12 @@ function playOpeningAnimationV2(chestImage) {
       stage.classList.add('screen-shake');
       spawnParticlesV2(particles);
       playOpenBoomSound();
-    }, 1500);
+    }, 3800);
 
     setTimeout(() => {
       overlay.classList.remove('show');
       resolve();
-    }, 2100);
+    }, 4500);
   });
 }
 
