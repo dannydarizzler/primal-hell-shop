@@ -248,9 +248,9 @@ const CATALOG = {
     emoji: '🚀',
     image: '/images/items/fullascension.jpg',
     group: 'bossFights',
-    note: 'Bundles all 4 individually-sellable boss rewards — Manticore + Overseer + Rockwell + Extinction — taking you straight to Level 220.',
+    note: "Grants +115 Levels — includes all 5 Ascension boss fights, Explorer Notes, and Bob's Tales Explorer Notes.",
     tiers: [
-      { id: 'ascension_pack', name: 'Full Ascension (Level 220 — Manticore + Overseer + Rockwell + Extinction)', cost: 4400 },
+      { id: 'ascension_pack', name: "Full Ascension (+115 Levels — All Ascension Boss Fights + Explorer Notes + Bob's Tales Explorer Notes)", cost: 4400 },
     ],
   },
 };
