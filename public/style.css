@@ -1357,6 +1357,15 @@ main {
   width: 150px;
 }
 .podium-medal { font-size: 1.8rem; margin-bottom: 0.4rem; }
+.podium-badge-wrap { position: relative; width: 64px; margin-bottom: 0.5rem; }
+.podium-badge { width: 100%; height: auto; display: block; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5)); }
+.podium-badge-medal {
+  position: absolute;
+  bottom: -6px;
+  right: -8px;
+  font-size: 1.1rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
 .podium-name {
   color: #fff;
   font-weight: 700;

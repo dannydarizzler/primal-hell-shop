@@ -270,7 +270,10 @@ async function renderLeaderboard() {
 
     podium.innerHTML = top3.map((row) => `
       <div class="podium-spot podium-spot--${row.rank}">
-        <span class="podium-medal">${medals[row.rank]}</span>
+        ${row.badgeImage
+          ? `<div class="podium-badge-wrap"><img class="podium-badge" src="${row.badgeImage}" alt="${row.tierName}" /><span class="podium-badge-medal">${medals[row.rank]}</span></div>`
+          : `<span class="podium-medal">${medals[row.rank]}</span>`
+        }
         <span class="podium-name" title="${row.name}">${row.name}</span>
         <span class="podium-tier">${row.tierName}</span>
         <div class="podium-riser">${row.rank}</div>

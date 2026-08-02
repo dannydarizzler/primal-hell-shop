@@ -603,10 +603,13 @@ app.get('/api/leaderboard/top-ranks', async (req, res) => {
       name = guildMap.get(row.discord_id);
       db.setTierProgress(row.discord_id, row.message_count, name); // cache for next time
     }
+    const tierName = currentTier ? currentTier.name : 'Unranked';
+    const badge = currentTier ? BADGES[`Rank - ${tierName}`] : null;
     return {
       rank: index + 1,
       name: name || `Player #${row.discord_id.slice(-4)}`,
-      tierName: currentTier ? currentTier.name : 'Unranked',
+      tierName,
+      badgeImage: badge ? badge.image : null,
     };
   });
   res.json(leaderboard);
