@@ -962,7 +962,13 @@ function renderCategoryCard(category) {
 
   const grid = document.createElement('div');
   grid.className = 'tier-grid';
-  grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(220px, 260px))';
+  // Categories with exactly one tier (e.g. each individual boss reward) fill
+  // their container width — a fixed minmax(220px, 260px) here would force a
+  // minimum wider than the outer grid column can give it in tight layouts
+  // like the 5-wide boss-fights row, causing cards to overflow and overlap.
+  grid.style.gridTemplateColumns = category.tiers.length === 1
+    ? '1fr'
+    : 'repeat(auto-fill, minmax(220px, 260px))';
   category.tiers.forEach((tier, tierIndex) => grid.appendChild(renderTierCard(category, tier, tierIndex)));
   group.appendChild(grid);
 
