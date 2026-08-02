@@ -469,6 +469,14 @@ main {
 
 .catalog-categories { display: flex; flex-direction: column; gap: 1.75rem; }
 
+#chaosDinosCategories {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.75rem;
+  align-items: start;
+}
+#chaosDinosCategories .catalog-category-group[data-category-label="Breedpairs"] { grid-column: 1 / -1; }
+
 #bossFightsAscensionRow { margin-bottom: 1.75rem; }
 #bossFightsAscensionRow .catalog-category-group { max-width: 260px; }
 
@@ -1494,4 +1502,5 @@ main {
   .site-bg { background-attachment: scroll; }
   .combo-grid { grid-template-columns: 1fr; }
   .profile-top-row { grid-template-columns: 1fr; }
+  #chaosDinosCategories { grid-template-columns: 1fr; }
 }

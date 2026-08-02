@@ -948,6 +948,7 @@ function renderTierCard(category, tier, tierIndex) {
 function renderCategoryCard(category) {
   const group = document.createElement('div');
   group.className = 'catalog-category-group';
+  group.dataset.categoryLabel = category.label;
 
   const headerIcon = category.image
     ? `<img class="catalog-group-icon" src="${category.image}" alt="" />`
@@ -959,11 +960,12 @@ function renderCategoryCard(category) {
 
   const grid = document.createElement('div');
   grid.className = 'tier-grid';
-  // Categories with exactly one tier (e.g. each individual boss reward) fill
-  // their container width — a fixed minmax(220px, 260px) here would force a
-  // minimum wider than the outer grid column can give it in tight layouts
-  // like the 5-wide boss-fights row, causing cards to overflow and overlap.
-  grid.style.gridTemplateColumns = category.tiers.length === 1
+  // Single-tier categories fill their container width ONLY in the boss-fights
+  // row, where the outer grid column is already narrow (fixed minmax there
+  // would overflow it). Everywhere else (e.g. the single-token Chaos Dinos
+  // cards), a fixed minmax keeps them a sane size instead of stretching full
+  // page width when their container isn't a tight multi-column grid.
+  grid.style.gridTemplateColumns = (category.tiers.length === 1 && category.group === 'bossFights')
     ? '1fr'
     : 'repeat(auto-fill, minmax(220px, 260px))';
   category.tiers.forEach((tier, tierIndex) => grid.appendChild(renderTierCard(category, tier, tierIndex)));

@@ -151,24 +151,14 @@ const CATALOG = {
   },
 
   // ── Chaos Dinos ────────────────────────────────────────────────────────────
-  nightmareToken: {
-    label: 'Nightmare Token',
-    emoji: '💀',
-    image: '/images/items/nightmare_token.jpg',
+  chaosToken: {
+    label: 'Chaos Token',
+    emoji: '⚔️',
+    image: '/images/items/chaos_token.jpg',
     group: 'chaosDinos',
-    note: 'Redeemable for any Nightmare Dino in the game.',
+    note: 'Redeemable for any Chaos Dino in the game.',
     tiers: [
-      { id: 'nightmare_token', name: 'Nightmare Token', cost: 2500 },
-    ],
-  },
-  originToken: {
-    label: 'Origin Token',
-    emoji: '🔮',
-    image: '/images/items/origin_token.jpg',
-    group: 'chaosDinos',
-    note: 'Redeemable for any Origin Dino in the game.',
-    tiers: [
-      { id: 'origin_token', name: 'Origin Token', cost: 2000 },
+      { id: 'chaos_token', name: 'Chaos Token', cost: 1400 },
     ],
   },
   spiritToken: {
@@ -181,14 +171,24 @@ const CATALOG = {
       { id: 'spirit_token', name: 'Spirit Token', cost: 1400 },
     ],
   },
-  chaosToken: {
-    label: 'Chaos Token',
-    emoji: '⚔️',
-    image: '/images/items/chaos_token.jpg',
+  originToken: {
+    label: 'Origin Token',
+    emoji: '🔮',
+    image: '/images/items/origin_token.jpg',
     group: 'chaosDinos',
-    note: 'Redeemable for any Chaos Dino in the game.',
+    note: 'Redeemable for any Origin Dino in the game.',
     tiers: [
-      { id: 'chaos_token', name: 'Chaos Token', cost: 1400 },
+      { id: 'origin_token', name: 'Origin Token', cost: 2000 },
+    ],
+  },
+  nightmareToken: {
+    label: 'Nightmare Token',
+    emoji: '💀',
+    image: '/images/items/nightmare_token.jpg',
+    group: 'chaosDinos',
+    note: 'Redeemable for any Nightmare Dino in the game.',
+    tiers: [
+      { id: 'nightmare_token', name: 'Nightmare Token', cost: 2500 },
     ],
   },
 
