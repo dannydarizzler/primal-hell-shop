@@ -469,8 +469,22 @@ main {
 
 .catalog-categories { display: flex; flex-direction: column; gap: 1.75rem; }
 
-#bossFightsCategories { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: start; gap: 1.75rem 1.25rem; }
-#bossFightsCategories .catalog-category-group--break { grid-column: 1 / -1; }
+#bossFightsCategories {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.75rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+#bossFightsCategories::-webkit-scrollbar { height: 8px; }
+#bossFightsCategories::-webkit-scrollbar-thumb { background: rgba(255, 90, 31, 0.3); border-radius: 999px; }
+#bossFightsCategories::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); }
+#bossFightsCategories .catalog-category-group {
+  flex: 0 0 260px;
+  scroll-snap-align: start;
+}
 
 .catalog-category-group { display: flex; flex-direction: column; gap: 0.9rem; }
 .tier-grid { display: grid; gap: 1.25rem; }
@@ -1483,6 +1497,5 @@ main {
   main { padding: 1rem 1rem 3rem; }
   .site-bg { background-attachment: scroll; }
   .combo-grid { grid-template-columns: 1fr; }
-  #bossFightsCategories { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .profile-top-row { grid-template-columns: 1fr; }
 }

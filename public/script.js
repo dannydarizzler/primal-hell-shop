@@ -948,9 +948,6 @@ function renderTierCard(category, tier, tierIndex) {
 function renderCategoryCard(category) {
   const group = document.createElement('div');
   group.className = 'catalog-category-group';
-  if (category.label === 'Full Ascension') {
-    group.classList.add('catalog-category-group--break');
-  }
 
   const headerIcon = category.image
     ? `<img class="catalog-group-icon" src="${category.image}" alt="" />`
