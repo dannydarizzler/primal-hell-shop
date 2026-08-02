@@ -567,6 +567,25 @@ app.post('/api/admin/update-tier-progress', requireBotSecret, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Bot sync: Hall of Fame + rank-up events, for the Spotlight tab ─────────────
+app.post('/api/admin/sync-hall-of-fame', requireBotSecret, (req, res) => {
+  const { discordId, daysTaken, confirmed } = req.body;
+  if (!discordId || !Number.isFinite(Number(daysTaken))) {
+    return res.status(400).json({ error: 'discordId and daysTaken are required.' });
+  }
+  db.upsertHallOfFame(discordId, Number(daysTaken), !!confirmed);
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/log-rank-up', requireBotSecret, (req, res) => {
+  const { discordId, rankName } = req.body;
+  if (!discordId || !rankName) {
+    return res.status(400).json({ error: 'discordId and rankName are required.' });
+  }
+  db.logRankUp(discordId, rankName);
+  res.json({ ok: true });
+});
+
 app.get('/api/me/tier-progress', auth.requireAuth, (req, res) => {
   const messageCount = db.getTierProgress(req.user.discordId);
   res.json(getPublicTierProgress(messageCount));
@@ -591,6 +610,59 @@ app.get('/api/leaderboard/top-ranks', async (req, res) => {
     };
   });
   res.json(leaderboard);
+});
+
+// ── Spotlight extras: Hall of Fame preview, biggest recent Wheel win,
+// VIP showcase, and a live "recent activity" feed of rank-ups. ───────────────
+app.get('/api/spotlight/extras', async (req, res) => {
+  const guildMap = await discordapi.getGuildMemberMap();
+
+  const resolveName = (discordId, cachedName, persist) => {
+    if (cachedName && cachedName.trim()) return cachedName;
+    if (guildMap.has(discordId)) {
+      const name = guildMap.get(discordId);
+      if (persist) persist(name);
+      return name;
+    }
+    return `Player #${discordId.slice(-4)}`;
+  };
+
+  // Hall of Fame — top 3 fastest Deathknight Slayers
+  const hallOfFame = db.getHallOfFameTop(3).map((row, index) => {
+    const user = db.getUser(row.discord_id);
+    return {
+      rank: index + 1,
+      name: resolveName(row.discord_id, user?.display_name),
+      daysTaken: row.days_taken,
+      confirmed: !!row.confirmed,
+    };
+  });
+
+  // Biggest Lucky Wheel win in the last 7 days
+  const winRow = db.getBiggestWheelWinRecent();
+  const biggestWin = winRow ? {
+    name: resolveName(winRow.discord_id, db.getUser(winRow.discord_id)?.display_name),
+    amount: winRow.amount,
+    jackpot: !!winRow.jackpot,
+    wheel: winRow.wheel,
+  } : null;
+
+  // VIP showcase
+  const vipMembers = db.getVipMembers().map((row) => ({
+    name: resolveName(row.discord_id, row.display_name),
+  }));
+
+  // Recent activity feed — last 3 rank-ups
+  const recentActivity = db.getRecentRankUps(3).map((row) => {
+    const user = db.getUser(row.discord_id);
+    return {
+      name: resolveName(row.discord_id, user?.display_name),
+      rankName: row.rank_name,
+      achievedAt: row.achieved_at,
+    };
+  });
+
+  res.json({ hallOfFame, biggestWin, vipMembers, recentActivity });
 });
 
 // ── Bot sync for VIP spin-win DMs ────────────────────────────────────────────────

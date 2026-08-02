@@ -545,6 +545,31 @@ db.exec(`
   )
 `);
 
+// ── Hall of Fame (Deathknight Slayer) — mirrored from the bot's own SQLite so
+// the Spotlight tab can show a preview without the shop needing to query the
+// bot directly (which isn't possible — the bot has no inbound API). The bot
+// pushes here every time a new entry is recorded on its side. ─────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS hall_of_fame (
+    discord_id TEXT PRIMARY KEY,
+    days_taken REAL NOT NULL,
+    confirmed INTEGER NOT NULL DEFAULT 1,
+    synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// ── Rank-up event log — powers the Spotlight tab's "recent activity" feed
+// ("XY just reached Mythic!"). The bot pushes one row here every time someone
+// reaches a new Discord-activity rank. ──────────────────────────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS rank_up_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    discord_id TEXT NOT NULL,
+    rank_name TEXT NOT NULL,
+    achieved_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
 function logCoinGrant(discordId, amount, reason) {
   db.prepare(`INSERT INTO coin_grant_log (discord_id, amount, reason) VALUES (?, ?, ?)`)
     .run(discordId, amount, reason || null);
@@ -568,6 +593,73 @@ function getWheelTotalWon(discordId) {
   const regular = db.prepare(`SELECT COALESCE(SUM(amount), 0) AS s FROM spin_history WHERE discord_id = ?`).get(discordId).s;
   const vip = db.prepare(`SELECT COALESCE(SUM(amount), 0) AS s FROM vip_spin_history WHERE discord_id = ?`).get(discordId).s;
   return regular + vip;
+}
+
+// ── Spotlight tab widgets ──────────────────────────────────────────────────
+
+/** Upserts one Hall of Fame entry pushed by the bot. Never overwrites a
+ * confirmed entry with an unconfirmed one (a later backfill re-push
+ * shouldn't downgrade a value that was already nailed down). */
+function upsertHallOfFame(discordId, daysTaken, confirmed) {
+  db.prepare(`
+    INSERT INTO hall_of_fame (discord_id, days_taken, confirmed, synced_at)
+    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(discord_id) DO UPDATE SET
+      days_taken = excluded.days_taken,
+      confirmed = MAX(hall_of_fame.confirmed, excluded.confirmed),
+      synced_at = CURRENT_TIMESTAMP
+  `).run(discordId, daysTaken, confirmed ? 1 : 0);
+}
+
+function getHallOfFameTop(limit = 3) {
+  return db.prepare(`
+    SELECT discord_id, days_taken, confirmed FROM hall_of_fame
+    ORDER BY days_taken ASC
+    LIMIT ?
+  `).all(limit);
+}
+
+function logRankUp(discordId, rankName) {
+  db.prepare(`INSERT INTO rank_up_log (discord_id, rank_name) VALUES (?, ?)`).run(discordId, rankName);
+}
+
+/** Most recent rank-ups, excluding analytics-excluded (staff/test) accounts,
+ * for the Spotlight tab's live activity feed. */
+function getRecentRankUps(limit = 3) {
+  return db.prepare(`
+    SELECT rl.discord_id, rl.rank_name, rl.achieved_at
+    FROM rank_up_log rl
+    LEFT JOIN users u ON u.discord_id = rl.discord_id
+    WHERE (u.exclude_from_analytics IS NULL OR u.exclude_from_analytics = 0)
+    ORDER BY rl.achieved_at DESC
+    LIMIT ?
+  `).all(limit);
+}
+
+/** The single biggest Lucky Wheel win (regular or VIP) in the last 7 days,
+ * excluding analytics-excluded accounts. Returns null if there wasn't one. */
+function getBiggestWheelWinRecent() {
+  const row = db.prepare(`
+    SELECT discord_id, amount, jackpot, spun_at, 'regular' AS wheel FROM spin_history
+    WHERE spun_at >= datetime('now', '-7 days')
+      AND discord_id NOT IN (SELECT discord_id FROM users WHERE exclude_from_analytics = 1)
+    UNION ALL
+    SELECT discord_id, amount, jackpot, spun_at, 'vip' AS wheel FROM vip_spin_history
+    WHERE spun_at >= datetime('now', '-7 days')
+      AND discord_id NOT IN (SELECT discord_id FROM users WHERE exclude_from_analytics = 1)
+    ORDER BY amount DESC
+    LIMIT 1
+  `).get();
+  return row || null;
+}
+
+/** Current VIP members for the Spotlight "thank you" showcase. */
+function getVipMembers() {
+  return db.prepare(`
+    SELECT discord_id, display_name FROM users
+    WHERE is_vip = 1 AND (exclude_from_analytics IS NULL OR exclude_from_analytics = 0)
+    ORDER BY display_name COLLATE NOCASE ASC
+  `).all();
 }
 
 // ── User accounts ────────────────────────────────────────────────────────────────
@@ -890,6 +982,12 @@ module.exports = {
   logCoinGrant,
   getCoinsEarnedByReason,
   getWheelTotalWon,
+  upsertHallOfFame,
+  getHallOfFameTop,
+  logRankUp,
+  getRecentRankUps,
+  getBiggestWheelWinRecent,
+  getVipMembers,
   migrateDiscordId,
   createPromoCode,
   getPromoCode,

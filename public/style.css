@@ -10,6 +10,9 @@
   --purple: #a35fe8;
   --focus-ring: #ffb37a;
   --error: #f2a3a3;
+  --gold: #d9ad4e;
+  --silver: #b9c2cc;
+  --bronze: #c17a4a;
 }
 
 * { box-sizing: border-box; }
@@ -1321,39 +1324,149 @@ main {
   padding: 2rem 0 3rem;
 }
 
-.leaderboard-card {
+/* ── Spotlight tab — trophy room ────────────────────────────────────────── */
+.spotlight-card {
   background: rgba(20, 10, 8, 0.55);
   border: 1px solid rgba(255, 90, 31, 0.25);
   border-radius: 16px;
-  padding: 1.5rem;
-  max-width: 640px;
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
 }
-.leaderboard-title {
-  font-family: 'Oswald', sans-serif;
+.spotlight-card-title { font-family: 'Oswald', sans-serif; color: #fff; font-size: 1.15rem; margin: 0 0 0.2rem; }
+.spotlight-card-sub { color: var(--ash-dim); font-size: 0.82rem; margin: 0 0 1.25rem; }
+.spotlight-empty { color: var(--ash-dim); font-size: 0.88rem; text-align: center; padding: 1rem 0; margin: 0; }
+
+.spotlight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+/* The podium — the one bold move on this page. Three risers of different
+   heights, #1 tallest and centered, medal-style, like an actual ceremony. */
+.spotlight-podium-card { max-width: none; }
+.podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 260px;
+  margin-bottom: 1rem;
+}
+.podium-loading { color: var(--ash-dim); align-self: center; }
+.podium-spot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 150px;
+}
+.podium-medal { font-size: 1.8rem; margin-bottom: 0.4rem; }
+.podium-name {
   color: #fff;
-  font-size: 1.15rem;
-  margin: 0 0 1rem;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-align: center;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 0.15rem;
 }
-.leaderboard-table { width: 100%; border-collapse: collapse; }
-.leaderboard-table thead th {
-  text-align: left;
-  color: var(--ash-dim);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0 0.75rem 0.6rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+.podium-tier { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.75rem; }
+.podium-riser {
+  width: 100%;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 0.6rem;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: rgba(0, 0, 0, 0.55);
 }
-.leaderboard-table tbody td {
-  padding: 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+.podium-spot--1 { order: 2; }
+.podium-spot--2 { order: 1; }
+.podium-spot--3 { order: 3; }
+.podium-spot--1 .podium-riser { height: 120px; background: linear-gradient(180deg, var(--gold), #a9782a); box-shadow: 0 0 32px rgba(217, 173, 78, 0.45); }
+.podium-spot--2 .podium-riser { height: 84px; background: linear-gradient(180deg, var(--silver), #7d858d); }
+.podium-spot--3 .podium-riser { height: 60px; background: linear-gradient(180deg, var(--bronze), #8a5230); }
+.podium-spot--1 .podium-tier { color: var(--gold); }
+.podium-spot--2 .podium-tier { color: var(--silver); }
+.podium-spot--3 .podium-tier { color: var(--bronze); }
+
+.podium-rest { display: flex; flex-direction: column; gap: 0.5rem; }
+.podium-rest-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.podium-rest-place { color: var(--ash-dim); font-weight: 700; width: 1.4rem; }
+.podium-rest-name { color: #fff; font-weight: 600; flex: 1; }
+.podium-rest-tier { color: var(--ember); font-weight: 600; font-size: 0.85rem; }
+
+/* Hall of Fame + Biggest Win lists */
+.spotlight-list { display: flex; flex-direction: column; gap: 0.7rem; }
+.spotlight-list-row { display: flex; align-items: center; gap: 0.7rem; }
+.spotlight-list-medal { width: 1.6rem; text-align: center; }
+.spotlight-list-name { color: #fff; font-weight: 600; flex: 1; }
+.spotlight-list-value { color: var(--ember); font-weight: 700; font-size: 0.88rem; }
+
+.win-hero { text-align: center; padding: 0.5rem 0; }
+.win-hero-name { color: #fff; font-weight: 700; font-size: 1.05rem; margin: 0 0 0.3rem; }
+.win-hero-amount { color: var(--gold); font-family: 'Oswald', sans-serif; font-size: 1.9rem; font-weight: 700; }
+.win-hero-badge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(217, 173, 78, 0.15);
+  color: var(--gold);
+  border: 1px solid rgba(217, 173, 78, 0.4);
+}
+
+/* VIP showcase — chip wall */
+.vip-showcase { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.vip-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(163, 95, 232, 0.12);
+  border: 1px solid rgba(163, 95, 232, 0.35);
   color: var(--ash);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
-.leaderboard-table tbody tr:last-child td { border-bottom: none; }
-.leaderboard-rank { font-weight: 700; font-size: 1.1rem; color: var(--ember); width: 2.5rem; }
-.leaderboard-name { color: #fff; font-weight: 600; }
-.leaderboard-tier { color: var(--ember); font-weight: 600; }
-.leaderboard-empty { text-align: center; color: var(--ash-dim); padding: 1.5rem 0 !important; }
+
+/* Recent activity feed */
+.activity-feed { display: flex; flex-direction: column; gap: 0; }
+.activity-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.activity-row:last-child { border-bottom: none; }
+.activity-row:first-child { animation: activityPulse 1.6s ease-out; }
+@keyframes activityPulse {
+  0% { background: rgba(255, 90, 31, 0.16); }
+  100% { background: transparent; }
+}
+.activity-dot { color: var(--lava); font-size: 0.7rem; }
+.activity-text { color: var(--ash); font-size: 0.9rem; flex: 1; }
+.activity-text strong { color: #fff; }
+.activity-text em { color: var(--ember); font-style: normal; font-weight: 600; }
+.activity-time { color: var(--ash-dim); font-size: 0.78rem; white-space: nowrap; }
+
+@media (max-width: 720px) {
+  .spotlight-grid { grid-template-columns: 1fr; }
+  .podium { gap: 0.5rem; }
+  .podium-spot { width: 110px; }
+}
 
 @media (max-width: 640px) {
   .site-header { padding: 1rem; }

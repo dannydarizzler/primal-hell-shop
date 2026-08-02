@@ -189,14 +189,6 @@ function renderProfile() {
     memberSinceRow.style.display = 'none';
   }
 
-  const spotlightRow = document.getElementById('profileSpotlightRow');
-  if (currentUser.spotlightRank) {
-    spotlightRow.style.display = 'flex';
-    document.getElementById('profileSpotlightRank').textContent = `#${currentUser.spotlightRank} of ${currentUser.spotlightTotal}`;
-  } else {
-    spotlightRow.style.display = 'none';
-  }
-
   const badgesList = document.getElementById('badgesList');
   if (currentUser.badges && currentUser.badges.length > 0) {
     badgesCard.style.display = 'block';
@@ -223,6 +215,7 @@ async function renderTierProgress() {
     const data = await res.json();
 
     const currentLabel = document.getElementById('tierCurrentLabel');
+    const spotlightLabel = document.getElementById('tierSpotlightLabel');
     const nextLabel = document.getElementById('tierNextLabel');
     const barFill = document.getElementById('tierProgressBarFill');
     const barPercent = document.getElementById('tierProgressBarPercent');
@@ -231,6 +224,13 @@ async function renderTierProgress() {
     currentLabel.innerHTML = data.currentTierName
       ? `Current rank: <strong>${data.currentTierName}</strong>`
       : `No rank yet — get active in Discord!`;
+
+    if (currentUser && currentUser.spotlightRank) {
+      spotlightLabel.style.display = 'block';
+      spotlightLabel.innerHTML = `🏆 You're ranked <strong>#${currentUser.spotlightRank}</strong> of ${currentUser.spotlightTotal} most active members`;
+    } else {
+      spotlightLabel.style.display = 'none';
+    }
 
     if (data.maxed) {
       nextLabel.innerHTML = `<strong>Max rank reached!</strong> 🎉`;
@@ -249,28 +249,113 @@ async function renderTierProgress() {
 }
 
 async function renderLeaderboard() {
-  const body = document.getElementById('leaderboardBody');
-  if (!body) return;
+  const podium = document.getElementById('spotlightPodium');
+  const rest = document.getElementById('spotlightPodiumRest');
+  if (!podium) return;
+
   try {
     const res = await fetch('/api/leaderboard/top-ranks');
     if (!res.ok) throw new Error('bad response');
     const rows = await res.json();
 
     if (rows.length === 0) {
-      body.innerHTML = `<tr><td colspan="3" class="leaderboard-empty">No ranked members yet — get active in Discord!</td></tr>`;
+      podium.innerHTML = `<p class="spotlight-empty">No ranked members yet — get active in Discord!</p>`;
+      rest.innerHTML = '';
       return;
     }
 
     const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
-    body.innerHTML = rows.map((row) => `
-      <tr>
-        <td class="leaderboard-rank">${medals[row.rank] || row.rank}</td>
-        <td class="leaderboard-name">${row.name}</td>
-        <td class="leaderboard-tier">${row.tierName}</td>
-      </tr>
+    const top3 = rows.filter((r) => r.rank <= 3);
+    const others = rows.filter((r) => r.rank > 3);
+
+    podium.innerHTML = top3.map((row) => `
+      <div class="podium-spot podium-spot--${row.rank}">
+        <span class="podium-medal">${medals[row.rank]}</span>
+        <span class="podium-name" title="${row.name}">${row.name}</span>
+        <span class="podium-tier">${row.tierName}</span>
+        <div class="podium-riser">${row.rank}</div>
+      </div>
+    `).join('');
+
+    rest.innerHTML = others.map((row) => `
+      <div class="podium-rest-row">
+        <span class="podium-rest-place">${row.rank}</span>
+        <span class="podium-rest-name">${row.name}</span>
+        <span class="podium-rest-tier">${row.tierName}</span>
+      </div>
     `).join('');
   } catch {
-    body.innerHTML = `<tr><td colspan="3" class="leaderboard-empty">Could not load the leaderboard.</td></tr>`;
+    podium.innerHTML = `<p class="spotlight-empty">Could not load the leaderboard.</p>`;
+    rest.innerHTML = '';
+  }
+}
+
+function timeAgo(isoString) {
+  const then = new Date(isoString.replace(' ', 'T') + 'Z').getTime();
+  const diffMs = Date.now() - then;
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+async function renderSpotlightExtras() {
+  const hofEl = document.getElementById('spotlightHallOfFame');
+  const winEl = document.getElementById('spotlightBiggestWin');
+  const vipEl = document.getElementById('spotlightVipShowcase');
+  const activityEl = document.getElementById('spotlightActivity');
+  if (!hofEl) return;
+
+  try {
+    const res = await fetch('/api/spotlight/extras');
+    if (!res.ok) throw new Error('bad response');
+    const data = await res.json();
+
+    // Hall of Fame
+    const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
+    hofEl.innerHTML = data.hallOfFame.length === 0
+      ? `<p class="spotlight-empty">No one has slain the Death Knight yet. Will it be you?</p>`
+      : data.hallOfFame.map((row) => `
+        <div class="spotlight-list-row">
+          <span class="spotlight-list-medal">${medals[row.rank] || row.rank}</span>
+          <span class="spotlight-list-name">${row.name}</span>
+          <span class="spotlight-list-value">${row.daysTaken.toFixed(0)} day${row.daysTaken.toFixed(0) === '1' ? '' : 's'}</span>
+        </div>
+      `).join('');
+
+    // Biggest Win (last 7 days)
+    winEl.innerHTML = !data.biggestWin
+      ? `<p class="spotlight-empty">No Lucky Wheel wins in the last 7 days yet.</p>`
+      : `
+        <div class="win-hero">
+          <p class="win-hero-name">${data.biggestWin.name}</p>
+          <div class="win-hero-amount">${data.biggestWin.amount.toLocaleString('en-US')} Coins</div>
+          ${data.biggestWin.jackpot ? `<span class="win-hero-badge">🎉 JACKPOT</span>` : ''}
+        </div>
+      `;
+
+    // VIP Showcase
+    vipEl.innerHTML = data.vipMembers.length === 0
+      ? `<p class="spotlight-empty">No VIP members yet — be the first to boost the server!</p>`
+      : data.vipMembers.map((m) => `<span class="vip-chip">💎 ${m.name}</span>`).join('');
+
+    // Recent Activity
+    activityEl.innerHTML = data.recentActivity.length === 0
+      ? `<p class="spotlight-empty">No recent rank-ups yet.</p>`
+      : data.recentActivity.map((row) => `
+        <div class="activity-row">
+          <span class="activity-dot">●</span>
+          <span class="activity-text"><strong>${row.name}</strong> just reached <em>${row.rankName}</em></span>
+          <span class="activity-time">${timeAgo(row.achievedAt)}</span>
+        </div>
+      `).join('');
+  } catch {
+    [hofEl, winEl, vipEl, activityEl].forEach((el) => {
+      el.innerHTML = `<p class="spotlight-empty">Could not load this right now.</p>`;
+    });
   }
 }
 
@@ -1912,6 +1997,7 @@ async function init() {
   await refreshSpinStatus();
   await refreshVipWheel();
   await renderLeaderboard();
+  await renderSpotlightExtras();
 }
 
 init().catch((err) => {

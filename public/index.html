@@ -118,21 +118,39 @@
     <h2 class="section-title">🏆 Player Spotlight</h2>
     <p class="section-sub">The most active members of Primal Hell, ranked by Discord activity.</p>
 
-    <div class="leaderboard-card">
-      <h3 class="leaderboard-title">Top 5 Highest Ranked Members</h3>
-      <table class="leaderboard-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Discord Name</th>
-            <th>Rank</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboardBody">
-          <tr><td colspan="3" class="leaderboard-empty">Loading…</td></tr>
-        </tbody>
-      </table>
+    <div class="spotlight-card spotlight-podium-card">
+      <h3 class="spotlight-card-title">Top 5 Highest Ranked Members</h3>
+      <div class="podium" id="spotlightPodium">
+        <div class="podium-loading">Loading…</div>
+      </div>
+      <div class="podium-rest" id="spotlightPodiumRest"></div>
     </div>
+
+    <div class="spotlight-grid">
+      <div class="spotlight-card">
+        <h3 class="spotlight-card-title">👑 Hall of Fame</h3>
+        <p class="spotlight-card-sub">Fastest Death Knight Slayers</p>
+        <div class="spotlight-list" id="spotlightHallOfFame"><p class="spotlight-empty">Loading…</p></div>
+      </div>
+
+      <div class="spotlight-card">
+        <h3 class="spotlight-card-title">🎡 Biggest Win</h3>
+        <p class="spotlight-card-sub">Lucky Wheel, last 7 days</p>
+        <div class="spotlight-list" id="spotlightBiggestWin"><p class="spotlight-empty">Loading…</p></div>
+      </div>
+    </div>
+
+    <div class="spotlight-card">
+      <h3 class="spotlight-card-title">💎 VIP Showcase</h3>
+      <p class="spotlight-card-sub">Thank you for boosting Primal Hell</p>
+      <div class="vip-showcase" id="spotlightVipShowcase"><p class="spotlight-empty">Loading…</p></div>
+    </div>
+
+    <div class="spotlight-card">
+      <h3 class="spotlight-card-title">⚡ Recent Activity</h3>
+      <div class="activity-feed" id="spotlightActivity"><p class="spotlight-empty">Loading…</p></div>
+    </div>
+  </section>
   </section>
 
   <!-- ───────────────────────── BUY COINS TAB ───────────────────────── -->
@@ -308,10 +326,6 @@
           <span class="profile-label">Balance</span>
           <span class="profile-value" id="profileBalance"></span>
         </div>
-        <div class="profile-row" id="profileSpotlightRow" style="display:none;">
-          <span class="profile-label">Spotlight Rank</span>
-          <span class="profile-value" id="profileSpotlightRank"></span>
-        </div>
         <div class="profile-row">
           <span class="profile-label">🎡 Coins Won on Lucky Wheel</span>
           <span class="profile-value" id="profileWheelWon"></span>
@@ -325,6 +339,7 @@
       <div class="tier-progress-card" id="tierProgressCard" style="display:none;">
         <h3 class="tier-progress-title">🏅 Discord Activity Rank</h3>
         <p class="tier-current-label" id="tierCurrentLabel"></p>
+        <p class="tier-current-label" id="tierSpotlightLabel" style="display:none;"></p>
         <p class="tier-next-label" id="tierNextLabel"></p>
         <div class="tier-progress-bar-track">
           <div class="tier-progress-bar-fill" id="tierProgressBarFill"></div>
