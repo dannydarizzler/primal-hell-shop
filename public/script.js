@@ -981,16 +981,22 @@ async function renderCatalog() {
     chaosDinos: document.getElementById('chaosDinosCategories'),
     bossFights: document.getElementById('bossFightsCategories'),
   };
+  const ascensionRow = document.getElementById('bossFightsAscensionRow');
   const res = await fetch('/api/catalog');
   latestCatalog = await res.json();
   Object.values(containers).forEach((c) => { c.innerHTML = ''; });
+  ascensionRow.innerHTML = '';
 
   Object.values(latestCatalog).forEach((category) => {
+    if (category.group === 'bossFights' && category.label === 'Full Ascension') {
+      ascensionRow.appendChild(renderCategoryCard(category));
+      return;
+    }
     const target = containers[category.group] || containers.single;
     target.appendChild(renderCategoryCard(category));
   });
 
-  Object.values(containers).forEach((c) => {
+  [...Object.values(containers), ascensionRow].forEach((c) => {
     c.querySelectorAll('.catalog-buy-btn').forEach((btn) => {
       btn.addEventListener('click', () => buyCatalogItem(btn.dataset.tier, btn, btn.dataset.name, btn.dataset.cost));
     });

@@ -469,22 +469,18 @@ main {
 
 .catalog-categories { display: flex; flex-direction: column; gap: 1.75rem; }
 
+#bossFightsAscensionRow { margin-bottom: 1.75rem; }
+#bossFightsAscensionRow .catalog-category-group { max-width: 260px; }
+
 #bossFightsCategories {
-  display: flex;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.75rem;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
+  align-items: stretch;
 }
-#bossFightsCategories::-webkit-scrollbar { height: 8px; }
-#bossFightsCategories::-webkit-scrollbar-thumb { background: rgba(255, 90, 31, 0.3); border-radius: 999px; }
-#bossFightsCategories::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); }
-#bossFightsCategories .catalog-category-group {
-  flex: 0 0 260px;
-  scroll-snap-align: start;
-}
+#bossFightsCategories .catalog-category-group { display: flex; flex-direction: column; }
+#bossFightsCategories .tier-grid { flex: 1; }
+#bossFightsCategories .chest-card-flip { height: 100%; }
 
 .catalog-category-group { display: flex; flex-direction: column; gap: 0.9rem; }
 .tier-grid { display: grid; gap: 1.25rem; }
@@ -513,7 +509,7 @@ main {
 }
 .catalog-tier-name { font-size: 0.85rem; color: var(--ash); line-height: 1.4; min-height: 2.6em; }
 .catalog-tier-cost { color: var(--ember); font-weight: 700; font-size: 1rem; }
-.catalog-buy-btn { font-size: 0.85rem; padding: 0.5rem 1rem; }
+.catalog-buy-btn { font-size: 0.85rem; padding: 0.5rem 1rem; margin-top: auto; }
 
 /* ── Shop category tiles (click in, then use Back to return) ──────────────── */
 .shop-groups-grid {
