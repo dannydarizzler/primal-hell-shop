@@ -10,6 +10,8 @@ const { VIP_SPIN_SEGMENTS, drawVipSpinSegmentIndex } = require('./vipspinwheel')
 const { COMBO_PACKS, findCombo } = require('./combopacks');
 const { computeTierProgress, getPublicTierProgress } = require('./tierprogress');
 const { BADGES } = require('./badges');
+const { CHANGELOG } = require('./changelog');
+const { NEWS } = require('./news');
 const paypal = require('./paypal');
 const db = require('./db');
 const auth = require('./auth');
@@ -617,6 +619,15 @@ app.get('/api/leaderboard/top-ranks', async (req, res) => {
 
 // ── Spotlight extras: Hall of Fame preview, biggest recent Wheel win,
 // VIP showcase, and a live "recent activity" feed of rank-ups. ───────────────
+// ── New Features / News feeds for the Home tab ─────────────────────────────
+app.get('/api/changelog', (req, res) => {
+  res.json(CHANGELOG);
+});
+
+app.get('/api/news', (req, res) => {
+  res.json(NEWS);
+});
+
 app.get('/api/spotlight/extras', async (req, res) => {
   const guildMap = await discordapi.getGuildMemberMap();
 

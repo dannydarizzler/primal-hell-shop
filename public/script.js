@@ -305,6 +305,40 @@ function timeAgo(isoString) {
   return `${days}d ago`;
 }
 
+function formatFeedDate(isoDate) {
+  const d = new Date(isoDate + 'T00:00:00Z');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function renderFeedList(containerEl, items) {
+  containerEl.innerHTML = items.length === 0
+    ? `<p class="spotlight-empty">Nothing here yet — check back soon!</p>`
+    : items.map((item) => `
+      <div class="feed-item">
+        <span class="feed-item-emoji">${item.emoji}</span>
+        <div class="feed-item-body">
+          <p class="feed-item-title">${item.title}<span class="feed-item-date">${formatFeedDate(item.date)}</span></p>
+          <p class="feed-item-desc">${item.description}</p>
+        </div>
+      </div>
+    `).join('');
+}
+
+async function renderHomeFeeds() {
+  const changelogEl = document.getElementById('changelogFeed');
+  const newsEl = document.getElementById('newsFeed');
+  if (!changelogEl) return;
+
+  try {
+    const [changelogRes, newsRes] = await Promise.all([fetch('/api/changelog'), fetch('/api/news')]);
+    renderFeedList(changelogEl, await changelogRes.json());
+    renderFeedList(newsEl, await newsRes.json());
+  } catch {
+    changelogEl.innerHTML = `<p class="spotlight-empty">Could not load this right now.</p>`;
+    newsEl.innerHTML = `<p class="spotlight-empty">Could not load this right now.</p>`;
+  }
+}
+
 async function renderSpotlightExtras() {
   const hofEl = document.getElementById('spotlightHallOfFame');
   const winEl = document.getElementById('spotlightBiggestWin');
@@ -1086,12 +1120,13 @@ async function renderWheelConfig(config) {
 
   disc.querySelectorAll('.wheel-label').forEach((el) => el.remove());
 
-  const radius = 92;
+  const center = 90;
+  const radius = 64;
   segments.forEach((s, i) => {
     const centerAngleDeg = i * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
     const rad = (centerAngleDeg - 90) * (Math.PI / 180);
-    const x = 130 + radius * Math.cos(rad);
-    const y = 130 + radius * Math.sin(rad);
+    const x = center + radius * Math.cos(rad);
+    const y = center + radius * Math.sin(rad);
 
     const label = document.createElement('div');
     label.className = 'wheel-label' + (s.jackpot ? ' jackpot' : '');
@@ -1441,6 +1476,16 @@ function setupPrivacyModal() {
   const linkBtn = document.getElementById('privacyLinkBtn');
   const modal = document.getElementById('privacyModal');
   const closeBtn = document.getElementById('privacyClose');
+
+  linkBtn.addEventListener('click', () => modal.classList.add('show'));
+  closeBtn.addEventListener('click', () => modal.classList.remove('show'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+}
+
+function setupFaqModal() {
+  const linkBtn = document.getElementById('faqLinkBtn');
+  const modal = document.getElementById('faqModal');
+  const closeBtn = document.getElementById('faqClose');
 
   linkBtn.addEventListener('click', () => modal.classList.add('show'));
   closeBtn.addEventListener('click', () => modal.classList.remove('show'));
@@ -1995,6 +2040,7 @@ async function init() {
   setupShopSubnav();
   setupAdminPanel();
   setupPrivacyModal();
+  setupFaqModal();
   setupAnnouncementPopup();
   setupSignupBonusPopup();
   setupItemsFilter();
@@ -2012,6 +2058,7 @@ async function init() {
   await refreshVipWheel();
   await renderLeaderboard();
   await renderSpotlightExtras();
+  await renderHomeFeeds();
 }
 
 init().catch((err) => {

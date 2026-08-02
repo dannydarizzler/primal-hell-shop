@@ -41,8 +41,8 @@
   <!-- ───────────────────────── HOME TAB ───────────────────────── -->
   <section class="tab-panel active" id="tab-home">
     <div class="hero">
-      <h1><span class="hero-accent">Gear up for the Hell.</span></h1>
-      <p class="hero-sub">Buy Primal Coins or earn them in discord, open Mystery Chests, and get real in-game items delivered to you.</p>
+      <h1><span class="hero-accent">Get ready for Hell.</span></h1>
+      <p class="hero-sub">Buy Primal Coins or earn them free-to-play by engaging with the Discord server, open Chests, and get real in-game items delivered to you.</p>
     </div>
 
     <div class="how-it-works-grid">
@@ -68,47 +68,52 @@
       </div>
     </div>
 
-    <div class="home-note">
-      <p><strong>Where do my items go?</strong> Every purchase appears in your <em>My Items</em> tab as "Active" until a staff member marks it as delivered. Open a Discord ticket to claim it.</p>
-    </div>
-
-    <div class="home-note">
-      <p><strong>Don't know your Discord User ID?</strong> Use <code>/whoami</code> in Discord and the bot will DM it to you.</p>
-    </div>
-
     <!-- ───────────────────────── DAILY LUCKY WHEEL ───────────────────────── -->
-    <div class="wheel-section">
-      <h2 class="section-title">🎡 Daily Lucky Wheel</h2>
-      <p class="section-sub">Free to play — spin once every 24 hours for a chance at free Primal Coins, up to the 2,000 Coin jackpot.</p>
+    <div class="wheels-row">
+      <div class="wheel-section">
+        <h2 class="section-title">🎡 Daily Lucky Wheel</h2>
+        <p class="section-sub">Spin once a day and win up to 2,000 Coins.</p>
 
-      <div id="wheelLoginGate" class="login-gate" style="display:none;">
-        <p>Log in or create an account to spin the wheel.</p>
-        <button class="btn-primary" id="wheelGateLoginBtn">Log In / Sign Up</button>
+        <div id="wheelLoginGate" class="login-gate" style="display:none;">
+          <p>Log in or create an account to spin the wheel.</p>
+          <button class="btn-primary" id="wheelGateLoginBtn">Log In / Sign Up</button>
+        </div>
+
+        <div class="wheel-area" id="wheelArea">
+          <div class="wheel-wrap">
+            <div class="wheel-pointer">▼</div>
+            <div class="wheel-disc" id="wheelDisc"></div>
+            <div class="wheel-hub"><img src="/images/logo.jpg" alt="" /></div>
+          </div>
+          <button class="btn-primary" id="spinBtn">Spin the Wheel</button>
+          <p class="spin-status" id="spinStatus"></p>
+        </div>
       </div>
 
-      <div class="wheel-area" id="wheelArea">
-        <div class="wheel-wrap">
-          <div class="wheel-pointer">▼</div>
-          <div class="wheel-disc" id="wheelDisc"></div>
-          <div class="wheel-hub"><img src="/images/logo.jpg" alt="" /></div>
+      <div class="wheel-section vip-wheel-section">
+        <h2 class="section-title">💎 VIP Lucky Wheel</h2>
+        <p class="section-sub">Spin once a day and win up to 5,000 Coins for VIP members.</p>
+
+        <div class="wheel-area" id="vipWheelArea">
+          <div class="wheel-wrap">
+            <div class="wheel-pointer">▼</div>
+            <div class="wheel-disc vip-wheel-disc" id="vipWheelDisc"></div>
+            <div class="wheel-hub"><img src="/images/logo.jpg" alt="" /></div>
+          </div>
+          <button class="btn-primary" id="vipSpinBtn">Spin the VIP Wheel</button>
+          <p class="spin-status" id="vipSpinStatus"></p>
         </div>
-        <button class="btn-primary" id="spinBtn">Spin the Wheel</button>
-        <p class="spin-status" id="spinStatus"></p>
       </div>
     </div>
 
-    <div class="wheel-section vip-wheel-section">
-      <h2 class="section-title">💎 VIP Lucky Wheel</h2>
-      <p class="section-sub">Exclusive to VIP members — same wheel, doubled prizes, up to the 5,000 Coin jackpot.</p>
-
-      <div class="wheel-area" id="vipWheelArea">
-        <div class="wheel-wrap">
-          <div class="wheel-pointer">▼</div>
-          <div class="wheel-disc vip-wheel-disc" id="vipWheelDisc"></div>
-          <div class="wheel-hub"><img src="/images/logo.jpg" alt="" /></div>
-        </div>
-        <button class="btn-primary" id="vipSpinBtn">Spin the VIP Wheel</button>
-        <p class="spin-status" id="vipSpinStatus"></p>
+    <div class="home-feeds-row">
+      <div class="feed-card">
+        <h3 class="feed-card-title">🆕 New Features</h3>
+        <div class="feed-list" id="changelogFeed"><p class="spotlight-empty">Loading…</p></div>
+      </div>
+      <div class="feed-card">
+        <h3 class="feed-card-title">📰 News</h3>
+        <div class="feed-list" id="newsFeed"><p class="spotlight-empty">Loading…</p></div>
       </div>
     </div>
   </section>
@@ -362,6 +367,8 @@
 <footer class="site-footer">
   <p>Primal Hell — ARK: Survival Ascended Community Server</p>
   <p>
+    <button class="admin-link" id="faqLinkBtn">FAQ</button>
+    &nbsp;·&nbsp;
     <button class="admin-link" id="privacyLinkBtn">Privacy Policy</button>
     &nbsp;·&nbsp;
     <button class="admin-link" id="adminLinkBtn">Admin</button>
@@ -404,6 +411,36 @@
 
       <h4>7. Contact</h4>
       <p>Questions about this policy or your data? Message <strong>@DM7OP</strong> on Discord.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────────────────── FAQ MODAL ───────────────────────── -->
+<div class="modal-overlay" id="faqModal">
+  <div class="modal privacy-modal">
+    <button class="modal-close" id="faqClose" aria-label="Close">✕</button>
+    <h3 class="confirm-title">❓ Frequently Asked Questions</h3>
+    <div class="privacy-body">
+      <h4>Don't know your Discord User ID?</h4>
+      <p>Use <code>/whoami</code> in Discord and the bot will DM it to you. You'll need it when creating your Shop account.</p>
+
+      <h4>Where do my items go after I buy them?</h4>
+      <p>Every purchase appears in your <em>My Items</em> tab as "Active" until a staff member marks it as delivered. Open a Discord ticket to claim it in-game.</p>
+
+      <h4>How do I top up Primal Coins?</h4>
+      <p>Go to the <strong>Buy Coins</strong> tab and pay with PayPal — Coins are added to your balance instantly after payment.</p>
+
+      <h4>Can I earn Primal Coins for free?</h4>
+      <p>Yes — spin the Lucky Wheel once a day, climb the Discord activity ranks (see <code>/rank</code>), or invite friends with your referral link.</p>
+
+      <h4>What's the difference between the Shop and Chests tabs?</h4>
+      <p>The <strong>Shop</strong> tab has guaranteed item packs — you know exactly what you're getting. <strong>Chests</strong> are Mystery Boxes — you spend Coins for a random reward from that chest's pool.</p>
+
+      <h4>How do I become VIP?</h4>
+      <p>Boost the Primal Hell Discord server. VIP status activates automatically — no ticket needed.</p>
+
+      <h4>I found a bug or have a suggestion — where do I report it?</h4>
+      <p>Post it in the <code>#｜commands</code> channel on Discord, or open a support ticket.</p>
     </div>
   </div>
 </div>
@@ -521,6 +558,7 @@
       <label for="registerDiscordId">Discord User ID</label>
       <input type="text" id="registerDiscordId" placeholder="e.g. 123456789012345678" inputmode="numeric" required />
       <p class="hint">Right-click your name in Discord → "Copy User ID". Enable Developer Mode in Discord Settings → Advanced if you don't see this option. Your display name is pulled automatically from Discord — no need to type it.</p>
+      <p class="hint">💡 Don't know your Discord User ID? Use <code>/whoami</code> in Discord and the bot will DM it to you.</p>
 
       <label for="registerPassword">Password</label>
       <input type="password" id="registerPassword" placeholder="At least 8 characters" required />
