@@ -469,7 +469,7 @@ main {
 
 .catalog-categories { display: flex; flex-direction: column; gap: 1.75rem; }
 
-#bossFightsCategories { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; gap: 1.75rem 1.25rem; }
+#bossFightsCategories { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: start; gap: 1.75rem 1.25rem; }
 #bossFightsCategories .catalog-category-group--break { grid-column: 1 / -1; }
 
 .catalog-category-group { display: flex; flex-direction: column; gap: 0.9rem; }
@@ -1346,7 +1346,7 @@ main {
   align-items: flex-end;
   justify-content: center;
   gap: 1rem;
-  min-height: 260px;
+  min-height: 320px;
   margin-bottom: 1rem;
 }
 .podium-loading { color: var(--ash-dim); align-self: center; }
@@ -1354,17 +1354,17 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 150px;
+  width: 190px;
 }
 .podium-medal { font-size: 1.8rem; margin-bottom: 0.4rem; }
-.podium-badge-wrap { position: relative; width: 64px; margin-bottom: 0.5rem; }
-.podium-badge { width: 100%; height: auto; display: block; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5)); }
+.podium-badge-wrap { position: relative; width: 140px; margin-bottom: 0.6rem; }
+.podium-badge { width: 100%; height: auto; display: block; filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55)); }
 .podium-badge-medal {
   position: absolute;
-  bottom: -6px;
-  right: -8px;
-  font-size: 1.1rem;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  bottom: -10px;
+  right: -12px;
+  font-size: 2rem;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6));
 }
 .podium-name {
   color: #fff;
@@ -1475,6 +1475,7 @@ main {
   .spotlight-grid { grid-template-columns: 1fr; }
   .podium { gap: 0.5rem; }
   .podium-spot { width: 110px; }
+  .podium-badge-wrap { width: 90px; }
 }
 
 @media (max-width: 640px) {

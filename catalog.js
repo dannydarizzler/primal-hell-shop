@@ -223,6 +223,16 @@ const CATALOG = {
       { id: 'rockwell_15', name: 'Rockwell Reward (+15 Levels)', cost: 800 },
     ],
   },
+  rockwellGen2: {
+    label: 'Rockwell Gen2 Boss Reward',
+    emoji: '💜',
+    image: '/images/items/rockwell_gen2.jpg',
+    group: 'bossFights',
+    note: 'Grants +15 levels, as if you had defeated the Rockwell Gen2 boss fight.',
+    tiers: [
+      { id: 'rockwell_gen2_15', name: 'Rockwell Gen2 Reward (+15 Levels)', cost: 800 },
+    ],
+  },
   extinction: {
     label: 'Extinction Ascension',
     emoji: '☠️',
@@ -238,9 +248,9 @@ const CATALOG = {
     emoji: '🚀',
     image: '/images/items/fullascension.jpg',
     group: 'bossFights',
-    note: 'Bundles all 4 individually-sellable boss rewards — Manticore + Overseer + Rockwell + Extinction (+60 Levels total).',
+    note: 'Bundles all 4 individually-sellable boss rewards — Manticore + Overseer + Rockwell + Extinction — taking you straight to Level 220.',
     tiers: [
-      { id: 'ascension_pack', name: 'Full Ascension (+60 Levels — Manticore + Overseer + Rockwell + Extinction)', cost: 2900 },
+      { id: 'ascension_pack', name: 'Full Ascension (Level 220 — Manticore + Overseer + Rockwell + Extinction)', cost: 4400 },
     ],
   },
 };

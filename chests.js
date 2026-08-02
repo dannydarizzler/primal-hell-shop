@@ -14,6 +14,7 @@ const IMG = {
   manticore: '/images/items/manticore.jpg',
   overseer: '/images/items/overseer.jpg',
   rockwell: '/images/items/rockwell.jpg',
+  rockwellGen2: '/images/items/rockwell_gen2.jpg',
   extinction: '/images/items/extinction.jpg',
   healthkit: '/images/items/healthpotions.jpg',
   xpparty: '/images/items/xppotions.jpg',
@@ -120,6 +121,7 @@ const CHESTS = {
       { name: 'Manticore Reward (+15 Levels)', emoji: '🦁', image: IMG.manticore, weight: 5 },
       { name: 'Overseer Reward (+15 Levels)', emoji: '👁️', image: IMG.overseer, weight: 5 },
       { name: 'Rockwell Reward (+15 Levels)', emoji: '🧟', image: IMG.rockwell, weight: 5 },
+      { name: 'Rockwell Gen2 Reward (+15 Levels)', emoji: '💜', image: IMG.rockwellGen2, weight: 5 },
       { name: 'Extinction Reward (+15 Levels)', emoji: '☠️', image: IMG.extinction, weight: 5 },
       // Cheapest combo deal only, ~1% chance (weight 1 in a pool totalling 127 → 0.79%).
       { name: COMBOS_BY_PRICE[0].name, emoji: '🎁', image: COMBOS_BY_PRICE[0].image, weight: 1 },
@@ -143,6 +145,7 @@ const CHESTS = {
       { name: 'Manticore Reward (+15 Levels)', emoji: '🦁', image: IMG.manticore, weight: 6 },
       { name: 'Overseer Reward (+15 Levels)', emoji: '👁️', image: IMG.overseer, weight: 6 },
       { name: 'Rockwell Reward (+15 Levels)', emoji: '🧟', image: IMG.rockwell, weight: 6 },
+      { name: 'Rockwell Gen2 Reward (+15 Levels)', emoji: '💜', image: IMG.rockwellGen2, weight: 6 },
       { name: 'Extinction Reward (+15 Levels)', emoji: '☠️', image: IMG.extinction, weight: 6 },
       // Two cheapest combo deals, ~1% chance each (weight 1 each in a pool totalling 127 → 0.79% each).
       { name: COMBOS_BY_PRICE[0].name, emoji: '🎁', image: COMBOS_BY_PRICE[0].image, weight: 1 },
