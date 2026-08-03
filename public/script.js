@@ -890,7 +890,7 @@ function renderFilteredMyItems() {
     const icon = item.image
       ? `<img class="item-thumb" src="${item.image}" alt="" />`
       : `<span class="item-emoji">${CHEST_ITEM_EMOJI[item.item_won] || '🎁'}</span>`;
-    const quickSellRefund = Math.floor(item.cost * 0.5);
+    const quickSellRefund = item.quickSellRefund;
     const quickSellBtn = item.status === 'active'
       ? `<button class="btn-ghost item-quicksell-btn" data-item-id="${item.id}" data-refund="${quickSellRefund}">Quick Sell — ${quickSellRefund.toLocaleString('en-US')} Coins</button>`
       : '';

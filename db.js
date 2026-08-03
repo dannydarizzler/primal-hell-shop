@@ -1,5 +1,7 @@
 const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
+const { CATALOG } = require('./catalog');
+const { COMBO_PACKS } = require('./combopacks');
 
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'shop.db');
 const db = new DatabaseSync(dbPath);
@@ -7,6 +9,21 @@ const db = new DatabaseSync(dbPath);
 db.exec('PRAGMA journal_mode = WAL;');
 
 const SIGNUP_BONUS_COINS = 200;
+
+// ── Item name → standalone catalog/combo price, for Quick Sell ─────────────
+// Built once at startup. Covers everything that's ALSO directly purchasable
+// (Essentials, Chaos Dinos tokens/Breedpairs, boss rewards, Combo Packs) —
+// pure dino rewards drawn only from chests (e.g. "Alpha Argentavis") have no
+// standalone catalog price and simply won't be in this map.
+const ITEM_PRICE_LOOKUP = new Map();
+for (const category of Object.values(CATALOG)) {
+  for (const tier of category.tiers) {
+    ITEM_PRICE_LOOKUP.set(tier.name, tier.cost);
+  }
+}
+for (const combo of COMBO_PACKS) {
+  ITEM_PRICE_LOOKUP.set(combo.name, combo.cost);
+}
 
 // ── Purchases (PayPal top-ups) ─────────────────────────────────────────────────
 db.exec(`
@@ -915,13 +932,27 @@ function redeemItem(id, adminDiscordId) {
   return getItemById(id);
 }
 
-/** Quick-sells an active item for 50% of what it cost, refunded as Coins.
+/** Quick-sells an active item for 50% of its OWN standalone value (not the
+ * chest price paid to get it) — e.g. winning "7 Dedicated Storage Boxes" from
+ * a Tier 3 Chest refunds 50% of that item's own 2,900 Coin catalog price
+ * (1,450), not 50% of what the chest itself cost. Falls back to the chest
+ * price only for items with no standalone catalog price at all (pure dino
+ * rewards, which aren't directly purchasable anywhere).
  * Refuses anything that isn't the caller's own item, and anything not
  * currently 'active' (already redeemed or already quick-sold). The row is
  * kept in the DB (status flips to 'quick_sold') for support/audit purposes,
  * but getItemsForUser() above filters it out — it simply disappears from
  * the player's My Items tab. Returns { ok, refund, newBalance } or
  * { ok: false, error }. */
+/** Returns what quick-selling this item would refund (50% of its own
+ * standalone price, falling back to the chest price paid if it has no
+ * standalone catalog price). Used both by quickSellItem() itself and by the
+ * My Items list so the button can show the correct amount up front. */
+function getQuickSellRefund(itemWon, chestCost) {
+  const priceBasis = ITEM_PRICE_LOOKUP.has(itemWon) ? ITEM_PRICE_LOOKUP.get(itemWon) : chestCost;
+  return Math.floor(priceBasis * 0.5);
+}
+
 function quickSellItem(discordId, itemId) {
   const item = getItemById(itemId);
   if (!item || item.discord_id !== discordId) {
@@ -931,7 +962,7 @@ function quickSellItem(discordId, itemId) {
     return { ok: false, error: 'Only active items can be quick-sold.' };
   }
 
-  const refund = Math.floor(item.cost * 0.5);
+  const refund = getQuickSellRefund(item.item_won, item.cost);
 
   db.prepare(`UPDATE chest_openings SET status = 'quick_sold' WHERE id = ?`).run(itemId);
   const newBalance = addCoins(discordId, refund);
@@ -1033,4 +1064,5 @@ module.exports = {
   getItemById,
   redeemItem,
   quickSellItem,
+  getQuickSellRefund,
 };

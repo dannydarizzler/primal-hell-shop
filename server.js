@@ -473,7 +473,11 @@ function buildItemImageIndex() {
 const ITEM_IMAGE_INDEX = buildItemImageIndex();
 
 function enrichWithImages(items) {
-  return items.map((item) => ({ ...item, image: ITEM_IMAGE_INDEX[item.item_won] || null }));
+  return items.map((item) => ({
+    ...item,
+    image: ITEM_IMAGE_INDEX[item.item_won] || null,
+    quickSellRefund: db.getQuickSellRefund(item.item_won, item.cost),
+  }));
 }
 
 app.get('/api/me/items', auth.requireAuth, (req, res) => {
