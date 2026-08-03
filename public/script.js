@@ -853,7 +853,7 @@ function setupResultModal() {
 
 // ── My Items ───────────────────────────────────────────────────────────────────
 let allMyItems = [];
-let myItemsFilter = 'all';
+let myItemsFilter = 'active';
 
 async function renderMyItems() {
   const listEl = document.getElementById('itemsList');
@@ -871,9 +871,7 @@ function renderFilteredMyItems() {
   const listEl = document.getElementById('itemsList');
   const emptyEl = document.getElementById('itemsEmpty');
 
-  const items = myItemsFilter === 'all'
-    ? allMyItems
-    : allMyItems.filter((item) => item.status === myItemsFilter);
+  const items = allMyItems.filter((item) => item.status === myItemsFilter);
 
   if (allMyItems.length === 0) {
     listEl.innerHTML = '';
