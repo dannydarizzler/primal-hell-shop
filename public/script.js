@@ -892,6 +892,10 @@ function renderFilteredMyItems() {
     const icon = item.image
       ? `<img class="item-thumb" src="${item.image}" alt="" />`
       : `<span class="item-emoji">${CHEST_ITEM_EMOJI[item.item_won] || '🎁'}</span>`;
+    const quickSellRefund = Math.floor(item.cost * 0.5);
+    const quickSellBtn = item.status === 'active'
+      ? `<button class="btn-ghost item-quicksell-btn" data-item-id="${item.id}" data-refund="${quickSellRefund}">Quick Sell — ${quickSellRefund.toLocaleString('en-US')} Coins</button>`
+      : '';
     return `
       <div class="item-row ${item.status}">
         ${icon}
@@ -899,9 +903,42 @@ function renderFilteredMyItems() {
           <p class="item-name">${item.item_won}</p>
         </div>
         <span class="item-status ${item.status}">${item.status === 'redeemed' ? 'Redeemed' : 'Active'}</span>
+        ${quickSellBtn}
       </div>
     `;
   }).join('');
+
+  listEl.querySelectorAll('.item-quicksell-btn').forEach((btn) => {
+    btn.addEventListener('click', () => quickSellItem(btn.dataset.itemId, btn.dataset.refund, btn));
+  });
+}
+
+async function quickSellItem(itemId, refund, btnEl) {
+  const confirmed = await showConfirm(`Are you sure you would like to quick sell this item? You'll receive ${Number(refund).toLocaleString('en-US')} Primal Coins (50% of its price) and the item will be gone for good.`);
+  if (!confirmed) return;
+
+  btnEl.disabled = true;
+  const originalText = btnEl.textContent;
+  btnEl.textContent = 'Selling…';
+
+  try {
+    const res = await fetch(`/api/me/items/${itemId}/quick-sell`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      showToast(data.error || 'Could not quick sell this item.', 'error');
+      btnEl.disabled = false;
+      btnEl.textContent = originalText;
+      return;
+    }
+    currentUser.coins = data.newBalance;
+    renderAuthArea();
+    showToast(`Quick sold for ${data.refund.toLocaleString('en-US')} Primal Coins!`, 'success');
+    await renderMyItems();
+  } catch {
+    showToast('Something went wrong. Please try again.', 'error');
+    btnEl.disabled = false;
+    btnEl.textContent = originalText;
+  }
 }
 
 function setupItemsFilter() {

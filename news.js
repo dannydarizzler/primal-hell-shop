@@ -7,6 +7,12 @@
 // giveaways, map votes, etc.
 const NEWS = [
   {
+    date: '2026-08-03',
+    emoji: '💸',
+    title: 'New: Quick Sell your items',
+    description: "Not going to redeem something? Sell it back for 50% Coins right from the My Items tab — no ticket needed.",
+  },
+  {
     date: '2026-08-01',
     emoji: '🎉',
     title: 'Welcome to the new Spotlight page!',

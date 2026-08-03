@@ -480,6 +480,12 @@ app.get('/api/me/items', auth.requireAuth, (req, res) => {
   res.json(enrichWithImages(db.getItemsForUser(req.user.discordId)));
 });
 
+app.post('/api/me/items/:id/quick-sell', auth.requireAuth, (req, res) => {
+  const result = db.quickSellItem(req.user.discordId, Number(req.params.id));
+  if (!result.ok) return res.status(400).json({ error: result.error });
+  res.json({ ok: true, refund: result.refund, newBalance: result.newBalance });
+});
+
 // ── Bot sync (protected by shared secret, not user login) ─────────────────────
 app.get('/api/bot/pending-purchases', (req, res) => {
   const key = req.headers['x-bot-secret'];

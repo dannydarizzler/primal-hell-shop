@@ -7,6 +7,12 @@
 // see or do.
 const CHANGELOG = [
   {
+    date: '2026-08-03',
+    emoji: '💸',
+    title: 'Quick Sell',
+    description: "Don't want to redeem an item? Quick sell it from My Items for 50% of its price back in Coins, instantly.",
+  },
+  {
     date: '2026-08-02',
     emoji: '💜',
     title: 'Rockwell Gen2 Boss Reward',

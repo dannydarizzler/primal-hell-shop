@@ -887,11 +887,13 @@ function getChestHistory(discordId, limit = 20) {
   `).all(discordId, limit);
 }
 
-/** Full item list for a player (used by both the "My Items" web tab and the Discord admin check). */
+/** Full item list for a player (used by both the "My Items" web tab and the Discord admin check).
+ * Quick-sold items are intentionally excluded — they're gone from view entirely,
+ * even though the row is kept in the DB for support/audit purposes. */
 function getItemsForUser(discordId, limit = 100) {
   return db.prepare(`
     SELECT id, tier, cost, item_won, status, source, redeemed_by, redeemed_at, opened_at
-    FROM chest_openings WHERE discord_id = ? ORDER BY opened_at DESC LIMIT ?
+    FROM chest_openings WHERE discord_id = ? AND status != 'quick_sold' ORDER BY opened_at DESC LIMIT ?
   `).all(discordId, limit);
 }
 
@@ -911,6 +913,30 @@ function redeemItem(id, adminDiscordId) {
   `).run(adminDiscordId, id);
 
   return getItemById(id);
+}
+
+/** Quick-sells an active item for 50% of what it cost, refunded as Coins.
+ * Refuses anything that isn't the caller's own item, and anything not
+ * currently 'active' (already redeemed or already quick-sold). The row is
+ * kept in the DB (status flips to 'quick_sold') for support/audit purposes,
+ * but getItemsForUser() above filters it out — it simply disappears from
+ * the player's My Items tab. Returns { ok, refund, newBalance } or
+ * { ok: false, error }. */
+function quickSellItem(discordId, itemId) {
+  const item = getItemById(itemId);
+  if (!item || item.discord_id !== discordId) {
+    return { ok: false, error: 'Item not found.' };
+  }
+  if (item.status !== 'active') {
+    return { ok: false, error: 'Only active items can be quick-sold.' };
+  }
+
+  const refund = Math.floor(item.cost * 0.5);
+
+  db.prepare(`UPDATE chest_openings SET status = 'quick_sold' WHERE id = ?`).run(itemId);
+  const newBalance = addCoins(discordId, refund);
+
+  return { ok: true, refund, newBalance };
 }
 
 // ── Admin: fix a mistyped Discord ID ────────────────────────────────────────────
@@ -1006,4 +1032,5 @@ module.exports = {
   getItemsForUser,
   getItemById,
   redeemItem,
+  quickSellItem,
 };
