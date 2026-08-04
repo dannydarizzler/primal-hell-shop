@@ -619,25 +619,6 @@ async function renderChests() {
 }
 
 // ── Dramatic chest-opening sequence ─────────────────────────────────────────────
-function spawnParticles(container) {
-  container.innerHTML = '';
-  for (let i = 0; i < 18; i++) {
-    const p = document.createElement('div');
-    p.className = 'opening-particle';
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 80 + Math.random() * 100;
-    p.style.setProperty('--px', `${Math.cos(angle) * dist}px`);
-    p.style.setProperty('--py', `${Math.sin(angle) * dist}px`);
-    p.style.background = Math.random() > 0.5 ? 'var(--ember)' : 'var(--lava)';
-    container.appendChild(p);
-  }
-  requestAnimationFrame(() => {
-    container.querySelectorAll('.opening-particle').forEach((p, i) => {
-      setTimeout(() => p.classList.add('fly'), i * 15);
-    });
-  });
-}
-
 // Richer particle burst for the V2 animation: more particles, further travel,
 // and a mix of plain embers with small spinning sparkle glyphs for variety.
 const SPARK_GLYPHS = ['✨', '⭐', '🔥'];
@@ -708,43 +689,10 @@ function playOpenBoomSound() {
   }
 }
 
-function playOpeningAnimation(chestImage) {
-  return new Promise((resolve) => {
-    const overlay = document.getElementById('openingOverlay');
-    const img = document.getElementById('openingChestImg');
-    const rays = document.getElementById('openingRays');
-    const flash = document.getElementById('openingFlash');
-    const particles = document.getElementById('openingParticles');
-
-    img.src = chestImage;
-    img.className = 'opening-chest-img';
-    rays.classList.remove('show');
-    flash.classList.remove('burst');
-    particles.innerHTML = '';
-    overlay.classList.add('show');
-
-    setTimeout(() => rays.classList.add('show'), 50);
-
-    // Shake for ~1.1s, then burst
-    setTimeout(() => {
-      img.classList.add('crack');
-      flash.classList.add('burst');
-      spawnParticles(particles);
-    }, 1100);
-
-    // Close the overlay and resolve so the result modal can show
-    setTimeout(() => {
-      overlay.classList.remove('show');
-      resolve();
-    }, 1700);
-  });
-}
-
-// V2 — a more dramatic, escalating reveal: three stages of building shake
-// intensity (slow → medium → intense, with growing glow), then a shockwave
-// ring + screen shake + richer particle burst + a synthesized boom on top of
-// everything the original animation already does. Currently used only for
-// the Tier 1 chest as a trial — see openChest().
+// A dramatic, escalating reveal: three stages of building shake intensity
+// (slow → medium → intense, with growing glow), then a shockwave ring +
+// screen shake + richer particle burst + a synthesized boom. Used for every
+// chest's opening animation.
 function playOpeningAnimationV2(chestImage) {
   return new Promise((resolve) => {
     const overlay = document.getElementById('openingOverlay');
@@ -802,7 +750,7 @@ async function openChest(tierId, chestImage, btnEl, chestLabel, chestCost) {
   try {
     const [apiResult] = await Promise.all([
       fetch(`/api/chests/${tierId}/open`, { method: 'POST' }).then(async (res) => ({ res, data: await res.json() })),
-      tierId === 'tier1' ? playOpeningAnimationV2(chestImage) : playOpeningAnimation(chestImage),
+      playOpeningAnimationV2(chestImage),
     ]);
 
     const { res, data } = apiResult;

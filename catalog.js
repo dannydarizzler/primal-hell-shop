@@ -193,54 +193,64 @@ const CATALOG = {
   },
 
   // ── Ascension ──────────────────────────────────────────────────────────────
-  manticore: {
-    label: 'Manticore Boss Reward',
-    emoji: '🦁',
-    image: '/images/items/manticore.jpg',
-    group: 'bossFights',
-    note: 'Grants +15 levels, as if you had defeated the Manticore boss fight.',
-    tiers: [
-      { id: 'manticore_15', name: 'Manticore Reward (+15 Levels)', cost: 800 },
-    ],
-  },
   overseer: {
-    label: 'Overseer Boss Reward',
+    label: 'Overseer Ascension',
     emoji: '👁️',
     image: '/images/items/overseer.jpg',
     group: 'bossFights',
     note: 'Grants +15 levels, as if you had defeated the Overseer boss fight.',
     tiers: [
-      { id: 'overseer_15', name: 'Overseer Reward (+15 Levels)', cost: 800 },
+      { id: 'overseer_15', name: 'Overseer Ascension (+15 Levels)', cost: 800 },
+    ],
+  },
+  manticore: {
+    label: 'Manticore Ascension',
+    emoji: '🦁',
+    image: '/images/items/manticore.jpg',
+    group: 'bossFights',
+    note: 'Grants +15 levels, as if you had defeated the Manticore boss fight.',
+    tiers: [
+      { id: 'manticore_15', name: 'Manticore Ascension (+15 Levels)', cost: 800 },
+    ],
+  },
+  kingtitan: {
+    label: 'Kingtitan Ascension',
+    emoji: '☠️',
+    image: '/images/items/extinction.jpg',
+    group: 'bossFights',
+    note: 'Grants +15 levels, as if you had defeated the Kingtitan boss fight.',
+    tiers: [
+      { id: 'kingtitan_15', name: 'Kingtitan Ascension (+15 Levels)', cost: 800 },
     ],
   },
   rockwell: {
-    label: 'Rockwell Boss Reward',
+    label: 'Rockwell Ascension',
     emoji: '🧟',
     image: '/images/items/rockwell.jpg',
     group: 'bossFights',
     note: 'Grants +15 levels, as if you had defeated the Rockwell boss fight.',
     tiers: [
-      { id: 'rockwell_15', name: 'Rockwell Reward (+15 Levels)', cost: 800 },
+      { id: 'rockwell_15', name: 'Rockwell Ascension (+15 Levels)', cost: 800 },
+    ],
+  },
+  mastercontroller: {
+    label: 'Mastercontroller Ascension',
+    emoji: '🟣',
+    image: '/images/items/mastercontroller.jpg',
+    group: 'bossFights',
+    note: 'Grants +15 levels, as if you had defeated the Mastercontroller boss fight.',
+    tiers: [
+      { id: 'mastercontroller_15', name: 'Mastercontroller Ascension (+15 Levels)', cost: 800 },
     ],
   },
   rockwellGen2: {
-    label: 'Rockwell Gen2 Boss Reward',
+    label: 'Rockwell Gen2 Ascension',
     emoji: '💜',
     image: '/images/items/rockwell_gen2.jpg',
     group: 'bossFights',
     note: 'Grants +15 levels, as if you had defeated the Rockwell Gen2 boss fight.',
     tiers: [
-      { id: 'rockwell_gen2_15', name: 'Rockwell Gen2 Reward (+15 Levels)', cost: 800 },
-    ],
-  },
-  extinction: {
-    label: 'Extinction Ascension',
-    emoji: '☠️',
-    image: '/images/items/extinction.jpg',
-    group: 'bossFights',
-    note: 'Grants +15 levels, as if you had defeated the Extinction boss fight.',
-    tiers: [
-      { id: 'extinction_15', name: 'Extinction Reward (+15 Levels)', cost: 800 },
+      { id: 'rockwell_gen2_15', name: 'Rockwell Gen2 Ascension (+15 Levels)', cost: 800 },
     ],
   },
   ascensionPack: {
@@ -248,9 +258,9 @@ const CATALOG = {
     emoji: '🚀',
     image: '/images/items/fullascension.jpg',
     group: 'bossFights',
-    note: "Grants +115 Levels — includes all 5 Ascension boss fights, Explorer Notes, and Bob's Tales Explorer Notes.",
+    note: "Grants +115 Levels — all boss fights, Explorer Notes, and Bob's Tales Explorer Notes.",
     tiers: [
-      { id: 'ascension_pack', name: "Full Ascension (+115 Levels — All Ascension Boss Fights + Explorer Notes + Bob's Tales Explorer Notes)", cost: 4400 },
+      { id: 'ascension_pack', name: "Full Ascension (+115 Levels — All Boss Fights + Explorer Notes + Bob's Tales Explorer Notes)", cost: 4400 },
     ],
   },
 };

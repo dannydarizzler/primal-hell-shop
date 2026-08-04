@@ -58,7 +58,7 @@ const COMBO_PACKS = [
     // Full Ascension (4400) + 2 Nightmare Tokens (5000) + 500x XP Potion Set (1800) = 11200 → -25% = 8400 → rounded up
     cost: 8400,
     contents: [
-      "Full Ascension (+115 Levels — All Ascension Boss Fights + Explorer Notes + Bob's Tales Explorer Notes)",
+      "Full Ascension (+115 Levels — All Boss Fights + Explorer Notes + Bob's Tales Explorer Notes)",
       '2 Nightmare Tokens',
       '500x XP Potion Set',
     ],

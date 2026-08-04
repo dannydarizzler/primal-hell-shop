@@ -8,6 +8,12 @@
 const CHANGELOG = [
   {
     date: '2026-08-03',
+    emoji: '🟣',
+    title: 'Mastercontroller Ascension',
+    description: 'New individual boss reward added to Ascension — +15 Levels, same as the others.',
+  },
+  {
+    date: '2026-08-03',
     emoji: '💸',
     title: 'Quick Sell',
     description: "Don't want to redeem an item? Quick sell it from My Items for 50% of its price back in Coins, instantly.",
