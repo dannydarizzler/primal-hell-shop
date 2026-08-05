@@ -2,27 +2,16 @@
 // recent changes. Newest entry first. To add a new one, just add a new object
 // to the TOP of this array — no other code changes needed.
 //
-// Keep it to genuinely player-facing changes (new features, reworks, new
-// items) — skip small internal fixes/bugfixes that don't change what players
-// see or do.
+// Rule: this file is for new FUNCTIONALITY — new commands, new mechanics, UI
+// reworks, site features (e.g. Quick Sell, /rank, the Spotlight redesign).
+// New PURCHASABLE ITEMS (new boss reward, new pack, a rebalanced price) go in
+// news.js instead, not here.
 const CHANGELOG = [
-  {
-    date: '2026-08-03',
-    emoji: '🟣',
-    title: 'Mastercontroller Ascension',
-    description: 'New individual boss reward added to Ascension — +15 Levels, same as the others.',
-  },
   {
     date: '2026-08-03',
     emoji: '💸',
     title: 'Quick Sell',
     description: "Don't want to redeem an item? Quick sell it from My Items for 50% of its price back in Coins, instantly.",
-  },
-  {
-    date: '2026-08-02',
-    emoji: '💜',
-    title: 'Rockwell Gen2 Boss Reward',
-    description: 'New individual boss reward added to Ascension — same +15 Levels as the others.',
   },
   {
     date: '2026-08-01',
