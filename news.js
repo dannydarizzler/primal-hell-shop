@@ -20,22 +20,10 @@ const NEWS = [
     description: 'New individual boss reward added to Ascension — +15 Levels, same as the others.',
   },
   {
-    date: '2026-08-03',
-    emoji: '💸',
-    title: 'New: Quick Sell your items',
-    description: "Don't wanna redeem your item? You can now quick sell it for 50% of it's value - go check it out!",
-  },
-  {
     date: '2026-08-02',
     emoji: '💜',
     title: 'New in the Shop: Rockwell Gen2 Ascension',
     description: 'New individual boss reward added to Ascension — same +15 Levels as the others.',
-  },
-  {
-    date: '2026-08-01',
-    emoji: '🎉',
-    title: 'Welcome to the new Spotlight page!',
-    description: 'Check out the Hall of Fame, Lucky Wheel wins, and VIP Showcase on the Spotlight tab.',
   },
 ];
 

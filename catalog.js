@@ -32,7 +32,7 @@ const CATALOG = {
     emoji: '🛡️',
     image: '/images/items/basedefense.jpg',
     group: 'single',
-    note: 'Tek Structures are Tek Foundations, Tek Walls, Tek Ceilings, Tek Roofs, Tek Triangle Foundations, and Tek Gates. 1 Dino Gate counts as 10, 1 Behemoth Gate counts as 50. "Adv" = Advanced Rifle Bullets, for the turrets.',
+    note: 'Tek Structures are Tek Foundations, Tek Walls, Tek Ceilings, Tek Roofs, Tek Triangle Foundations, and Tek Gates. 1 Dino Gate counts as 10, 1 Behemoth Gate counts as 50.',
     tiers: [
       { id: 'basedefense_1', name: '25x Tek Turret + 25x Tek Heavy Turret + 125,000x Element Shards + 125,000x Adv Bullets + 1x Tek Generator + 100x Tek Structures of choice', cost: 1500 },
       { id: 'basedefense_2', name: '50x Tek Turret + 50x Tek Heavy Turret + 250,000x Element Shards + 250,000x Adv Bullets + 1x Tek Generator + 250x Tek Structures of choice', cost: 2600 },
